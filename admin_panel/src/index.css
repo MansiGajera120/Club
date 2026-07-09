@@ -1,0 +1,13 @@
+/* Minimal base styles. MUI's CssBaseline handles the reset; this covers the
+   root sizing and font smoothing. */
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

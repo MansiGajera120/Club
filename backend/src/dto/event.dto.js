@@ -1,0 +1,24 @@
+import { buildUploadUrl } from '../utils/url.js';
+
+const idOf = (v) => (v && v._id ? v._id.toString() : (v?.toString?.() ?? v));
+
+/**
+ * Event representation for API responses (absolute cover-image URL).
+ * @param {object} event
+ */
+export const toEventResponse = (event) => ({
+  id: idOf(event._id ?? event.id),
+  club: idOf(event.club),
+  title: event.title,
+  description: event.description ?? null,
+  coverImage: buildUploadUrl(event.coverImage),
+  location: event.location ?? null,
+  startDate: event.startDate,
+  endDate: event.endDate ?? null,
+  registrationLink: event.registrationLink ?? null,
+  isActive: Boolean(event.isActive),
+  createdAt: event.createdAt,
+  updatedAt: event.updatedAt,
+});
+
+export default toEventResponse;
