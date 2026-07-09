@@ -31,22 +31,26 @@ const consoleFormat = combine(
  */
 const fileFormat = combine(timestamp(), errors({ stack: true }), json());
 
-const transports = [
-  new winston.transports.Console({ format: consoleFormat }),
-  new winston.transports.File({
-    filename: path.join(logsDir, 'error.log'),
-    level: 'error',
-    format: fileFormat,
-    maxsize: 5 * 1024 * 1024,
-    maxFiles: 5,
-  }),
-  new winston.transports.File({
-    filename: path.join(logsDir, 'combined.log'),
-    format: fileFormat,
-    maxsize: 5 * 1024 * 1024,
-    maxFiles: 5,
-  }),
-];
+const transports = [new winston.transports.Console({ format: consoleFormat })];
+
+// File transports are useful locally; cloud hosts (Render) capture stdout instead.
+if (!config.isProduction) {
+  transports.push(
+    new winston.transports.File({
+      filename: path.join(logsDir, 'error.log'),
+      level: 'error',
+      format: fileFormat,
+      maxsize: 5 * 1024 * 1024,
+      maxFiles: 5,
+    }),
+    new winston.transports.File({
+      filename: path.join(logsDir, 'combined.log'),
+      format: fileFormat,
+      maxsize: 5 * 1024 * 1024,
+      maxFiles: 5,
+    })
+  );
+}
 
 const logger = winston.createLogger({
   level: config.logLevel,

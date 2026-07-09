@@ -32,6 +32,9 @@ const envSchema = Joi.object({
   RATE_LIMIT_MAX: Joi.number().default(100),
 
   MAX_FILE_SIZE: Joi.number().default(5 * 1024 * 1024),
+  // Optional absolute/relative path override. When empty, the app auto-picks
+  // monorepo `uploads/` locally or `backend/uploads/` on standalone hosts (Render).
+  UPLOADS_DIR: Joi.string().allow('').default(''),
 
   SMTP_HOST: Joi.string().allow('').default(''),
   SMTP_PORT: Joi.number().default(587),
@@ -100,6 +103,7 @@ const config = Object.freeze({
 
   uploads: {
     maxFileSize: env.MAX_FILE_SIZE,
+    dir: env.UPLOADS_DIR.trim(),
   },
 
   smtp: {

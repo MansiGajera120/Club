@@ -2,6 +2,7 @@ import { createApp } from './app.js';
 import config from './config/index.js';
 import logger from './logger/index.js';
 import { connectDatabase, disconnectDatabase } from './config/database.js';
+import { ensureUploadDirs } from './utils/paths.js';
 
 /**
  * Application entry point. Connects to MongoDB, starts the HTTP server, and
@@ -10,9 +11,10 @@ import { connectDatabase, disconnectDatabase } from './config/database.js';
 const start = async () => {
   try {
     await connectDatabase();
+    await ensureUploadDirs();
 
     const app = createApp();
-    const server = app.listen(config.server.port, () => {
+    const server = app.listen(config.server.port, '0.0.0.0', () => {
       logger.info(
         `🚀 Server running in ${config.env} mode on port ${config.server.port}`
       );

@@ -1,5 +1,3 @@
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
@@ -14,10 +12,7 @@ import { notFoundHandler } from '../middlewares/notFound.middleware.js';
 import { errorHandler } from '../middlewares/error.middleware.js';
 import { ApiResponse } from '../responses/ApiResponse.js';
 import apiRoutes from '../routes/index.js';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-// uploads/ lives at the workspace root, two levels above backend/src.
-const uploadsDir = path.resolve(__dirname, '../../../uploads');
+import { uploadsRoot } from '../utils/paths.js';
 
 /**
  * Configure an Express application with security, parsing, logging, routing and
@@ -61,7 +56,7 @@ export const configureExpress = (app) => {
   app.use(config.server.apiPrefix, apiRateLimiter);
 
   // ---------- Static uploads ----------
-  app.use('/uploads', express.static(uploadsDir));
+  app.use('/uploads', express.static(uploadsRoot));
 
   // ---------- Root ----------
   app.get('/', (_req, res) =>

@@ -12,6 +12,10 @@ coverage/
 logs/
 *.log
 
+# Runtime uploads (keep folder structure only)
+uploads/**/*
+!uploads/**/.gitkeep
+
 # OS
 .DS_Store
 Thumbs.db

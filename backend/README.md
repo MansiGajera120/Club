@@ -49,6 +49,25 @@ curl http://localhost:5000/api/v1/health
 | `npm run seed`         | Seed the database (added later)         |
 | `npm test`             | Run tests (added in Phase 11)           |
 
+## Deploy to Render
+
+The API is configured for [Render](https://render.com) out of the box:
+
+- Listens on `0.0.0.0` and uses Render’s `PORT`
+- Health check: `GET /api/v1/health`
+- Uploads auto-resolve to `backend/uploads/` when deployed with **Root Directory** `backend`
+- Blueprint: [`render.yaml`](render.yaml)
+
+**Quick steps**
+
+1. Push the repo to GitHub.
+2. Create a MongoDB Atlas cluster and allow network access from anywhere (`0.0.0.0/0`).
+3. On Render: **New → Blueprint** (or **Web Service** with root dir `backend`).
+4. Set env vars: `MONGO_URI`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `APP_URL`, `CLIENT_URL`, `CORS_ORIGINS`.
+5. Deploy and hit `https://<your-app>.onrender.com/api/v1/health`.
+
+Full instructions: [`../docs/DEPLOYMENT.md`](../docs/DEPLOYMENT.md).
+
 ## Architecture
 
 Requests flow strictly downward and never skip a layer:
