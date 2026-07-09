@@ -13,12 +13,31 @@ Go Router, Dio and Freezed following a clean, layered architecture.
 ```bash
 cd mobile_app
 flutter pub get
-flutter run --dart-define=API_BASE_URL=http://10.0.2.2:5000/api/v1
+flutter run
 ```
 
-> `10.0.2.2` is the Android emulator's alias for the host machine's `localhost`.
-> For iOS simulators use `http://localhost:5000/api/v1`; for a physical device
-> use your machine's LAN IP.
+API URL is chosen automatically:
+
+| Mode | How | Backend API |
+| ---- | --- | ----------- |
+| Development | `flutter run` (debug) | `http://localhost:5000/api/v1` |
+| Production | `flutter build apk/ios` (release) | `https://club-1r4i.onrender.com/api/v1` |
+
+**Android emulator** — localhost does not reach the host machine. Use:
+
+```bash
+flutter run --dart-define-from-file=config/android_emulator.json
+```
+
+**Explicit config files** (optional):
+
+```bash
+flutter run --dart-define-from-file=config/dev.json
+flutter build apk --dart-define-from-file=config/prod.json
+```
+
+> iOS simulator: `localhost` works. Physical device: use your PC's LAN IP via
+> `--dart-define=API_BASE_URL=http://<your-ip>:5000/api/v1`.
 
 ### Code generation
 
@@ -42,13 +61,14 @@ dart run build_runner watch --delete-conflicting-outputs
 
 ## Configuration
 
-Runtime configuration is passed via `--dart-define` and read in
-[`lib/config/app_config.dart`](lib/config/app_config.dart):
+Runtime configuration is read in [`lib/config/app_config.dart`](lib/config/app_config.dart).
+URLs switch automatically between local dev and the Render backend; override with
+`--dart-define` or `--dart-define-from-file=config/*.json`.
 
-| Define         | Default                               | Purpose             |
-| -------------- | ------------------------------------- | ------------------- |
-| `ENV`          | `dev`                                 | Environment flavor  |
-| `API_BASE_URL` | `http://10.0.2.2:5000/api/v1`         | Backend API base    |
+| Define         | When set | Purpose             |
+| -------------- | -------- | ------------------- |
+| `ENV`          | optional | `dev` / `staging` / `prod` flavor |
+| `API_BASE_URL` | optional | Force a specific API base URL |
 
 ## Architecture
 

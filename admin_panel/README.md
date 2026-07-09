@@ -11,10 +11,36 @@ Material UI, React Router, React Query, Axios, React Hook Form and React Toastif
 
 ```bash
 cd admin_panel
-cp .env.example .env      # set VITE_API_URL to your backend
 npm install
-npm run dev               # http://localhost:5173
+npm run dev               # http://localhost:5173 — uses local backend
 ```
+
+The API URL is picked automatically:
+
+| Mode | Command / host | Backend API |
+| ---- | -------------- | ----------- |
+| Development | `npm run dev` | `http://localhost:5000/api/v1` |
+| Production | `npm run build`, Vercel | `https://club-1r4i.onrender.com/api/v1` |
+
+Override with `VITE_API_URL` in `.env.local` if needed.
+
+## Deploy to Vercel
+
+1. Push the repo to GitHub.
+2. [vercel.com/new](https://vercel.com/new) → import the repo.
+3. Settings:
+
+   | Field | Value |
+   | ----- | ----- |
+   | **Root Directory** | `admin_panel` |
+   | **Framework Preset** | Vite |
+   | **Build Command** | `npm run build` |
+   | **Output Directory** | `dist` |
+
+4. Deploy — no env vars required (production API URL is in `.env.production`).
+5. On **Render**, update the backend `CORS_ORIGINS` and `CLIENT_URL` to your Vercel URL, e.g. `https://your-app.vercel.app`.
+
+`vercel.json` includes SPA rewrites so client-side routing works.
 
 ## Scripts
 
@@ -29,10 +55,12 @@ npm run dev               # http://localhost:5173
 
 ## Environment Variables
 
-| Variable        | Default                         | Purpose               |
-| --------------- | ------------------------------- | --------------------- |
-| `VITE_API_URL`  | `http://localhost:5000/api/v1`  | Backend API base URL  |
-| `VITE_APP_NAME` | `Sports Club Admin`             | App display name      |
+| Variable        | Development default               | Production default (Vercel)              | Purpose               |
+| --------------- | --------------------------------- | ---------------------------------------- | --------------------- |
+| `VITE_API_URL`  | `http://localhost:5000/api/v1`    | `https://club-1r4i.onrender.com/api/v1`  | Backend API base URL  |
+| `VITE_APP_NAME` | `Sports Club Admin`               | `Sports Club Admin`                      | App display name      |
+
+Set in `.env.development` / `.env.production`, or override with `.env.local`.
 
 ## Architecture
 

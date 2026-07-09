@@ -24,9 +24,9 @@ A blueprint file lives at [`backend/render.yaml`](../backend/render.yaml).
 3. Render detects `backend/render.yaml` and creates the `club-api` web service.
 4. In the service **Environment** tab, set the variables marked `sync: false`:
    - `MONGO_URI`
-   - `APP_URL` — your Render URL, e.g. `https://club-api.onrender.com`
-   - `CLIENT_URL` — admin panel URL (or placeholder until admin is deployed)
-   - `CORS_ORIGINS` — comma-separated allowed origins (admin panel + any web clients)
+   - `APP_URL` — `https://club-1r4i.onrender.com`
+   - `CLIENT_URL` — your Vercel admin URL, e.g. `https://your-app.vercel.app`
+   - `CORS_ORIGINS` — same Vercel URL (comma-separated if multiple)
    - SMTP vars if you need email
    - `GOOGLE_CLIENT_IDS` if using Google Sign-In
 5. Click **Manual Deploy** → **Deploy latest commit**.
@@ -52,9 +52,9 @@ A blueprint file lives at [`backend/render.yaml`](../backend/render.yaml).
    | `MONGO_URI` | Atlas connection string with `/sunny_club` |
    | `JWT_ACCESS_SECRET` | random 32+ char secret |
    | `JWT_REFRESH_SECRET` | different random secret |
-   | `APP_URL` | `https://<service-name>.onrender.com` |
-   | `CLIENT_URL` | admin panel public URL |
-   | `CORS_ORIGINS` | same as `CLIENT_URL` (comma-separated if multiple) |
+   | `APP_URL` | `https://club-1r4i.onrender.com` |
+   | `CLIENT_URL` | Vercel admin URL |
+   | `CORS_ORIGINS` | Vercel admin URL |
    | `LOG_LEVEL` | `info` |
    | `SMTP_*` | optional — leave `SMTP_HOST` empty to skip real email |
 
@@ -72,10 +72,45 @@ A blueprint file lives at [`backend/render.yaml`](../backend/render.yaml).
   cd backend
   MONGO_URI="mongodb+srv://..." npm run seed
   ```
-- **Point clients** at the API:
-  - Admin panel: `VITE_API_URL=https://<service-name>.onrender.com`
-  - Mobile app: update API base URL in app config / `--dart-define`
+- **Point clients** at the API (already configured in code):
+  - Admin panel (Vercel): `https://club-1r4i.onrender.com/api/v1` via `.env.production`
+  - Mobile app (release builds): same URL via `AppConfig`
 - **Google OAuth**: add the Render `APP_URL` / mobile bundle IDs to Google Cloud Console.
+
+---
+
+## Admin panel on Vercel
+
+The admin panel auto-selects the API URL:
+
+| Mode | Backend |
+| ---- | ------- |
+| `npm run dev` | `http://localhost:5000/api/v1` |
+| Vercel production build | `https://club-1r4i.onrender.com/api/v1` |
+
+### Steps
+
+1. Push the repo to GitHub.
+2. [vercel.com/new](https://vercel.com/new) → import the repository.
+3. Set **Root Directory** to `admin_panel`.
+4. Framework: **Vite** (auto-detected). Build: `npm run build`, output: `dist`.
+5. Deploy — no environment variables required unless you want to override `VITE_API_URL`.
+6. Copy your Vercel URL (e.g. `https://club-admin.vercel.app`).
+7. On **Render** → backend service → **Environment**, set:
+   - `CLIENT_URL=https://<your-vercel-app>.vercel.app`
+   - `CORS_ORIGINS=https://<your-vercel-app>.vercel.app`
+8. Redeploy the backend on Render so CORS picks up the new origin.
+
+`admin_panel/vercel.json` includes SPA rewrites for React Router.
+
+---
+
+## Mobile app (release builds)
+
+Debug runs use `localhost`; release builds (`flutter build apk` / `flutter build ios`)
+automatically use `https://club-1r4i.onrender.com/api/v1`.
+
+See [`mobile_app/README.md`](../mobile_app/README.md) for emulator and device overrides.
 
 ### File uploads on Render
 
@@ -93,9 +128,9 @@ For production image persistence, use one of:
 
 ---
 
-## Other apps (planned)
+## Other apps
 
-| App           | Target                          |
-| ------------- | ------------------------------- |
-| `admin_panel` | Render Static Site / Vercel     |
-| `mobile_app`  | Google Play & Apple App Store   |
+| App           | Target                          | Status |
+| ------------- | ------------------------------- | ------ |
+| `admin_panel` | Vercel                          | Ready  |
+| `mobile_app`  | Google Play & Apple App Store   | Config ready |

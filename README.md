@@ -75,7 +75,7 @@ The platform is built in sequential phases:
 | 9     | Flutter screens                    | ✅ Complete     |
 | 10    | Admin screens                      | ✅ Complete     |
 | 11    | Testing                            | ✅ Complete     |
-| 12    | Deployment                         | 🚧 Backend (Render) ready |
+| 12    | Deployment                         | Backend (Render) + Admin (Vercel) ready |
 
 ## License
 

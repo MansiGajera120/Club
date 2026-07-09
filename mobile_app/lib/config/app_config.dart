@@ -1,15 +1,21 @@
+import 'package:flutter/foundation.dart';
+
 /// Application environment configuration.
 ///
-/// Values are provided at build/run time via `--dart-define` so the same code
-/// ships to every environment without hardcoded URLs. Example:
+/// API URL is chosen automatically:
+/// - **Debug / dev** → `http://localhost:5000/api/v1`
+/// - **Release / prod** → `https://club-1r4i.onrender.com/api/v1`
 ///
-/// ```
-/// flutter run --dart-define=API_BASE_URL=https://api.sportsclub.app
-/// ```
+/// Override any time with `--dart-define=API_BASE_URL=...`
+/// (Android emulator: `http://10.0.2.2:5000/api/v1`).
 enum Environment { dev, staging, prod }
 
 class AppConfig {
   const AppConfig._();
+
+  static const String _localApiBaseUrl = 'http://localhost:5000/api/v1';
+  static const String _productionApiBaseUrl =
+      'https://club-1r4i.onrender.com/api/v1';
 
   /// Current environment. Defaults to dev for local development.
   static const String _envName =
@@ -26,19 +32,17 @@ class AppConfig {
     }
   }
 
-  static bool get isProduction => environment == Environment.prod;
+  /// True for release builds or when `ENV=prod`.
+  static bool get isProduction =>
+      kReleaseMode || environment == Environment.prod;
 
   /// Base URL of the backend REST API, including the version prefix.
-  ///
-  /// Defaults to the host machine's LAN IP so a physical device on the same
-  /// Wi-Fi can reach the backend. For the Android emulator use `10.0.2.2`, and
-  /// for the iOS simulator use `localhost`. Override per environment (or when
-  /// your LAN IP changes) with:
-  ///   `--dart-define=API_BASE_URL=http://<host-ip>:5000/api/v1`
-  static const String apiBaseUrl = String.fromEnvironment(
-    'API_BASE_URL',
-    defaultValue: 'http://192.168.1.41:5000/api/v1',
-  );
+  static String get apiBaseUrl {
+    const override = String.fromEnvironment('API_BASE_URL', defaultValue: '');
+    if (override.isNotEmpty) return override;
+    if (isProduction) return _productionApiBaseUrl;
+    return _localApiBaseUrl;
+  }
 
   /// Google OAuth **Web** client ID, used as the `serverClientId` for
   /// `google_sign_in`. On Android this is REQUIRED for the SDK to return an

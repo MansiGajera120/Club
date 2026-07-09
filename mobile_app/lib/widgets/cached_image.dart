@@ -38,7 +38,10 @@ class CachedImage extends StatelessWidget {
 
       if (parsed != null && parsed.hasScheme) {
         final host = parsed.host.toLowerCase();
-        final isLocalBackendUrl = host == 'localhost' || host == '127.0.0.1';
+        final isLocalBackendUrl = host == 'localhost' ||
+            host == '127.0.0.1' ||
+            host == '10.0.2.2' ||
+            host.startsWith('192.168.');
         if (!isLocalBackendUrl) return value;
 
         return origin
