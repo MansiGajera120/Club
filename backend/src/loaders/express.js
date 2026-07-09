@@ -28,11 +28,27 @@ export const configureExpress = (app) => {
 
   // ---------- Security ----------
   app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+
+  // Build CORS matchers. Entries in CORS_ORIGINS may be exact origins
+  // (`https://app.example.com`) or wildcard patterns (`https://*.vercel.app`)
+  // so preview/branch deployments are allowed without redeploying the backend.
+  const originMatchers = config.server.corsOrigins.map((pattern) => {
+    if (pattern.includes('*')) {
+      const escaped = pattern
+        .replace(/[.+?^${}()|[\]\\]/g, '\\$&')
+        .replace(/\*/g, '.*');
+      return new RegExp(`^${escaped}$`);
+    }
+    return pattern;
+  });
+  const isAllowedOrigin = (origin) =>
+    originMatchers.some((m) => (m instanceof RegExp ? m.test(origin) : m === origin));
+
   app.use(
     cors({
       origin: (origin, callback) => {
         // Allow non-browser clients (mobile apps, curl) that send no origin.
-        if (!origin || config.server.corsOrigins.includes(origin)) {
+        if (!origin || isAllowedOrigin(origin)) {
           return callback(null, true);
         }
         return callback(new Error(`Origin ${origin} not allowed by CORS`));
