@@ -16,7 +16,11 @@ const envSchema = Joi.object({
   PORT: Joi.number().port().default(5000),
   API_PREFIX: Joi.string().default('/api/v1'),
   CORS_ORIGINS: Joi.string().default('http://localhost:5173'),
-  APP_URL: Joi.string().uri().default('http://localhost:5000'),
+  // Public base URL of this API. On Render, `RENDER_EXTERNAL_URL` is injected
+  // automatically, so APP_URL resolves to the live URL without manual config.
+  APP_URL: Joi.string()
+    .uri()
+    .default(process.env.RENDER_EXTERNAL_URL || 'http://localhost:5000'),
   CLIENT_URL: Joi.string().uri().default('http://localhost:5173'),
 
   MONGO_URI: Joi.string().required().messages({
