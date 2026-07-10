@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/club_model.dart';
 import '../repositories/favorite_repository.dart';
+import 'auth_provider.dart';
 import 'core_providers.dart';
 
 final favoriteRepositoryProvider = Provider<FavoriteRepository>((ref) {
@@ -35,15 +36,18 @@ class FavoriteUiNotifier extends Notifier<FavoriteUiState> {
 final favoriteUiProvider =
     NotifierProvider<FavoriteUiNotifier, FavoriteUiState>(FavoriteUiNotifier.new);
 
-/// Resolves favorite state for a club. Once favorites have loaded, the live list
-/// is the source of truth; until then the API's [fallback] flag is used.
+/// Resolves favorite state for the signed-in user only. Never uses cached
+/// [fallback] from club payloads — those can belong to a previous session.
 final clubIsFavoriteProvider =
     Provider.family<bool, ({String clubId, bool fallback})>((ref, args) {
+  final auth = ref.watch(authControllerProvider);
+  if (!auth.isAuthenticated) return false;
+
   final favorites = ref.watch(favoritesControllerProvider);
   return favorites.when(
     data: (clubs) => clubs.any((c) => c.id == args.clubId),
-    loading: () => args.fallback,
-    error: (_, _) => args.fallback,
+    loading: () => false,
+    error: (_, _) => false,
   );
 });
 
@@ -57,7 +61,12 @@ final clubFavoritePendingProvider = Provider.family<bool, String>((ref, clubId) 
 class FavoritesController extends AsyncNotifier<List<Club>> {
   @override
   Future<List<Club>> build() async {
-    final result = await ref.watch(favoriteRepositoryProvider).list();
+    // Re-fetch whenever the signed-in user changes (login / logout / switch).
+    ref.watch(authControllerProvider.select((s) => s.user?.id));
+    final auth = ref.read(authControllerProvider);
+    if (!auth.isAuthenticated) return [];
+
+    final result = await ref.read(favoriteRepositoryProvider).list();
     return result.items;
   }
 

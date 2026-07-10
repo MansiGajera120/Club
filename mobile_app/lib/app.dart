@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
 
 import 'config/app_config.dart';
+import 'providers/session_providers.dart';
 import 'routes/app_router.dart';
 import 'theme/app_theme.dart';
 import 'utils/app_toast.dart';
@@ -14,6 +15,7 @@ class ClubApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(userSessionCoordinatorProvider);
     final router = ref.watch(routerProvider);
 
     return MaterialApp.router(
