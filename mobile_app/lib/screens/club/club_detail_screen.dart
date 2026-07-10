@@ -1,15 +1,16 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../models/club_model.dart';
 import '../../providers/club_providers.dart';
 import '../../providers/event_providers.dart';
-import '../../providers/favorite_providers.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_radius.dart';
 import '../../theme/app_spacing.dart';
+import '../../utils/app_toast.dart';
 import '../../utils/formatters.dart';
 import '../../widgets/widgets.dart';
 import '../events/events_screen.dart' show EventCard;
@@ -48,9 +49,7 @@ class _ClubDetailView extends ConsumerWidget {
     if (uri == null ||
         !await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not open link')),
-        );
+        AppToast.error('Could not open link');
       }
     }
   }
@@ -58,9 +57,6 @@ class _ClubDetailView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final favorites = ref.watch(favoritesControllerProvider);
-    final isFav =
-        favorites.value?.any((c) => c.id == club.id) ?? club.isFavorite;
     final events = ref.watch(clubEventsProvider(club.id));
     final images = [if (club.logo != null) club.logo!, ...club.gallery];
 
@@ -70,11 +66,9 @@ class _ClubDetailView extends ConsumerWidget {
           expandedHeight: 260,
           pinned: true,
           actions: [
-            IconButton(
-              icon: Icon(isFav ? Icons.favorite : Icons.favorite_border,
-                  color: isFav ? AppColors.danger : null),
-              onPressed: () =>
-                  ref.read(favoritesControllerProvider.notifier).toggle(club),
+            ClubFavoriteButton(
+              club: club,
+              inactiveColor: theme.colorScheme.onSurface,
             ),
             IconButton(
               icon: const Icon(Icons.share),
@@ -123,15 +117,6 @@ class _ClubDetailView extends ConsumerWidget {
                   Text('About', style: theme.textTheme.titleLarge),
                   const SizedBox(height: AppSpacing.sm),
                   Text(club.description!, style: theme.textTheme.bodyLarge),
-                ],
-                if (club.registrationLink != null &&
-                    club.registrationLink!.isNotEmpty) ...[
-                  const SizedBox(height: AppSpacing.lg),
-                  AppButton(
-                    label: 'Register',
-                    icon: Icons.how_to_reg,
-                    onPressed: () => _launch(context, club.registrationLink),
-                  ),
                 ],
                 const SizedBox(height: AppSpacing.lg),
                 Text('Contact', style: theme.textTheme.titleLarge),
@@ -231,40 +216,210 @@ class _ContactActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = contact;
-    final actions = <Widget>[
-      if (c?.phone != null && c!.phone!.isNotEmpty)
-        _ActionButton(icon: Icons.call, label: 'Call', onTap: () => onCall(c.phone!)),
-      if (c?.email != null && c!.email!.isNotEmpty)
-        _ActionButton(icon: Icons.email_outlined, label: 'Email', onTap: () => onEmail(c.email!)),
+    final hasPhone = c?.phone != null && c!.phone!.isNotEmpty;
+    final hasEmail = c?.email != null && c!.email!.isNotEmpty;
+
+    final socials = <Widget>[
       if (c?.website != null && c!.website!.isNotEmpty)
-        _ActionButton(icon: Icons.language, label: 'Website', onTap: () => onWeb(c.website!)),
+        _SocialButton(
+          icon: Icons.language_rounded,
+          color: const Color(0xFF2563EB),
+          label: 'Website',
+          onTap: () => onWeb(c.website!),
+        ),
       if (c?.instagram != null && c!.instagram!.isNotEmpty)
-        _ActionButton(icon: Icons.camera_alt_outlined, label: 'Instagram', onTap: () => onWeb(c.instagram!)),
+        _SocialButton(
+          svgAsset: 'assets/icons/instagram.svg',
+          label: 'Instagram',
+          // Instagram's signature gradient for a branded look.
+          gradient: const LinearGradient(
+            begin: Alignment.bottomLeft,
+            end: Alignment.topRight,
+            colors: [
+              Color(0xFFF58529),
+              Color(0xFFDD2A7B),
+              Color(0xFF8134AF),
+            ],
+          ),
+          onTap: () => onWeb(c.instagram!),
+        ),
       if (c?.tiktok != null && c!.tiktok!.isNotEmpty)
-        _ActionButton(icon: Icons.music_note, label: 'TikTok', onTap: () => onWeb(c.tiktok!)),
+        _SocialButton(
+          svgAsset: 'assets/icons/tiktok.svg',
+          color: const Color(0xFF010101),
+          label: 'TikTok',
+          onTap: () => onWeb(c.tiktok!),
+        ),
     ];
 
-    if (actions.isEmpty) {
+    if (!hasPhone && !hasEmail && socials.isEmpty) {
       return Text('No contact details provided',
           style: Theme.of(context).textTheme.bodyMedium);
     }
-    return Wrap(spacing: AppSpacing.md, runSpacing: AppSpacing.md, children: actions);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (hasPhone)
+          _ContactRow(
+            icon: Icons.call_rounded,
+            label: 'Call',
+            value: c.phone!,
+            onTap: () => onCall(c.phone!),
+          ),
+        if (hasEmail) ...[
+          if (hasPhone) const SizedBox(height: AppSpacing.sm),
+          _ContactRow(
+            icon: Icons.email_rounded,
+            label: 'Email',
+            value: c.email!,
+            onTap: () => onEmail(c.email!),
+          ),
+        ],
+        if (socials.isNotEmpty) ...[
+          const SizedBox(height: AppSpacing.lg),
+          Wrap(
+            spacing: AppSpacing.xl,
+            runSpacing: AppSpacing.md,
+            children: socials,
+          ),
+        ],
+      ],
+    );
   }
 }
 
-class _ActionButton extends StatelessWidget {
+/// A tappable contact row showing the icon, a label, and the actual value
+/// (phone number / email address) beside it.
+class _ContactRow extends StatelessWidget {
   final IconData icon;
   final String label;
+  final String value;
   final VoidCallback onTap;
-  const _ActionButton({required this.icon, required this.label, required this.onTap});
+
+  const _ContactRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedButton.icon(
-      onPressed: onTap,
-      icon: Icon(icon, size: 18),
-      label: Text(label),
-      style: OutlinedButton.styleFrom(minimumSize: const Size(0, 44)),
+    final theme = Theme.of(context);
+    return Material(
+      color: theme.cardTheme.color ?? theme.colorScheme.surface,
+      borderRadius: AppRadius.lgAll,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: AppRadius.lgAll,
+            border: Border.all(color: theme.dividerColor),
+          ),
+          padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.10),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, size: 20, color: AppColors.primary),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(label,
+                        style: theme.textTheme.labelSmall
+                            ?.copyWith(color: AppColors.textTertiary)),
+                    Text(
+                      value,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodyLarge
+                          ?.copyWith(fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.north_east, size: 16, color: AppColors.textTertiary),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Circular brand-styled button (with a label beneath) for website / Instagram
+/// / TikTok links. The circle is filled with the brand [color] (or [gradient]
+/// for Instagram) and holds a white glyph — either a Material [icon] or a
+/// white brand [svgAsset].
+class _SocialButton extends StatelessWidget {
+  final IconData? icon;
+  final String? svgAsset;
+  final Color? color;
+  final Gradient? gradient;
+  final String label;
+  final VoidCallback onTap;
+
+  const _SocialButton({
+    required this.label,
+    required this.onTap,
+    this.icon,
+    this.svgAsset,
+    this.color,
+    this.gradient,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Material(
+          color: Colors.transparent,
+          shape: const CircleBorder(),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: onTap,
+            child: Ink(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: gradient,
+                color: gradient == null ? color : null,
+              ),
+              child: Center(
+                child: svgAsset != null
+                    ? SvgPicture.asset(
+                        svgAsset!,
+                        width: 24,
+                        height: 24,
+                        colorFilter: const ColorFilter.mode(
+                            Colors.white, BlendMode.srcIn),
+                      )
+                    : Icon(icon, size: 24, color: Colors.white),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          label,
+          style: theme.textTheme.labelSmall
+              ?.copyWith(color: AppColors.textSecondary),
+        ),
+      ],
     );
   }
 }

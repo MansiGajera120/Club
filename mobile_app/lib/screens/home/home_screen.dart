@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../models/club_model.dart';
 import '../../providers/club_providers.dart';
-import '../../providers/favorite_providers.dart';
 import '../../routes/route_names.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_gradients.dart';
@@ -88,23 +87,10 @@ class HomeScreen extends ConsumerWidget {
                         itemCount: clubs.length,
                         separatorBuilder: (_, _) =>
                             const SizedBox(height: AppSpacing.md),
-                        itemBuilder: (_, i) => Consumer(
-                          builder: (context, ref, _) {
-                            final club = clubs[i];
-                            final favorites =
-                                ref.watch(favoritesControllerProvider);
-                            final isFavorite = favorites.value
-                                    ?.any((c) => c.id == club.id) ??
-                                club.isFavorite;
-                            return ClubCard(
-                              club: club,
-                              onTap: () => _openClub(context, club.id),
-                              isFavorite: isFavorite,
-                              onToggleFavorite: () => ref
-                                  .read(favoritesControllerProvider.notifier)
-                                  .toggle(club),
-                            );
-                          },
+                        itemBuilder: (_, i) => ClubCard(
+                          club: clubs[i],
+                          onTap: () => _openClub(context, clubs[i].id),
+                          showFavorite: true,
                         ),
                       ),
                     ),

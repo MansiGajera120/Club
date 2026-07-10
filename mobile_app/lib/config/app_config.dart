@@ -25,6 +25,53 @@ class AppConfig {
   static const String _productionApiBaseUrl =
       'https://club-1r4i.onrender.com/api/v1';
 
+  /// API version segment appended to the host when missing from overrides.
+  static const String apiVersionPrefix = '/api/v1';
+
+  /// Strips any `/api/v1` suffix and returns `scheme://host:port` only.
+  /// Dio uses this as [baseUrl]; versioned paths live on [ApiEndpoints].
+  static String normalizeApiOrigin(String raw) {
+    var url = raw.trim();
+    if (url.isEmpty) return url;
+
+    // Defensive cleanup: strip stray brackets/quotes that can leak in from a
+    // malformed `--dart-define=API_BASE_URL=…` override (e.g. a trailing `]`
+    // pasted from a JSON array), which would otherwise survive as junk on the
+    // path and produce broken doubled URLs like `…/api/v1]/api/v1/auth/google`.
+    url = url.replaceAll(RegExp(r'''^[\s"'\[\]]+|[\s"'\[\]]+$'''), '');
+    if (url.isEmpty) return url;
+
+    while (url.endsWith('/')) {
+      url = url.substring(0, url.length - 1);
+    }
+
+    final uri = Uri.tryParse(url);
+    if (uri == null || !uri.hasScheme) return url;
+
+    var path = uri.path;
+    if (path.endsWith(apiVersionPrefix)) {
+      path = path.substring(0, path.length - apiVersionPrefix.length);
+    }
+    if (path == apiVersionPrefix) path = '';
+
+    final origin = Uri(
+      scheme: uri.scheme,
+      host: uri.host,
+      port: uri.hasPort ? uri.port : null,
+      path: path.isEmpty ? null : path,
+    );
+
+    var result = origin.toString();
+    while (result.endsWith('/')) {
+      result = result.substring(0, result.length - 1);
+    }
+    return result;
+  }
+
+  /// Full API root (`origin` + `/api/v1`) for display and media URL building.
+  static String apiBaseUrlFromOrigin(String origin) =>
+      '${normalizeApiOrigin(origin)}$apiVersionPrefix';
+
   /// Current environment. Defaults to dev for local development.
   static const String _envName =
       String.fromEnvironment('ENV', defaultValue: 'dev');
@@ -44,13 +91,19 @@ class AppConfig {
   static bool get isProduction =>
       kReleaseMode || environment == Environment.prod;
 
-  /// Base URL of the backend REST API, including the version prefix.
-  static String get apiBaseUrl {
+  /// Resolved API URL from dart-define or environment defaults.
+  static String get _resolvedApiUrl {
     const override = String.fromEnvironment('API_BASE_URL', defaultValue: '');
     if (override.isNotEmpty) return override;
     if (isProduction) return _productionApiBaseUrl;
     return _localApiBaseUrl;
   }
+
+  /// Host origin for Dio (`http://host:port`) — no `/api/v1` suffix.
+  static String get apiOrigin => normalizeApiOrigin(_resolvedApiUrl);
+
+  /// Full API root (`origin` + `/api/v1`) for media URLs and debugging.
+  static String get apiBaseUrl => apiBaseUrlFromOrigin(apiOrigin);
 
   /// Google OAuth **Web** client ID, used as the `serverClientId` for
   /// `google_sign_in`. On Android this is REQUIRED for the SDK to return an

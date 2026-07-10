@@ -12,6 +12,15 @@ export const createEventSchema = Joi.object({
   price: Joi.number().min(0).max(1000000).default(0),
   priceCurrency: Joi.string().trim().uppercase().length(3).default('USD'),
   registrationLink: Joi.string().uri().allow('').max(300),
+  registrationStartDate: Joi.date().iso().allow(null),
+  // Registration must close on or after it opens.
+  registrationEndDate: Joi.date()
+    .iso()
+    .allow(null)
+    .when('registrationStartDate', {
+      is: Joi.exist().not(null),
+      then: Joi.date().min(Joi.ref('registrationStartDate')),
+    }),
   isActive: Joi.boolean().default(true),
 });
 
@@ -31,6 +40,14 @@ export const updateEventSchema = Joi.object({
   price: Joi.number().min(0).max(1000000),
   priceCurrency: Joi.string().trim().uppercase().length(3),
   registrationLink: Joi.string().uri().allow('').max(300),
+  registrationStartDate: Joi.date().iso().allow(null),
+  registrationEndDate: Joi.date()
+    .iso()
+    .allow(null)
+    .when('registrationStartDate', {
+      is: Joi.exist().not(null),
+      then: Joi.date().min(Joi.ref('registrationStartDate')),
+    }),
   isActive: Joi.boolean(),
 }).min(1);
 

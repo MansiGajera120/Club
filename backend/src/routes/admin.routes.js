@@ -4,8 +4,12 @@ import * as adminController from '../controllers/admin.controller.js';
 import { authenticate } from '../middlewares/auth.middleware.js';
 import { authorize } from '../middlewares/rbac.middleware.js';
 import { validate } from '../middlewares/validate.middleware.js';
+import { uploadSingle, uploadMany } from '../middlewares/upload.middleware.js';
+import { removeGallerySchema } from '../validators/club.validator.js';
 import { ROLES } from '../enums/index.js';
 import {
+  adminCreateClubSchema,
+  adminUpdateClubSchema,
   updateClubStatusSchema,
   setFeaturedSchema,
   listClubsQuerySchema,
@@ -22,8 +26,11 @@ router.use(authenticate, authorize(ROLES.ADMIN));
 // Dashboard
 router.get('/stats', adminController.getStats);
 
-// Clubs / moderation
+// Clubs / moderation + full admin CRUD
 router.get('/clubs', validate(listClubsQuerySchema, 'query'), adminController.listClubs);
+router.post('/clubs', validate(adminCreateClubSchema), adminController.createClub);
+router.get('/clubs/:id', adminController.getClub);
+router.patch('/clubs/:id', validate(adminUpdateClubSchema), adminController.updateClub);
 router.patch(
   '/clubs/:id/status',
   validate(updateClubStatusSchema),
@@ -35,6 +42,23 @@ router.patch(
   adminController.setClubFeatured
 );
 router.delete('/clubs/:id', adminController.deleteClub);
+
+// Logo + gallery upload for admin-managed clubs.
+router.post(
+  '/clubs/:id/logo',
+  uploadSingle('logo'),
+  adminController.uploadLogo
+);
+router.post(
+  '/clubs/:id/gallery',
+  uploadMany('images', 10),
+  adminController.addGallery
+);
+router.delete(
+  '/clubs/:id/gallery',
+  validate(removeGallerySchema),
+  adminController.removeGallery
+);
 
 // Users
 router.get('/users', validate(listUsersQuerySchema, 'query'), adminController.listUsers);

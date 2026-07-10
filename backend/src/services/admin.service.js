@@ -4,7 +4,7 @@ import { CLUB_STATUS, USER_STATUS, ROLES } from '../enums/index.js';
 import { clubRepository } from '../repositories/club.repository.js';
 import { userRepository } from '../repositories/user.repository.js';
 import { eventRepository } from '../repositories/event.repository.js';
-import { toClubListItem } from '../dto/club.dto.js';
+import { toClubListItem, toClubResponse } from '../dto/club.dto.js';
 import { toUserResponse } from '../dto/user.dto.js';
 import { toEventResponse } from '../dto/event.dto.js';
 import { getPagination, buildPaginationMeta } from '../utils/pagination.js';
@@ -83,6 +83,56 @@ export const listClubs = async (query) => {
   };
 };
 
+/**
+ * Admin creates an organization directly. Unlike owner registration there is no
+ * one-club-per-owner limit, and the club goes live (APPROVED) immediately unless
+ * the admin picks another status. When no `owner` is supplied the admin becomes
+ * the owner so the required reference is always satisfied.
+ */
+export const createClub = async (adminUser, data) => {
+  const { owner, status, ...fields } = data;
+  const finalStatus = status || CLUB_STATUS.APPROVED;
+
+  const payload = {
+    ...fields,
+    owner: owner || adminUser.id,
+    status: finalStatus,
+  };
+  if (finalStatus === CLUB_STATUS.APPROVED) {
+    payload.approvedAt = new Date();
+    payload.approvedBy = adminUser.id;
+  }
+
+  const club = await clubRepository.create(payload);
+  return toClubResponse(club);
+};
+
+/** Fetch a single club (any status) as the full detail DTO for the edit form. */
+export const getClub = async (clubId) => {
+  const club = await clubRepository.findById(clubId, { populateOwner: true });
+  if (!club) throw ApiError.notFound(MESSAGES.CLUB.NOT_FOUND);
+  return toClubResponse(club);
+};
+
+/**
+ * Admin edits any club's content and admin-only fields (status, isFeatured)
+ * in one call, without the owner resubmit side effects.
+ */
+export const updateClub = async (clubId, data, adminId) => {
+  const club = await clubRepository.findById(clubId);
+  if (!club) throw ApiError.notFound(MESSAGES.CLUB.NOT_FOUND);
+
+  const patch = { ...data };
+  if (patch.status === CLUB_STATUS.APPROVED && club.status !== CLUB_STATUS.APPROVED) {
+    patch.approvedAt = new Date();
+    patch.approvedBy = adminId;
+    patch.rejectionReason = null;
+  }
+
+  const updated = await clubRepository.updateById(clubId, patch);
+  return toClubResponse(updated);
+};
+
 export const updateClubStatus = async (clubId, { status, reason }, adminId) => {
   const club = await clubRepository.findById(clubId);
   if (!club) throw ApiError.notFound(MESSAGES.CLUB.NOT_FOUND);
@@ -110,6 +160,17 @@ export const setClubFeatured = async (clubId, isFeatured) => {
 
 export const deleteClub = (clubId, adminUser) =>
   clubService.deleteClub(clubId, adminUser);
+
+// Image management reuses the club service (its manageable-club check passes
+// admins through), so admins upload/remove logos and gallery photos on any club.
+export const updateClubLogo = (clubId, adminUser, file) =>
+  clubService.updateLogo(clubId, adminUser, file);
+
+export const addClubGallery = (clubId, adminUser, files) =>
+  clubService.addGalleryImages(clubId, adminUser, files);
+
+export const removeClubGallery = (clubId, adminUser, image) =>
+  clubService.removeGalleryImage(clubId, adminUser, image);
 
 export const listUsers = async (query) => {
   const { page, limit, skip } = getPagination(query);

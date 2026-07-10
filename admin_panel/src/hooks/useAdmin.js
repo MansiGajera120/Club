@@ -26,6 +26,15 @@ export function useAdminClubs(params) {
   });
 }
 
+/** Single club detail (any status) for the create/edit form. */
+export function useAdminClub(id) {
+  return useQuery({
+    queryKey: ['admin', 'club', id],
+    queryFn: () => adminService.getClub(id),
+    enabled: Boolean(id),
+  });
+}
+
 /** Paginated users list. */
 export function useAdminUsers(params) {
   return useQuery({
@@ -85,6 +94,73 @@ export function useDeleteClub() {
     onSuccess: () => {
       invalidateKeys(qc, [['admin', 'clubs'], ['admin', 'stats']]);
       toast.success('Club permanently deleted');
+    },
+    onError: (error) => toast.error(getApiErrorMessage(error)),
+  });
+}
+
+/** Create an organization directly from the admin panel. */
+export function useCreateClub() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body) => adminService.createClub(body),
+    onSuccess: () => {
+      invalidateKeys(qc, [['admin', 'clubs'], ['admin', 'stats']]);
+      toast.success('Organization created');
+    },
+    onError: (error) => toast.error(getApiErrorMessage(error)),
+  });
+}
+
+/** Edit an organization's content and admin-only fields. */
+export function useUpdateClub() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, body }) => adminService.updateClub(id, body),
+    onSuccess: (_data, variables) => {
+      invalidateKeys(qc, [['admin', 'clubs'], ['admin', 'stats']]);
+      qc.invalidateQueries({ queryKey: ['admin', 'club', variables.id] });
+      toast.success('Organization updated');
+    },
+    onError: (error) => toast.error(getApiErrorMessage(error)),
+  });
+}
+
+/** Upload/replace an organization's logo. */
+export function useUploadClubLogo() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, file }) => adminService.uploadClubLogo(id, file),
+    onSuccess: (_data, variables) => {
+      invalidateKeys(qc, [['admin', 'clubs']]);
+      qc.invalidateQueries({ queryKey: ['admin', 'club', variables.id] });
+      toast.success('Logo updated');
+    },
+    onError: (error) => toast.error(getApiErrorMessage(error)),
+  });
+}
+
+/** Add photos to an organization's gallery. */
+export function useAddClubGallery() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, files }) => adminService.addClubGallery(id, files),
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({ queryKey: ['admin', 'club', variables.id] });
+      toast.success('Photos added');
+    },
+    onError: (error) => toast.error(getApiErrorMessage(error)),
+  });
+}
+
+/** Remove one photo from an organization's gallery. */
+export function useRemoveClubGallery() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, image }) => adminService.removeClubGallery(id, image),
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({ queryKey: ['admin', 'club', variables.id] });
+      toast.success('Photo removed');
     },
     onError: (error) => toast.error(getApiErrorMessage(error)),
   });

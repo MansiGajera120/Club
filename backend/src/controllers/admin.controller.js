@@ -19,6 +19,24 @@ export const listClubs = asyncHandler(async (req, res) => {
   });
 });
 
+/** POST /admin/clubs — admin registers an organization directly. */
+export const createClub = asyncHandler(async (req, res) => {
+  const club = await adminService.createClub(req.user, req.body);
+  return ApiResponse.created(res, { club }, MESSAGES.ADMIN.CLUB_CREATED);
+});
+
+/** GET /admin/clubs/:id — full club detail (any status) for the edit form. */
+export const getClub = asyncHandler(async (req, res) => {
+  const club = await adminService.getClub(req.params.id);
+  return ApiResponse.ok(res, { club }, MESSAGES.ADMIN.CLUB_FETCHED);
+});
+
+/** PATCH /admin/clubs/:id — admin edits club content + admin-only fields. */
+export const updateClub = asyncHandler(async (req, res) => {
+  const club = await adminService.updateClub(req.params.id, req.body, req.user.id);
+  return ApiResponse.ok(res, { club }, MESSAGES.ADMIN.CLUB_UPDATED);
+});
+
 /** PATCH /admin/clubs/:id/status — approve/reject/suspend/hide. */
 export const updateClubStatus = asyncHandler(async (req, res) => {
   const club = await adminService.updateClubStatus(req.params.id, req.body, req.user.id);
@@ -35,6 +53,28 @@ export const setClubFeatured = asyncHandler(async (req, res) => {
 export const deleteClub = asyncHandler(async (req, res) => {
   await adminService.deleteClub(req.params.id, req.user);
   return ApiResponse.ok(res, null, MESSAGES.CLUB.DELETED);
+});
+
+/** POST /admin/clubs/:id/logo — upload/replace an organization's logo. */
+export const uploadLogo = asyncHandler(async (req, res) => {
+  const club = await adminService.updateClubLogo(req.params.id, req.user, req.file);
+  return ApiResponse.ok(res, { club }, MESSAGES.CLUB.LOGO_UPDATED);
+});
+
+/** POST /admin/clubs/:id/gallery — add photos to an organization's gallery. */
+export const addGallery = asyncHandler(async (req, res) => {
+  const club = await adminService.addClubGallery(req.params.id, req.user, req.files);
+  return ApiResponse.ok(res, { club }, MESSAGES.CLUB.GALLERY_UPDATED);
+});
+
+/** DELETE /admin/clubs/:id/gallery — remove one gallery photo. */
+export const removeGallery = asyncHandler(async (req, res) => {
+  const club = await adminService.removeClubGallery(
+    req.params.id,
+    req.user,
+    req.body.image
+  );
+  return ApiResponse.ok(res, { club }, MESSAGES.CLUB.GALLERY_UPDATED);
 });
 
 /** GET /admin/users — all users with filters. */

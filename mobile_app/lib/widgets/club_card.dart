@@ -7,26 +7,24 @@ import '../theme/app_shadows.dart';
 import '../theme/app_spacing.dart';
 import '../utils/formatters.dart';
 import 'cached_image.dart';
+import 'club_favorite_button.dart';
 
 /// Club summary card used in lists and search results.
 class ClubCard extends StatelessWidget {
   final Club club;
   final VoidCallback onTap;
-  final bool? isFavorite;
-  final VoidCallback? onToggleFavorite;
+  final bool showFavorite;
 
   const ClubCard({
     super.key,
     required this.club,
     required this.onTap,
-    this.isFavorite,
-    this.onToggleFavorite,
+    this.showFavorite = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final fav = isFavorite ?? club.isFavorite;
 
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -119,14 +117,7 @@ class ClubCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (onToggleFavorite != null)
-                  IconButton(
-                    icon: Icon(
-                      fav ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                      color: fav ? AppColors.danger : AppColors.textTertiary,
-                    ),
-                    onPressed: onToggleFavorite,
-                  ),
+                if (showFavorite) ClubFavoriteButton(club: club),
               ],
             ),
           ),

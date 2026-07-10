@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/error/exceptions.dart';
 import '../../providers/auth_provider.dart';
 import '../../routes/route_names.dart';
 import '../../theme/app_spacing.dart';
+import '../../utils/app_toast.dart';
 import '../../utils/validators.dart';
 import '../../widgets/widgets.dart';
 import 'widgets/auth_scaffold.dart';
@@ -34,17 +34,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   void _showError(Object error) {
-    final message = error is AppException ? error.message : 'Something went wrong';
-    if (!mounted) return;
-    ScaffoldMessenger.of(context)
-      ..clearSnackBars()
-      ..showSnackBar(SnackBar(content: Text(message)));
+    AppToast.showError(error);
   }
 
   Future<void> _run(Future<void> Function() action) async {
     setState(() => _busy = true);
     try {
       await action();
+      AppToast.success('Welcome back!');
     } catch (e) {
       _showError(e);
     } finally {

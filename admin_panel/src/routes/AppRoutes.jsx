@@ -7,6 +7,7 @@ import DashboardLayout from '@/layouts/DashboardLayout';
 import LoginPage from '@/pages/LoginPage';
 import DashboardPage from '@/pages/DashboardPage';
 import ClubsPage from '@/pages/ClubsPage';
+import ClubFormPage from '@/pages/ClubFormPage';
 import UsersPage from '@/pages/UsersPage';
 import EventsPage from '@/pages/EventsPage';
 import NotFoundPage from '@/pages/NotFoundPage';
@@ -28,6 +29,8 @@ export function AppRoutes() {
         <Route element={<DashboardLayout />}>
           <Route path={ROUTES.dashboard} element={<DashboardPage />} />
           <Route path={ROUTES.clubs} element={<ClubsPage />} />
+          <Route path={ROUTES.clubNew} element={<ClubFormPage />} />
+          <Route path={ROUTES.clubEdit} element={<ClubFormPage />} />
           <Route path={ROUTES.users} element={<UsersPage />} />
           <Route path={ROUTES.events} element={<EventsPage />} />
         </Route>

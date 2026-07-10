@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/error/exceptions.dart';
 import '../../providers/auth_provider.dart';
 import '../../theme/app_spacing.dart';
+import '../../utils/app_toast.dart';
 import '../../utils/validators.dart';
 import '../../widgets/widgets.dart';
 import 'widgets/auth_scaffold.dart';
@@ -47,15 +47,11 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   }
 
   void _showMessage(String message) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context)
-      ..clearSnackBars()
-      ..showSnackBar(SnackBar(content: Text(message)));
+    AppToast.info(message);
   }
 
   void _showError(Object error) {
-    final message = error is AppException ? error.message : 'Something went wrong';
-    _showMessage(message);
+    AppToast.showError(error);
   }
 
   Future<bool> _run(Future<void> Function() action) async {
@@ -89,11 +85,12 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
   Future<void> _verifyOtp() async {
     if (!_otpFormKey.currentState!.validate()) return;
-    await _run(
+    final ok = await _run(
       () => ref
           .read(authControllerProvider.notifier)
           .verifyPendingOtp(_otpCtrl.text.trim()),
     );
+    if (ok) AppToast.success('Account verified. Welcome!');
   }
 
   Future<void> _resendOtp() async {

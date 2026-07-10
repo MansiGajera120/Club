@@ -54,10 +54,7 @@ class FavoritesScreen extends ConsumerWidget {
                 final club = clubs[i];
                 return ClubCard(
                   club: club,
-                  isFavorite: true,
-                  onToggleFavorite: () => ref
-                      .read(favoritesControllerProvider.notifier)
-                      .toggle(club),
+                  showFavorite: true,
                   onTap: () => context.pushNamed(
                     RouteNames.clubDetail,
                     pathParameters: {'id': club.id},

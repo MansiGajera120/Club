@@ -18,6 +18,11 @@ export const ROUTES = {
   login: '/login',
   dashboard: '/',
   clubs: '/clubs',
+  clubNew: '/clubs/new',
+  clubEdit: '/clubs/:id/edit',
   users: '/users',
   events: '/events',
 };
+
+/** Build the edit route for a specific club id. */
+export const clubEditPath = (id) => `/clubs/${id}/edit`;

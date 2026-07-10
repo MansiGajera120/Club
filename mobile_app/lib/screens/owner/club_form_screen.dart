@@ -14,6 +14,7 @@ import '../../providers/owner_providers.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_radius.dart';
 import '../../theme/app_spacing.dart';
+import '../../utils/app_toast.dart';
 import '../../utils/validators.dart';
 import '../../widgets/widgets.dart';
 
@@ -56,8 +57,6 @@ class _ClubFormScreenState extends ConsumerState<ClubFormScreen> {
   late final _instagram =
       TextEditingController(text: widget.club?.contact?.instagram ?? '');
   late final _tiktok = TextEditingController(text: widget.club?.contact?.tiktok ?? '');
-  late final _registration =
-      TextEditingController(text: widget.club?.registrationLink ?? '');
 
   late String _gender = widget.club?.gender ?? 'mixed';
   String? _logoPath;
@@ -69,7 +68,7 @@ class _ClubFormScreenState extends ConsumerState<ClubFormScreen> {
   void dispose() {
     for (final c in [
       _name, _sport, _city, _address, _description, _ageMin, _ageMax, _price,
-      _phone, _email, _website, _instagram, _tiktok, _registration,
+      _phone, _email, _website, _instagram, _tiktok,
     ]) {
       c.dispose();
     }
@@ -153,16 +152,7 @@ class _ClubFormScreenState extends ConsumerState<ClubFormScreen> {
       AppException() => e.message,
       _ => 'Something went wrong',
     };
-    if (mounted) {
-      ScaffoldMessenger.of(context)
-        ..clearSnackBars()
-        ..showSnackBar(
-          SnackBar(
-            content: Text(message),
-            duration: const Duration(seconds: 6),
-          ),
-        );
-    }
+    AppToast.error(message);
   }
 
   Future<void> _pickLogo() async {
@@ -189,7 +179,6 @@ class _ClubFormScreenState extends ConsumerState<ClubFormScreen> {
           'instagram': _instagram.text.trim(),
           'tiktok': _tiktok.text.trim(),
         },
-        'registrationLink': _registration.text.trim(),
       };
 
   Future<void> _submit() async {
@@ -211,12 +200,8 @@ class _ClubFormScreenState extends ConsumerState<ClubFormScreen> {
       ref.invalidate(searchControllerProvider);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(_isEdit
-                ? 'Club updated'
-                : 'Club submitted for approval'),
-          ),
+        AppToast.success(
+          _isEdit ? 'Club updated' : 'Club submitted for approval',
         );
         // Embedded (onboarding) form is the home content — don't pop; the gate
         // rebuilds to the status screen once myClubProvider refreshes.
@@ -240,8 +225,11 @@ class _ClubFormScreenState extends ConsumerState<ClubFormScreen> {
                 IconButton(
                   icon: const Icon(Icons.logout),
                   tooltip: 'Log out',
-                  onPressed: () =>
-                      ref.read(authControllerProvider.notifier).logout(),
+                  onPressed: () async {
+                    AppToast.info('Logging out…');
+                    await ref.read(authControllerProvider.notifier).logout();
+                    AppToast.success('Logged out successfully');
+                  },
                 ),
               ]
             : null,
@@ -410,10 +398,6 @@ class _ClubFormScreenState extends ConsumerState<ClubFormScreen> {
                     AppTextField(label: 'Website', controller: _website),
                     AppTextField(label: 'Instagram', controller: _instagram),
                     AppTextField(label: 'TikTok', controller: _tiktok),
-                    AppTextField(
-                      label: 'Registration link',
-                      controller: _registration,
-                    ),
                   ],
                 ),
                 const SizedBox(height: AppSpacing.xl),

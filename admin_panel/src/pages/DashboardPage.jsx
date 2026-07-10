@@ -1,26 +1,26 @@
-import { Box, Button, Stack, Typography } from '@mui/material';
+import { Box, Chip, Stack, Typography } from '@mui/material';
 import GroupsIcon from '@mui/icons-material/Groups';
 import HourglassTopIcon from '@mui/icons-material/HourglassTop';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import StarIcon from '@mui/icons-material/Star';
 import PeopleIcon from '@mui/icons-material/People';
-import StorefrontIcon from '@mui/icons-material/Storefront';
-import FamilyRestroomIcon from '@mui/icons-material/FamilyRestroom';
 import EventIcon from '@mui/icons-material/Event';
-import BlockIcon from '@mui/icons-material/Block';
-import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
-import PersonOffIcon from '@mui/icons-material/PersonOff';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import { useNavigate } from 'react-router-dom';
 
-import { CompactMetric, ContentCard, StatCard } from '@/components/ui';
+import {
+  BreakdownDonutChart,
+  ContentCard,
+  QuickActionCard,
+  StatCard,
+} from '@/components/ui';
 import { ROUTES } from '@/constants';
 import { useAuth } from '@/hooks/useAuth';
 import { useDashboardStats } from '@/hooks/useAdmin';
+import { brand, gradients, neutralLight } from '@/theme/tokens';
 
 const GAP = 2.5;
 
 /**
- * Dashboard — fits on one screen (desktop) with spaced sections and no scroll.
+ * Admin dashboard — KPI overview, quick actions, and chart-based breakdowns.
  */
 export function DashboardPage() {
   const navigate = useNavigate();
@@ -42,236 +42,254 @@ export function DashboardPage() {
 
   const value = (n) => (isError ? '—' : (n ?? 0));
 
-  const clubStatuses = [
-    { label: 'Approved', value: value(stats?.clubs.approved), icon: CheckCircleIcon, color: 'success' },
-    { label: 'Pending', value: value(stats?.clubs.pending), icon: HourglassTopIcon, color: 'warning' },
-    { label: 'Rejected', value: value(stats?.clubs.rejected), icon: BlockIcon, color: 'error' },
-    { label: 'Featured', value: value(stats?.clubs.featured), icon: StarIcon, color: 'info' },
-    { label: 'Suspended', value: value(stats?.clubs.suspended), icon: BlockIcon, color: 'warning' },
-    { label: 'Hidden', value: value(stats?.clubs.hidden), icon: VisibilityOffIcon, color: 'secondary' },
-  ];
+  const clubChartData = [
+    { name: 'Approved', value: stats?.clubs.approved ?? 0, color: 'success' },
+    { name: 'Pending', value: stats?.clubs.pending ?? 0, color: 'warning' },
+    { name: 'Rejected', value: stats?.clubs.rejected ?? 0, color: 'danger' },
+  ].filter((item) => item.value > 0);
 
-  const userMetrics = [
-    { label: 'Owners', value: value(stats?.users.clubOwners), icon: StorefrontIcon, color: 'secondary' },
-    { label: 'Parents', value: value(stats?.users.parents), icon: FamilyRestroomIcon, color: 'info' },
-    { label: 'Admins', value: value(stats?.users.admins), icon: PeopleIcon, color: 'primary' },
-    { label: 'Disabled', value: value(stats?.users.disabled), icon: PersonOffIcon, color: 'error' },
-  ];
+  const userChartData = [
+    { name: 'Parents', value: stats?.users.parents ?? 0, color: 'info' },
+    { name: 'Club owners', value: stats?.users.clubOwners ?? 0, color: 'secondary' },
+    { name: 'Admins', value: stats?.users.admins ?? 0, color: 'primary' },
+  ].filter((item) => item.value > 0);
 
   const quickLinks = [
-    { label: 'Review pending', icon: HourglassTopIcon, onClick: () => navigate(`${ROUTES.clubs}?status=pending`) },
-    { label: 'Manage users', icon: PeopleIcon, onClick: () => navigate(ROUTES.users) },
-    { label: 'Browse events', icon: EventIcon, onClick: () => navigate(ROUTES.events) },
+    {
+      title: 'Review pending clubs',
+      description: clubsPending > 0 ? `${clubsPending} awaiting approval` : 'No clubs in queue',
+      icon: HourglassTopIcon,
+      onClick: () => navigate(`${ROUTES.clubs}?status=pending`),
+      accent: brand.primary,
+    },
+    {
+      title: 'Manage users',
+      description: `${value(usersTotal)} registered accounts`,
+      icon: PeopleIcon,
+      onClick: () => navigate(ROUTES.users),
+      accent: '#3B82F6',
+    },
+    {
+      title: 'Browse events',
+      description: `${value(eventsTotal)} scheduled events`,
+      icon: EventIcon,
+      onClick: () => navigate(ROUTES.events),
+      accent: brand.secondary,
+    },
   ];
 
   return (
     <Box
       sx={{
-        height: { xs: 'auto', lg: 'calc(100dvh - 112px)' },
-        maxHeight: { lg: 'calc(100dvh - 112px)' },
         display: 'flex',
         flexDirection: 'column',
         gap: GAP,
-        overflow: { xs: 'visible', lg: 'hidden' },
-        pb: { xs: 4, lg: 0 },
+        pb: { xs: 4, lg: 2 },
       }}
     >
-      {/* Welcome */}
-      <Stack
-        direction={{ xs: 'column', sm: 'row' }}
-        justifyContent="space-between"
-        alignItems={{ xs: 'flex-start', sm: 'center' }}
-        spacing={1}
-        sx={{ flexShrink: 0 }}
+      {/* Hero welcome */}
+      <Box
+        sx={{
+          position: 'relative',
+          overflow: 'hidden',
+          borderRadius: 3,
+          p: { xs: 2.5, md: 3 },
+          background: gradients.brand,
+          color: '#fff',
+          boxShadow: '0 8px 28px rgba(255, 90, 95, 0.28)',
+        }}
       >
-        <Box>
-          <Typography variant="h6" fontWeight={800} lineHeight={1.25}>
-            Welcome back, {greetingName}
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25 }}>
-            Platform overview for today.
-          </Typography>
-        </Box>
-        <Typography variant="body2" color="text.secondary" sx={{ flexShrink: 0 }}>
-          {today}
-        </Typography>
-      </Stack>
+        <Box
+          sx={{
+            position: 'absolute',
+            top: -40,
+            right: -20,
+            width: 160,
+            height: 160,
+            borderRadius: '50%',
+            bgcolor: 'rgba(255,255,255,0.12)',
+            pointerEvents: 'none',
+          }}
+        />
+        <Box
+          sx={{
+            position: 'absolute',
+            bottom: -50,
+            left: '35%',
+            width: 120,
+            height: 120,
+            borderRadius: '50%',
+            bgcolor: 'rgba(255,255,255,0.08)',
+            pointerEvents: 'none',
+          }}
+        />
+
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          justifyContent="space-between"
+          alignItems={{ xs: 'flex-start', sm: 'center' }}
+          spacing={2}
+          sx={{ position: 'relative', zIndex: 1 }}
+        >
+          <Box>
+            <Typography
+              variant="overline"
+              sx={{ letterSpacing: '0.12em', fontWeight: 700, opacity: 0.9 }}
+            >
+              Admin workspace
+            </Typography>
+            <Typography variant="h5" fontWeight={800} sx={{ mt: 0.5, lineHeight: 1.2 }}>
+              Welcome back, {greetingName}
+            </Typography>
+            <Typography variant="body2" sx={{ mt: 0.75, opacity: 0.92, maxWidth: 420 }}>
+              Monitor clubs, users, and events across the platform.
+            </Typography>
+          </Box>
+
+          <Stack spacing={1} alignItems={{ xs: 'flex-start', sm: 'flex-end' }}>
+            <Chip
+              label={today}
+              size="small"
+              sx={{
+                bgcolor: 'rgba(255,255,255,0.18)',
+                color: '#fff',
+                fontWeight: 600,
+                border: '1px solid rgba(255,255,255,0.28)',
+              }}
+            />
+            {clubsPending > 0 && (
+              <Chip
+                icon={<HourglassTopIcon sx={{ color: '#fff !important' }} />}
+                label={`${clubsPending} club${clubsPending === 1 ? '' : 's'} need review`}
+                size="small"
+                onClick={() => navigate(`${ROUTES.clubs}?status=pending`)}
+                sx={{
+                  bgcolor: 'rgba(255,255,255,0.95)',
+                  color: brand.primaryDark,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  '&:hover': { bgcolor: '#fff' },
+                }}
+              />
+            )}
+          </Stack>
+        </Stack>
+      </Box>
 
       {/* KPI row */}
       <Box
         sx={{
-          flexShrink: 0,
           display: 'grid',
           gridTemplateColumns: {
             xs: 'repeat(2, minmax(0, 1fr))',
             lg: 'repeat(4, minmax(0, 1fr))',
           },
           gap: GAP,
-          minHeight: { lg: 118 },
         }}
       >
-        <StatCard compact label="Total clubs" value={value(clubsTotal)} icon={GroupsIcon} color="primary" loading={isLoading} helper={`${value(clubsApproved)} approved`} />
-        <StatCard compact label="Pending" value={value(clubsPending)} icon={HourglassTopIcon} color="warning" loading={isLoading} helper={clubsPending > 0 ? 'Needs review' : 'Clear'} />
-        <StatCard compact label="Users" value={value(usersTotal)} icon={PeopleIcon} color="info" loading={isLoading} helper={`${value(stats?.users.parents)} parents`} />
-        <StatCard compact label="Events" value={value(eventsTotal)} icon={EventIcon} color="secondary" loading={isLoading} helper="Scheduled" />
+        <StatCard
+          compact
+          label="Total clubs"
+          value={value(clubsTotal)}
+          icon={GroupsIcon}
+          color="primary"
+          loading={isLoading}
+          helper={`${value(clubsApproved)} approved`}
+        />
+        <StatCard
+          compact
+          label="Pending review"
+          value={value(clubsPending)}
+          icon={HourglassTopIcon}
+          color="warning"
+          loading={isLoading}
+          helper={clubsPending > 0 ? 'Action required' : 'Queue clear'}
+          progress={clubsTotal > 0 ? (clubsPending / clubsTotal) * 100 : 0}
+        />
+        <StatCard
+          compact
+          label="Total users"
+          value={value(usersTotal)}
+          icon={PeopleIcon}
+          color="info"
+          loading={isLoading}
+          helper={`${value(stats?.users.parents)} parents`}
+        />
+        <StatCard
+          compact
+          label="Events"
+          value={value(eventsTotal)}
+          icon={EventIcon}
+          color="secondary"
+          loading={isLoading}
+          helper="Across all clubs"
+        />
       </Box>
 
       {/* Quick actions */}
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={GAP} sx={{ flexShrink: 0 }}>
-        {quickLinks.map((link) => {
-          const Icon = link.icon;
-          return (
-            <Button
-              key={link.label}
-              variant="outlined"
-              onClick={link.onClick}
-              startIcon={<Icon />}
-              sx={{
-                flex: 1,
-                py: 1.5,
-                px: 2,
-                minHeight: 48,
-                borderRadius: 2.5,
-                fontWeight: 600,
-                textTransform: 'none',
-                fontSize: '0.875rem',
-              }}
-            >
-              {link.label}
-            </Button>
-          );
-        })}
-      </Stack>
+      <Box>
+        <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
+          <TrendingUpIcon sx={{ fontSize: 20, color: brand.primary }} />
+          <Typography variant="subtitle1" fontWeight={800}>
+            Quick actions
+          </Typography>
+        </Stack>
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: {
+              xs: '1fr',
+              sm: 'repeat(2, minmax(0, 1fr))',
+              lg: 'repeat(3, minmax(0, 1fr))',
+            },
+            gap: GAP,
+          }}
+        >
+          {quickLinks.map((link) => (
+            <QuickActionCard key={link.title} {...link} />
+          ))}
+        </Box>
+      </Box>
 
-      {/* Breakdown — aligned Clubs | Users columns */}
-      <ContentCard
-        sx={{
-          flex: 1,
-          minHeight: 0,
-          p: 2.5,
-          display: 'flex',
-          flexDirection: 'column',
-        }}
-      >
-        <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 2, flexShrink: 0 }}>
-          Platform breakdown
-        </Typography>
+      {/* Chart breakdowns */}
+      <ContentCard sx={{ p: 2.5, bgcolor: neutralLight.surfaceMuted }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+          <Box>
+            <Typography variant="subtitle1" fontWeight={800}>
+              Platform insights
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25 }}>
+              Key moderation and audience metrics at a glance
+            </Typography>
+          </Box>
+        </Stack>
 
         <Box
           sx={{
-            flex: 1,
-            minHeight: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 1.5,
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', md: 'repeat(2, minmax(0, 1fr))' },
+            gap: GAP,
           }}
         >
-          {/* Section labels — same row, aligned */}
-          <Box
-            sx={{
-              display: 'grid',
-              gridTemplateColumns: { xs: '1fr', lg: '1fr 1fr' },
-              gap: GAP,
-              flexShrink: 0,
-            }}
-          >
-            <Typography
-              variant="overline"
-              color="text.secondary"
-              fontWeight={700}
-              sx={{ letterSpacing: '0.08em' }}
-            >
-              Clubs
-            </Typography>
-            <Typography
-              variant="overline"
-              color="text.secondary"
-              fontWeight={700}
-              sx={{ letterSpacing: '0.08em', display: { xs: 'none', lg: 'block' } }}
-            >
-              Users
-            </Typography>
-          </Box>
-
-          {/* Metric grids — equal columns, same row heights */}
-          <Box
-            sx={{
-              flex: 1,
-              minHeight: 0,
-              display: 'grid',
-              gridTemplateColumns: { xs: '1fr', lg: '1fr 1fr' },
-              gap: GAP,
-              position: 'relative',
-            }}
-          >
-            {/* Vertical divider between columns (desktop) */}
-            <Box
-              sx={{
-                display: { xs: 'none', lg: 'block' },
-                position: 'absolute',
-                top: 0,
-                bottom: 0,
-                left: '50%',
-                width: '1px',
-                bgcolor: 'divider',
-                transform: 'translateX(-50%)',
-                pointerEvents: 'none',
-              }}
-            />
-
-            {/* Clubs */}
-            <Box
-              sx={{
-                minHeight: 0,
-                height: '100%',
-                display: 'grid',
-                gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-                gridTemplateRows: 'repeat(3, minmax(0, 1fr))',
-                gap: GAP,
-              }}
-            >
-              {clubStatuses.map((item) => (
-                <CompactMetric key={item.label} stacked {...item} loading={isLoading} />
-              ))}
-            </Box>
-
-            {/* Users */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: 0, height: '100%' }}>
-              <Typography
-                variant="overline"
-                color="text.secondary"
-                fontWeight={700}
-                sx={{
-                  letterSpacing: '0.08em',
-                  mb: 1.5,
-                  display: { xs: 'block', lg: 'none' },
-                  flexShrink: 0,
-                }}
-              >
-                Users
-              </Typography>
-              <Box
-                sx={{
-                  flex: 1,
-                  minHeight: 0,
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-                  gridTemplateRows: 'repeat(3, minmax(0, 1fr))',
-                  gap: GAP,
-                  height: '100%',
-                }}
-              >
-                {userMetrics.map((item) => (
-                  <CompactMetric key={item.label} stacked {...item} loading={isLoading} />
-                ))}
-              </Box>
-            </Box>
-          </Box>
+          <BreakdownDonutChart
+            title="Club moderation"
+            subtitle="Approved, pending, and rejected"
+            data={clubChartData}
+            loading={isLoading}
+            emptyMessage="No club data available"
+          />
+          <BreakdownDonutChart
+            title="User roles"
+            subtitle="Parents, club owners, and admins"
+            data={userChartData}
+            loading={isLoading}
+            emptyMessage="No user data available"
+          />
         </Box>
       </ContentCard>
 
       {isError && (
-        <Typography variant="caption" color="error.main" sx={{ flexShrink: 0 }}>
+        <Typography variant="caption" color="error.main">
           Could not load statistics. Refresh to try again.
         </Typography>
       )}

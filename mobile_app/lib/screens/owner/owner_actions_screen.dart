@@ -2,17 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../models/club_model.dart';
 import '../../providers/owner_providers.dart';
 import '../../routes/route_names.dart';
 import '../../theme/theme.dart';
 import '../../widgets/widgets.dart';
+import 'event_form_screen.dart';
 
 /// Owner-only publishing workspace with actions relevant to club owners.
 class OwnerActionsScreen extends ConsumerWidget {
   const OwnerActionsScreen({super.key});
 
-  Future<void> _openClubForm(BuildContext context, WidgetRef ref) async {
-    await context.pushNamed(RouteNames.clubForm);
+  Future<void> _openClubForm(
+    BuildContext context,
+    WidgetRef ref, {
+    Club? club,
+  }) async {
+    await context.pushNamed(RouteNames.clubForm, extra: club);
     ref.invalidate(myClubsProvider);
   }
 
@@ -46,12 +52,21 @@ class OwnerActionsScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    AppButton(
-                      label: 'Register new club',
-                      icon: Icons.add_business_outlined,
-                      onPressed: () => _openClubForm(context, ref),
-                    ),
-                    const SizedBox(height: AppSpacing.md),
+                    if (clubs.isEmpty)
+                      AppButton(
+                        label: 'Register new club',
+                        icon: Icons.add_business_outlined,
+                        onPressed: () => _openClubForm(context, ref),
+                      )
+                    else ...[
+                      AppButton(
+                        label: 'Edit my club',
+                        icon: Icons.edit_outlined,
+                        onPressed: () =>
+                            _openClubForm(context, ref, club: clubs.first),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                    ],
                     AppButton(
                       label: 'Open my clubs',
                       icon: Icons.storefront_outlined,
@@ -93,7 +108,7 @@ class OwnerActionsScreen extends ConsumerWidget {
                         InkWell(
                           onTap: () => context.pushNamed(
                             RouteNames.eventForm,
-                            extra: approvedClubs[i].id,
+                            extra: EventFormArgs(clubId: approvedClubs[i].id),
                           ),
                           child: Padding(
                             padding: const EdgeInsets.all(AppSpacing.lg),

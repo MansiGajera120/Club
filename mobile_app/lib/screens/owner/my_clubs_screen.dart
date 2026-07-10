@@ -9,6 +9,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_radius.dart';
 import '../../theme/app_spacing.dart';
 import '../../widgets/widgets.dart';
+import 'event_form_screen.dart';
 
 /// Club owner's dashboard: their clubs with status, plus create/edit/add-event.
 class MyClubsScreen extends ConsumerWidget {
@@ -39,11 +40,6 @@ class MyClubsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('My clubs')),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _openForm(context, ref),
-        icon: const Icon(Icons.add),
-        label: const Text('Register club'),
-      ),
       body: clubs.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (_, _) => const EmptyState(
@@ -52,11 +48,13 @@ class MyClubsScreen extends ConsumerWidget {
         ),
         data: (list) {
           if (list.isEmpty) {
-            return const EmptyState(
+            return EmptyState(
               icon: Icons.storefront_outlined,
               title: 'No clubs yet',
               message: 'Register your club to get started. It will be reviewed '
                   'before appearing to parents.',
+              actionLabel: 'Register club',
+              onAction: () => _openForm(context, ref),
             );
           }
           return ListView.separated(
@@ -131,7 +129,7 @@ class MyClubsScreen extends ConsumerWidget {
                         TextButton.icon(
                           onPressed: () => context.pushNamed(
                             RouteNames.eventForm,
-                            extra: club.id,
+                            extra: EventFormArgs(clubId: club.id),
                           ),
                           icon: const Icon(Icons.event, size: 18),
                           label: const Text('Add event'),

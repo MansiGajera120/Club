@@ -1,4 +1,4 @@
 {
   "ENV": "prod",
-  "API_BASE_URL": "https://club-1r4i.onrender.com/api/v1"
+  "API_BASE_URL": "https://club-1r4i.onrender.com"
 }

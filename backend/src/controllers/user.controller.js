@@ -23,3 +23,15 @@ export const uploadAvatar = asyncHandler(async (req, res) => {
   const user = await userService.updateAvatar(req.user, req.file);
   return ApiResponse.ok(res, { user }, MESSAGES.USER.AVATAR_UPDATED);
 });
+
+/** PATCH /users/me/password — change password for local accounts. */
+export const changePassword = asyncHandler(async (req, res) => {
+  await userService.changePassword(req.user, req.body);
+  return ApiResponse.ok(res, null, MESSAGES.USER.PASSWORD_CHANGED);
+});
+
+/** POST /users/me/password/verify — check the current password before updating. */
+export const verifyPassword = asyncHandler(async (req, res) => {
+  await userService.verifyPassword(req.user, req.body);
+  return ApiResponse.ok(res, null, MESSAGES.USER.PASSWORD_VERIFIED);
+});

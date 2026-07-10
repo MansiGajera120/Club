@@ -27,8 +27,43 @@ const loadManageableEvent = async (eventId, user) => {
   return event;
 };
 
+/** Ensure registration window ends before the event starts. */
+const assertRegistrationBeforeEvent = ({
+  startDate,
+  registrationStartDate,
+  registrationEndDate,
+}) => {
+  const eventStart = new Date(startDate);
+  if (registrationStartDate) {
+    const regStart = new Date(registrationStartDate);
+    if (regStart.getTime() >= eventStart.getTime()) {
+      throw ApiError.badRequest(
+        'Registration must open before the event starts'
+      );
+    }
+  }
+  if (registrationEndDate) {
+    const regEnd = new Date(registrationEndDate);
+    if (regEnd.getTime() >= eventStart.getTime()) {
+      throw ApiError.badRequest(
+        'Registration must close before the event starts'
+      );
+    }
+  }
+  if (registrationStartDate && registrationEndDate) {
+    const regStart = new Date(registrationStartDate);
+    const regEnd = new Date(registrationEndDate);
+    if (regEnd.getTime() < regStart.getTime()) {
+      throw ApiError.badRequest(
+        'Registration close must be on or after registration open'
+      );
+    }
+  }
+};
+
 export const createEvent = async (user, data) => {
   await assertClubManager(data.club, user);
+  assertRegistrationBeforeEvent(data);
   const event = await eventRepository.create(data);
   return toEventResponse(event);
 };
@@ -44,6 +79,21 @@ export const updateEvent = async (id, user, data) => {
   if (nextEnd && nextStart && nextEnd.getTime() < nextStart.getTime()) {
     throw ApiError.badRequest('End date must be on or after the start date');
   }
+
+  const nextRegStart =
+    data.registrationStartDate !== undefined
+      ? data.registrationStartDate && new Date(data.registrationStartDate)
+      : event.registrationStartDate;
+  const nextRegEnd =
+    data.registrationEndDate !== undefined
+      ? data.registrationEndDate && new Date(data.registrationEndDate)
+      : event.registrationEndDate;
+
+  assertRegistrationBeforeEvent({
+    startDate: nextStart,
+    registrationStartDate: nextRegStart,
+    registrationEndDate: nextRegEnd,
+  });
 
   const updated = await eventRepository.updateById(id, data);
   return toEventResponse(updated);

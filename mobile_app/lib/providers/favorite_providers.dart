@@ -8,8 +8,52 @@ final favoriteRepositoryProvider = Provider<FavoriteRepository>((ref) {
   return FavoriteRepository(ref.watch(dioProvider));
 });
 
+/// Tracks which clubs currently have an in-flight favorite toggle.
+class FavoriteUiState {
+  final Set<String> pendingIds;
+
+  const FavoriteUiState({this.pendingIds = const {}});
+
+  bool isPending(String clubId) => pendingIds.contains(clubId);
+}
+
+class FavoriteUiNotifier extends Notifier<FavoriteUiState> {
+  @override
+  FavoriteUiState build() => const FavoriteUiState();
+
+  void setPending(String clubId, bool pending) {
+    final next = Set<String>.from(state.pendingIds);
+    if (pending) {
+      next.add(clubId);
+    } else {
+      next.remove(clubId);
+    }
+    state = FavoriteUiState(pendingIds: next);
+  }
+}
+
+final favoriteUiProvider =
+    NotifierProvider<FavoriteUiNotifier, FavoriteUiState>(FavoriteUiNotifier.new);
+
+/// Resolves favorite state for a club. Once favorites have loaded, the live list
+/// is the source of truth; until then the API's [fallback] flag is used.
+final clubIsFavoriteProvider =
+    Provider.family<bool, ({String clubId, bool fallback})>((ref, args) {
+  final favorites = ref.watch(favoritesControllerProvider);
+  return favorites.when(
+    data: (clubs) => clubs.any((c) => c.id == args.clubId),
+    loading: () => args.fallback,
+    error: (_, _) => args.fallback,
+  );
+});
+
+final clubFavoritePendingProvider = Provider.family<bool, String>((ref, clubId) {
+  return ref.watch(favoriteUiProvider).isPending(clubId);
+});
+
 /// The current parent's favorite clubs, with add/remove/toggle. Other screens
-/// read [isFavorite] and call [toggle] to keep favorites consistent app-wide.
+/// read [clubIsFavoriteProvider] and call [toggle] to keep favorites consistent
+/// app-wide.
 class FavoritesController extends AsyncNotifier<List<Club>> {
   @override
   Future<List<Club>> build() async {
@@ -17,31 +61,47 @@ class FavoritesController extends AsyncNotifier<List<Club>> {
     return result.items;
   }
 
-  bool isFavorite(String clubId) =>
-      state.value?.any((c) => c.id == clubId) ?? false;
-
-  Future<void> _add(Club club) async {
-    await ref.read(favoriteRepositoryProvider).add(club.id);
-    final current = state.value ?? [];
-    if (!current.any((c) => c.id == club.id)) {
-      state = AsyncData([club.copyWith(isFavorite: true), ...current]);
-    }
+  bool _resolveFavorite(Club club) {
+    final list = state.value;
+    if (list != null) return list.any((c) => c.id == club.id);
+    return club.isFavorite;
   }
 
-  Future<void> _remove(String clubId) async {
-    await ref.read(favoriteRepositoryProvider).remove(clubId);
-    state = AsyncData((state.value ?? []).where((c) => c.id != clubId).toList());
+  void _setFavoriteLocally(Club club, bool isFav) {
+    final current = state.value ?? [];
+    if (isFav) {
+      if (!current.any((c) => c.id == club.id)) {
+        state = AsyncData([club.copyWith(isFavorite: true), ...current]);
+      }
+      return;
+    }
+    state = AsyncData(current.where((c) => c.id != club.id).toList());
   }
 
   /// Toggle favorite for a club. Returns the new favorited state.
   Future<bool> toggle(Club club) async {
-    final currentlyFav = isFavorite(club.id) || club.isFavorite;
-    if (currentlyFav) {
-      await _remove(club.id);
-      return false;
+    final ui = ref.read(favoriteUiProvider.notifier);
+    if (ref.read(favoriteUiProvider).isPending(club.id)) return _resolveFavorite(club);
+
+    final currentlyFav = _resolveFavorite(club);
+    final nextFav = !currentlyFav;
+
+    ui.setPending(club.id, true);
+    _setFavoriteLocally(club, nextFav);
+
+    try {
+      if (nextFav) {
+        await ref.read(favoriteRepositoryProvider).add(club.id);
+      } else {
+        await ref.read(favoriteRepositoryProvider).remove(club.id);
+      }
+      return nextFav;
+    } catch (_) {
+      _setFavoriteLocally(club, currentlyFav);
+      rethrow;
+    } finally {
+      ui.setPending(club.id, false);
     }
-    await _add(club);
-    return true;
   }
 
   Future<void> refresh() async {

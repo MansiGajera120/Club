@@ -30,6 +30,9 @@ const eventSchema = new Schema(
     priceCurrency: { type: String, trim: true, default: 'USD' },
 
     registrationLink: { type: String, trim: true },
+    // Registration window — the period during which parents can register.
+    registrationStartDate: { type: Date },
+    registrationEndDate: { type: Date },
     isActive: { type: Boolean, default: true, index: true },
   },
   {

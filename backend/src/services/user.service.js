@@ -3,6 +3,7 @@ import { MESSAGES } from '../constants/messages.js';
 import { userRepository } from '../repositories/user.repository.js';
 import { toUserResponse } from '../dto/user.dto.js';
 import { processImage, deleteUpload } from './image.service.js';
+import { revokeAllUserTokens } from './token.service.js';
 import { UPLOAD_FOLDERS } from '../utils/paths.js';
 
 export const getProfile = (user) => toUserResponse(user);
@@ -27,4 +28,27 @@ export const updateAvatar = async (user, file) => {
   });
   await deleteUpload(previous); // no-op for external (social) avatar URLs
   return toUserResponse(updated);
+};
+
+export const changePassword = async (user, { currentPassword, newPassword }) => {
+  await verifyPassword(user, { currentPassword });
+
+  const account = await userRepository.findByEmail(user.email);
+  account.password = newPassword;
+  await account.save();
+  await revokeAllUserTokens(account.id);
+};
+
+export const verifyPassword = async (user, { currentPassword }) => {
+  const account = await userRepository.findByEmail(user.email);
+  if (!account?.password) {
+    throw ApiError.badRequest(
+      'Password change is not available for social sign-in accounts'
+    );
+  }
+
+  const matches = await account.comparePassword(currentPassword);
+  if (!matches) {
+    throw ApiError.unauthorized('Current password is incorrect');
+  }
 };

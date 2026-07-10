@@ -13,7 +13,42 @@ export const adminService = {
   },
 
   async getClub(id) {
-    const { data } = await apiClient.get(`/clubs/${id}`);
+    const { data } = await apiClient.get(`/admin/clubs/${id}`);
+    return data.data.club;
+  },
+
+  async createClub(body) {
+    const { data } = await apiClient.post('/admin/clubs', body);
+    return data.data.club;
+  },
+
+  async updateClub(id, body) {
+    const { data } = await apiClient.patch(`/admin/clubs/${id}`, body);
+    return data.data.club;
+  },
+
+  async uploadClubLogo(id, file) {
+    const form = new FormData();
+    form.append('logo', file);
+    const { data } = await apiClient.post(`/admin/clubs/${id}/logo`, form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return data.data.club;
+  },
+
+  async addClubGallery(id, files) {
+    const form = new FormData();
+    files.forEach((file) => form.append('images', file));
+    const { data } = await apiClient.post(`/admin/clubs/${id}/gallery`, form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return data.data.club;
+  },
+
+  async removeClubGallery(id, image) {
+    const { data } = await apiClient.delete(`/admin/clubs/${id}/gallery`, {
+      data: { image },
+    });
     return data.data.club;
   },
 

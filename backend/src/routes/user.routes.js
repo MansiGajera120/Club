@@ -4,7 +4,7 @@ import * as userController from '../controllers/user.controller.js';
 import { authenticate, requireVerifiedEmail } from '../middlewares/auth.middleware.js';
 import { validate } from '../middlewares/validate.middleware.js';
 import { uploadSingle } from '../middlewares/upload.middleware.js';
-import { updateProfileSchema } from '../validators/user.validator.js';
+import { updateProfileSchema, changePasswordSchema, verifyPasswordSchema } from '../validators/user.validator.js';
 
 const router = Router();
 
@@ -23,6 +23,18 @@ router.post(
   requireVerifiedEmail,
   uploadSingle('avatar'),
   userController.uploadAvatar
+);
+router.patch(
+  '/me/password',
+  requireVerifiedEmail,
+  validate(changePasswordSchema),
+  userController.changePassword
+);
+router.post(
+  '/me/password/verify',
+  requireVerifiedEmail,
+  validate(verifyPasswordSchema),
+  userController.verifyPassword
 );
 
 export default router;

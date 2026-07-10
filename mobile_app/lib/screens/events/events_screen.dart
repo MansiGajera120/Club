@@ -6,6 +6,7 @@ import '../../models/event_model.dart';
 import '../../providers/event_providers.dart';
 import '../../theme/app_radius.dart';
 import '../../theme/app_spacing.dart';
+import '../../utils/app_toast.dart';
 import '../../utils/formatters.dart';
 import '../../widgets/widgets.dart';
 
@@ -69,11 +70,7 @@ class EventCard extends StatelessWidget {
     if (link == null || link.isEmpty) return;
     final uri = Uri.tryParse(link);
     if (uri != null && !await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not open registration link')),
-        );
-      }
+      AppToast.error('Could not open registration link');
     }
   }
 
@@ -127,16 +124,95 @@ class EventCard extends StatelessWidget {
                     ],
                   ),
                 ],
-                if (event.registrationLink != null &&
-                    event.registrationLink!.isNotEmpty) ...[
-                  const SizedBox(height: AppSpacing.md),
-                  AppButton(
-                    label: 'Register',
-                    icon: Icons.open_in_new,
-                    onPressed: () => _openRegistration(context),
+                if (_windowText != null) ...[
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(Icons.how_to_reg_outlined, size: 16),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(_windowText!,
+                            style: theme.textTheme.bodySmall),
+                      ),
+                    ],
                   ),
                 ],
+                if (_hasLink) ...[
+                  const SizedBox(height: AppSpacing.md),
+                  if (_closed)
+                    const _RegStatus(
+                        label: 'Registration closed', icon: Icons.lock_clock)
+                  else if (_notYetOpen)
+                    _RegStatus(
+                      label: 'Registration opens ${Formatters.date(event.registrationStartDate!)}',
+                      icon: Icons.schedule,
+                    )
+                  else
+                    AppButton(
+                      label: 'Register',
+                      icon: Icons.open_in_new,
+                      onPressed: () => _openRegistration(context),
+                    ),
+                ],
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  bool get _hasLink =>
+      event.registrationLink != null && event.registrationLink!.isNotEmpty;
+  bool get _notYetOpen =>
+      event.registrationStartDate != null &&
+      DateTime.now().isBefore(event.registrationStartDate!);
+  bool get _closed =>
+      event.registrationEndDate != null &&
+      DateTime.now().isAfter(event.registrationEndDate!);
+
+  /// A human label for the registration window, or null when none is set.
+  String? get _windowText {
+    final start = event.registrationStartDate;
+    final end = event.registrationEndDate;
+    if (start != null && end != null) {
+      return 'Registration: ${Formatters.date(start)} – ${Formatters.date(end)}';
+    }
+    if (end != null) return 'Registration closes ${Formatters.date(end)}';
+    if (start != null) return 'Registration opens ${Formatters.date(start)}';
+    return null;
+  }
+}
+
+/// Muted, non-tappable status shown instead of the Register button when the
+/// registration window is closed or hasn't opened yet.
+class _RegStatus extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  const _RegStatus({required this.label, required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md, vertical: AppSpacing.sm + 2),
+      decoration: BoxDecoration(
+        color: theme.disabledColor.withValues(alpha: 0.08),
+        borderRadius: AppRadius.mdAll,
+        border: Border.all(color: theme.dividerColor),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 18, color: theme.disabledColor),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              label,
+              style: theme.textTheme.bodyMedium
+                  ?.copyWith(color: theme.disabledColor, fontWeight: FontWeight.w600),
             ),
           ),
         ],

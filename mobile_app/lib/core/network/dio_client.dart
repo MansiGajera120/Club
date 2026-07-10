@@ -14,7 +14,7 @@ class DioClient {
 
   DioClient(StorageService storage) : dio = Dio() {
     final baseOptions = BaseOptions(
-      baseUrl: AppConfig.apiBaseUrl,
+      baseUrl: AppConfig.apiOrigin,
       connectTimeout: AppConfig.connectTimeout,
       receiveTimeout: AppConfig.receiveTimeout,
       contentType: Headers.jsonContentType,
@@ -30,6 +30,8 @@ class DioClient {
     dio.interceptors.add(RefreshInterceptor(storage, refreshDio));
 
     if (!AppConfig.isProduction) {
+      debugPrint('API origin: ${AppConfig.apiOrigin}');
+      debugPrint('API base URL: ${AppConfig.apiBaseUrl}');
       dio.interceptors.add(
         LogInterceptor(
           requestBody: true,
@@ -54,9 +56,15 @@ class DioClient {
       case DioExceptionType.badResponse:
         final status = e.response?.statusCode;
         final data = e.response?.data;
-        final message = (data is Map && data['message'] is String)
+        var message = (data is Map && data['message'] is String)
             ? data['message'] as String
             : 'Request failed';
+        // Backend 404s include the path — keep the human part only.
+        if (message.contains('The requested route does not exist')) {
+          message =
+              'Could not reach the server API. Make sure the backend is running '
+              'at ${AppConfig.apiBaseUrl}.';
+        }
         final errors = (data is Map && data['errors'] is List)
             ? List<Map<String, dynamic>>.from(data['errors'] as List)
             : <Map<String, dynamic>>[];

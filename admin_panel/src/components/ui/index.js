@@ -8,3 +8,4 @@ export { default as ContentCard } from './ContentCard';
 export { default as CompactMetric } from './CompactMetric';
 export { default as SectionHeading } from './SectionHeading';
 export { default as BreakdownList } from './BreakdownList';
+export { default as BreakdownDonutChart } from './BreakdownDonutChart';

@@ -34,4 +34,28 @@ class UserRepository {
       return UserModel.fromJson(res.data['data']['user'] as Map<String, dynamic>);
     });
   }
+
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) {
+    return _guard(() async {
+      await _dio.patch(
+        ApiEndpoints.changePassword,
+        data: {
+          'currentPassword': currentPassword,
+          'newPassword': newPassword,
+        },
+      );
+    });
+  }
+
+  Future<void> verifyCurrentPassword(String currentPassword) {
+    return _guard(() async {
+      await _dio.post(
+        ApiEndpoints.verifyPassword,
+        data: {'currentPassword': currentPassword},
+      );
+    });
+  }
 }

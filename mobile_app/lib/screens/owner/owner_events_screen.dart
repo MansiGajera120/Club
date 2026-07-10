@@ -10,8 +10,10 @@ import '../../routes/route_names.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_radius.dart';
 import '../../theme/app_spacing.dart';
+import '../../utils/app_toast.dart';
 import '../../utils/formatters.dart';
 import '../../widgets/widgets.dart';
+import 'event_form_screen.dart';
 
 /// Owner event hub: view all created events and add new ones per club.
 class OwnerEventsScreen extends ConsumerWidget {
@@ -62,17 +64,10 @@ class OwnerEventsScreen extends ConsumerWidget {
       ref.invalidate(ownerEventsScreenProvider);
       ref.invalidate(ownerEventsProvider);
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('"${item.event.title}" deleted')),
-        );
+        AppToast.success('"${item.event.title}" deleted');
       }
     } catch (e) {
-      final message = e is AppException ? e.message : 'Could not delete event';
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message)),
-        );
-      }
+      AppToast.showError(e, fallback: 'Could not delete event');
     }
   }
 
@@ -96,6 +91,13 @@ class OwnerEventsScreen extends ConsumerWidget {
           clubs: data.clubs,
           events: data.events,
           onRefresh: () => _refresh(ref),
+          onEdit: (item) => context.pushNamed(
+            RouteNames.eventForm,
+            extra: EventFormArgs(
+              clubId: item.event.club,
+              event: item.event,
+            ),
+          ),
           onDelete: (item) => _deleteEvent(context, ref, item),
         ),
       ),
@@ -107,12 +109,14 @@ class _EventsBody extends StatelessWidget {
   final List<Club> clubs;
   final List<OwnerEventItem> events;
   final Future<void> Function() onRefresh;
+  final void Function(OwnerEventItem item) onEdit;
   final void Function(OwnerEventItem item) onDelete;
 
   const _EventsBody({
     required this.clubs,
     required this.events,
     required this.onRefresh,
+    required this.onEdit,
     required this.onDelete,
   });
 
@@ -162,6 +166,7 @@ class _EventsBody extends StatelessWidget {
                       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                       child: _CompactEventRow(
                         item: item,
+                        onEdit: () => onEdit(item),
                         onDelete: () => onDelete(item),
                       ),
                     ),
@@ -241,7 +246,7 @@ class _QuickCreateStrip extends StatelessWidget {
                     child: InkWell(
                       onTap: () => context.pushNamed(
                         RouteNames.eventForm,
-                        extra: club.id,
+                        extra: EventFormArgs(clubId: club.id),
                       ),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
@@ -291,9 +296,14 @@ class _QuickCreateStrip extends StatelessWidget {
 /// Compact single-line event row to fit more on screen.
 class _CompactEventRow extends StatelessWidget {
   final OwnerEventItem item;
+  final VoidCallback onEdit;
   final VoidCallback onDelete;
 
-  const _CompactEventRow({required this.item, required this.onDelete});
+  const _CompactEventRow({
+    required this.item,
+    required this.onEdit,
+    required this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -346,6 +356,14 @@ class _CompactEventRow extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+          IconButton(
+            onPressed: onEdit,
+            icon: const Icon(Icons.edit_outlined, size: 20),
+            color: AppColors.primary,
+            visualDensity: VisualDensity.compact,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
           ),
           IconButton(
             onPressed: onDelete,

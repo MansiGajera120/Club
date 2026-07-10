@@ -2,17 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/error/exceptions.dart';
 import '../../providers/auth_provider.dart';
 import '../../routes/route_names.dart';
 import '../../theme/app_spacing.dart';
+import '../../utils/app_toast.dart';
 import '../../utils/validators.dart';
 import '../../widgets/widgets.dart';
 import 'widgets/auth_scaffold.dart';
 
 /// Request a password-reset email.
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
-  const ForgotPasswordScreen({super.key});
+  final String? initialEmail;
+
+  const ForgotPasswordScreen({super.key, this.initialEmail});
 
   @override
   ConsumerState<ForgotPasswordScreen> createState() =>
@@ -21,7 +23,8 @@ class ForgotPasswordScreen extends ConsumerStatefulWidget {
 
 class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailCtrl = TextEditingController();
+  late final TextEditingController _emailCtrl =
+      TextEditingController(text: widget.initialEmail ?? '');
   bool _busy = false;
   bool _sent = false;
 
@@ -38,15 +41,12 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       await ref
           .read(authRepositoryProvider)
           .forgotPassword(_emailCtrl.text.trim());
-      if (mounted) setState(() => _sent = true);
-    } catch (e) {
-      final message =
-          e is AppException ? e.message : 'Something went wrong';
       if (mounted) {
-        ScaffoldMessenger.of(context)
-          ..clearSnackBars()
-          ..showSnackBar(SnackBar(content: Text(message)));
+        setState(() => _sent = true);
+        AppToast.success('Reset link sent. Check your email.');
       }
+    } catch (e) {
+      AppToast.showError(e);
     } finally {
       if (mounted) setState(() => _busy = false);
     }

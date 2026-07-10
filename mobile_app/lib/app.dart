@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'config/app_config.dart';
 import 'routes/app_router.dart';
 import 'theme/app_theme.dart';
+import 'utils/app_toast.dart';
 import 'widgets/app_background.dart';
 
 /// Root application widget. Light-only theme with auth-aware routing.
@@ -18,6 +19,7 @@ class ClubApp extends ConsumerWidget {
     return MaterialApp.router(
       title: AppConfig.appName,
       debugShowCheckedModeBanner: false,
+      scaffoldMessengerKey: rootScaffoldMessengerKey,
       theme: AppTheme.light,
       themeMode: ThemeMode.light,
       routerConfig: router,

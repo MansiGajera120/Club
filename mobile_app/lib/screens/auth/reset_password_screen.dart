@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/error/exceptions.dart';
 import '../../providers/auth_provider.dart';
 import '../../routes/route_names.dart';
 import '../../theme/app_spacing.dart';
+import '../../utils/app_toast.dart';
 import '../../utils/validators.dart';
 import '../../widgets/widgets.dart';
 import 'widgets/auth_scaffold.dart';
@@ -47,17 +47,10 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
             password: _passwordCtrl.text,
           );
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Password updated. Please sign in.')),
-      );
+      AppToast.success('Password updated. Please sign in.');
       context.goNamed(RouteNames.login);
     } catch (e) {
-      final message = e is AppException ? e.message : 'Something went wrong';
-      if (mounted) {
-        ScaffoldMessenger.of(context)
-          ..clearSnackBars()
-          ..showSnackBar(SnackBar(content: Text(message)));
-      }
+      AppToast.showError(e);
     } finally {
       if (mounted) setState(() => _busy = false);
     }

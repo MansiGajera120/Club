@@ -6,6 +6,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/owner_providers.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
+import '../../utils/app_toast.dart';
 import '../../widgets/widgets.dart';
 import 'club_form_screen.dart';
 import 'owner_dashboard_screen.dart';
@@ -68,7 +69,11 @@ class _GateScaffold extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Log out',
-            onPressed: () => ref.read(authControllerProvider.notifier).logout(),
+            onPressed: () async {
+              AppToast.info('Logging out…');
+              await ref.read(authControllerProvider.notifier).logout();
+              AppToast.success('Logged out successfully');
+            },
           ),
         ],
       ),
@@ -100,7 +105,11 @@ class OwnerStatusScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Log out',
-            onPressed: () => ref.read(authControllerProvider.notifier).logout(),
+            onPressed: () async {
+              AppToast.info('Logging out…');
+              await ref.read(authControllerProvider.notifier).logout();
+              AppToast.success('Logged out successfully');
+            },
           ),
         ],
       ),

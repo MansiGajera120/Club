@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../models/club_filter.dart';
 import '../../providers/club_providers.dart';
-import '../../providers/favorite_providers.dart';
 import '../../routes/route_names.dart';
 import '../../theme/app_spacing.dart';
 import '../../widgets/widgets.dart';
@@ -217,18 +216,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             );
           }
           final club = state.clubs[i];
-          return Consumer(
-            builder: (context, ref, _) => ClubCard(
-              club: club,
-              onTap: () => _openClub(club.id),
-              isFavorite: ref
-                  .watch(favoritesControllerProvider)
-                  .value
-                  ?.any((c) => c.id == club.id),
-              onToggleFavorite: () => ref
-                  .read(favoritesControllerProvider.notifier)
-                  .toggle(club),
-            ),
+          return ClubCard(
+            club: club,
+            onTap: () => _openClub(club.id),
+            showFavorite: true,
           );
         },
       ),

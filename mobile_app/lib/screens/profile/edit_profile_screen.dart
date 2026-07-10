@@ -3,11 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../core/error/exceptions.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/owner_providers.dart';
 import '../../theme/app_radius.dart';
 import '../../theme/app_spacing.dart';
+import '../../utils/app_toast.dart';
 import '../../utils/validators.dart';
 import '../../widgets/widgets.dart';
 
@@ -33,12 +33,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   }
 
   void _error(Object e) {
-    final message = e is AppException ? e.message : 'Something went wrong';
-    if (mounted) {
-      ScaffoldMessenger.of(context)
-        ..clearSnackBars()
-        ..showSnackBar(SnackBar(content: Text(message)));
-    }
+    AppToast.showError(e);
   }
 
   Future<void> _pickAvatar() async {
@@ -49,6 +44,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     try {
       await ref.read(userRepositoryProvider).uploadAvatar(picked.path);
       await ref.read(authControllerProvider.notifier).refreshUser();
+      AppToast.success('Profile photo updated');
     } catch (e) {
       _error(e);
     } finally {
@@ -64,7 +60,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           .read(userRepositoryProvider)
           .updateProfile(name: _nameCtrl.text.trim());
       await ref.read(authControllerProvider.notifier).refreshUser();
-      if (mounted) context.pop();
+      if (mounted) {
+        AppToast.success('Profile updated');
+        context.pop();
+      }
     } catch (e) {
       _error(e);
     } finally {

@@ -16,6 +16,8 @@ abstract class Event with _$Event {
     required DateTime startDate,
     DateTime? endDate,
     String? registrationLink,
+    DateTime? registrationStartDate,
+    DateTime? registrationEndDate,
     @Default(true) bool isActive,
   }) = _Event;
 

@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -19,7 +19,10 @@ import '../screens/owner/my_clubs_screen.dart';
 import '../screens/owner/owner_actions_screen.dart';
 import '../screens/owner/owner_home_gate.dart';
 import '../screens/owner/owner_events_screen.dart';
+import '../screens/profile/change_password_screen.dart';
 import '../screens/profile/edit_profile_screen.dart';
+import '../screens/profile/legal_document_screen.dart';
+import '../screens/profile/legal_content.dart';
 import '../screens/profile/profile_screen.dart';
 import '../screens/search/search_screen.dart';
 import '../screens/shell/main_shell.dart';
@@ -103,7 +106,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       if (status == AuthStatus.unauthenticated) {
         return isPublic ? null : RouteNames.loginPath;
       }
-      if (onSplash || isPublic) {
+      if (onSplash) {
+        return RouteNames.homePath;
+      }
+      // Signed-in users may still open password recovery (e.g. from change password).
+      if (location == RouteNames.loginPath ||
+          location == RouteNames.signupPath) {
         return RouteNames.homePath;
       }
       return null;
@@ -127,7 +135,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         name: RouteNames.forgotPassword,
         path: RouteNames.forgotPasswordPath,
-        builder: (context, state) => const ForgotPasswordScreen(),
+        builder: (context, state) => ForgotPasswordScreen(
+          initialEmail: state.uri.queryParameters['email'],
+        ),
       ),
       GoRoute(
         name: RouteNames.resetPassword,
@@ -204,14 +214,49 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: RouteNames.eventForm,
         path: RouteNames.eventFormPath,
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) =>
-            EventFormScreen(clubId: state.extra as String),
+        builder: (context, state) {
+          final extra = state.extra;
+          if (extra is EventFormArgs) {
+            return EventFormScreen(
+              clubId: extra.clubId,
+              event: extra.event,
+            );
+          }
+          return EventFormScreen(clubId: extra as String);
+        },
       ),
       GoRoute(
         name: RouteNames.editProfile,
         path: RouteNames.editProfilePath,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const EditProfileScreen(),
+      ),
+      GoRoute(
+        name: RouteNames.changePassword,
+        path: RouteNames.changePasswordPath,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const ChangePasswordScreen(),
+      ),
+      GoRoute(
+        name: RouteNames.legalDocument,
+        path: RouteNames.legalDocumentPath,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final typeName = state.pathParameters['type'] ?? '';
+          LegalDocumentType? document;
+          for (final type in LegalDocumentType.values) {
+            if (type.name == typeName) {
+              document = type;
+              break;
+            }
+          }
+          if (document == null) {
+            return const Scaffold(
+              body: Center(child: Text('Document not found')),
+            );
+          }
+          return LegalDocumentScreen(document: document);
+        },
       ),
     ],
   );

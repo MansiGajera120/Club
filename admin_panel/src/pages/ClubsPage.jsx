@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   Box,
   Button,
@@ -29,6 +29,8 @@ import StarIcon from '@mui/icons-material/Star';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
 
 import { PageHeader, ContentCard } from '@/components/ui';
 import { StatusChip } from '@/components/common/StatusChip';
@@ -40,6 +42,7 @@ import {
   useDeleteClub,
 } from '@/hooks/useAdmin';
 import { getClubMenuActions } from '@/utils/clubActions';
+import { ROUTES, clubEditPath } from '@/constants';
 
 const STATUS_OPTIONS = ['', 'pending', 'approved', 'rejected', 'suspended', 'hidden'];
 
@@ -56,6 +59,7 @@ function formatPrice(value, currency) {
 }
 
 export function ClubsPage() {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [status, setStatus] = useState(() => searchParams.get('status') || '');
   const [search, setSearch] = useState('');
@@ -146,7 +150,18 @@ export function ClubsPage() {
 
   return (
     <Box>
-      <PageHeader subtitle="Review listings, approve new clubs, and manage featured status." />
+      <PageHeader
+        subtitle="Review listings, approve new clubs, and manage featured status."
+        actions={
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => navigate(ROUTES.clubNew)}
+          >
+            Add Organization
+          </Button>
+        }
+      />
 
       <ContentCard sx={{ p: 2, mb: 2 }}>
         <Stack
@@ -283,8 +298,20 @@ export function ClubsPage() {
         </TableContainer>
       </ContentCard>
 
-      {/* Row actions — only options valid for the club's current status */}
+      {/* Row actions — edit plus the status transitions valid for this club */}
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={closeMenu}>
+        <MenuItem
+          onClick={() => {
+            const target = active;
+            closeMenu();
+            navigate(clubEditPath(target.id));
+          }}
+        >
+          <ListItemIcon>
+            <EditIcon fontSize="small" />
+          </ListItemIcon>
+          Edit
+        </MenuItem>
         {menuActions.map((action) => {
           const Icon = action.icon;
           return (

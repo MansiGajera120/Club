@@ -189,9 +189,13 @@ class AppTheme {
       ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
-        backgroundColor: AppColors.textPrimary,
-        contentTextStyle: _body(AppTypography.bodySm).copyWith(color: Colors.white),
-        shape: RoundedRectangleBorder(borderRadius: AppRadius.mdAll),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        contentTextStyle: _body(AppTypography.bodySm).copyWith(
+          color: AppColors.textPrimary,
+          fontWeight: AppTypography.semibold,
+        ),
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.lgAll),
       ),
       dialogTheme: DialogThemeData(
         backgroundColor: AppColors.card,

@@ -7,5 +7,6 @@ export 'app_skeleton.dart';
 export 'app_text_field.dart';
 export 'cached_image.dart';
 export 'club_card.dart';
+export 'club_favorite_button.dart';
 export 'empty_state.dart';
 export 'google_logo.dart';

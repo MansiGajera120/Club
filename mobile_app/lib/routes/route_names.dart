@@ -50,6 +50,12 @@ class RouteNames {
   static const String editProfile = 'edit-profile';
   static const String editProfilePath = '/edit-profile';
 
+  static const String changePassword = 'change-password';
+  static const String changePasswordPath = '/change-password';
+
+  static const String legalDocument = 'legal-document';
+  static const String legalDocumentPath = '/legal/:type';
+
   /// Paths reachable without authentication.
   static const Set<String> publicPaths = {
     loginPath,
