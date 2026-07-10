@@ -84,13 +84,31 @@ class ClubCard extends StatelessWidget {
                       const SizedBox(height: AppSpacing.sm),
                       Row(
                         children: [
-                          _Pill(text: Formatters.genderLabel(club.gender)),
-                          const SizedBox(width: AppSpacing.xs),
-                          _Pill(
-                              text: Formatters.ageRange(club.ageMin, club.ageMax)),
-                          const Spacer(),
+                          // Pills take the remaining space and ellipsize if
+                          // tight; the price keeps its natural width so a large
+                          // value (e.g. ₹10,000) never overflows the row.
+                          Expanded(
+                            child: Row(
+                              children: [
+                                Flexible(
+                                  child: _Pill(
+                                      text:
+                                          Formatters.genderLabel(club.gender)),
+                                ),
+                                const SizedBox(width: AppSpacing.xs),
+                                Flexible(
+                                  child: _Pill(
+                                      text: Formatters.ageRange(
+                                          club.ageMin, club.ageMax)),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.sm),
                           Text(
                             Formatters.price(club.price, club.priceCurrency),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: theme.textTheme.titleMedium?.copyWith(
                               color: AppColors.primary,
                               fontWeight: FontWeight.w700,
@@ -132,6 +150,9 @@ class _Pill extends StatelessWidget {
       ),
       child: Text(
         text,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        softWrap: false,
         style: const TextStyle(
           color: AppColors.primary,
           fontSize: 11,

@@ -17,7 +17,7 @@ import '../screens/owner/club_form_screen.dart';
 import '../screens/owner/event_form_screen.dart';
 import '../screens/owner/my_clubs_screen.dart';
 import '../screens/owner/owner_actions_screen.dart';
-import '../screens/owner/owner_dashboard_screen.dart';
+import '../screens/owner/owner_home_gate.dart';
 import '../screens/owner/owner_events_screen.dart';
 import '../screens/profile/edit_profile_screen.dart';
 import '../screens/profile/profile_screen.dart';
@@ -35,7 +35,7 @@ class _RoleAwareHome extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final role = ref.watch(authControllerProvider).user?.role;
     return role == UserRole.clubOwner
-        ? const OwnerDashboardScreen()
+        ? const OwnerHomeGate()
         : const HomeScreen();
   }
 }

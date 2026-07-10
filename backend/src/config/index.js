@@ -66,6 +66,12 @@ const envSchema = Joi.object({
   GOOGLE_CLIENT_SECRET: Joi.string().allow('').default(''),
   APPLE_CLIENT_ID: Joi.string().allow('').default(''),
 
+  // Cloudinary — persistent image storage. When set, uploads go to Cloudinary
+  // (required on hosts with ephemeral disks like Render); otherwise local disk.
+  CLOUDINARY_CLOUD_NAME: Joi.string().allow('').default(''),
+  CLOUDINARY_API_KEY: Joi.string().allow('').default(''),
+  CLOUDINARY_API_SECRET: Joi.string().allow('').default(''),
+
   LOG_LEVEL: Joi.string().valid('error', 'warn', 'info', 'http', 'debug').default('info'),
 })
   .unknown(true)
@@ -153,6 +159,16 @@ const config = Object.freeze({
 
   apple: {
     clientId: env.APPLE_CLIENT_ID,
+  },
+
+  cloudinary: {
+    cloudName: env.CLOUDINARY_CLOUD_NAME,
+    apiKey: env.CLOUDINARY_API_KEY,
+    apiSecret: env.CLOUDINARY_API_SECRET,
+    // Only treat storage as "cloud" when all three are present.
+    enabled: Boolean(
+      env.CLOUDINARY_CLOUD_NAME && env.CLOUDINARY_API_KEY && env.CLOUDINARY_API_SECRET
+    ),
   },
 
   logLevel: env.LOG_LEVEL,

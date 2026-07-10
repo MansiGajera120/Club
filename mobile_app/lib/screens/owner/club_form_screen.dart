@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../core/error/exceptions.dart';
 import '../../models/club_model.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/club_providers.dart';
 import '../../providers/owner_providers.dart';
 import '../../theme/app_colors.dart';
@@ -18,10 +19,16 @@ import '../../widgets/widgets.dart';
 
 /// Create or edit a club. When [club] is provided the form edits it (and allows
 /// logo upload); otherwise it registers a new club (submitted for approval).
+///
+/// [embedded] is used by the owner onboarding gate: the form is shown as the
+/// home content (not a pushed route), so on success it must NOT pop — the gate
+/// re-renders to the status screen once the club provider refreshes. In embedded
+/// mode a logout action is shown so the owner isn't trapped on the form.
 class ClubFormScreen extends ConsumerStatefulWidget {
   final Club? club;
+  final bool embedded;
 
-  const ClubFormScreen({super.key, this.club});
+  const ClubFormScreen({super.key, this.club, this.embedded = false});
 
   @override
   ConsumerState<ClubFormScreen> createState() => _ClubFormScreenState();
@@ -211,7 +218,9 @@ class _ClubFormScreenState extends ConsumerState<ClubFormScreen> {
                 : 'Club submitted for approval'),
           ),
         );
-        context.pop();
+        // Embedded (onboarding) form is the home content — don't pop; the gate
+        // rebuilds to the status screen once myClubProvider refreshes.
+        if (!widget.embedded) context.pop();
       }
     } catch (e) {
       _error(e);
@@ -223,7 +232,20 @@ class _ClubFormScreenState extends ConsumerState<ClubFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(_isEdit ? 'Edit club' : 'Register club')),
+      appBar: AppBar(
+        title: Text(_isEdit ? 'Edit club' : 'Register your club'),
+        automaticallyImplyLeading: !widget.embedded,
+        actions: widget.embedded
+            ? [
+                IconButton(
+                  icon: const Icon(Icons.logout),
+                  tooltip: 'Log out',
+                  onPressed: () =>
+                      ref.read(authControllerProvider.notifier).logout(),
+                ),
+              ]
+            : null,
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppSpacing.lg),

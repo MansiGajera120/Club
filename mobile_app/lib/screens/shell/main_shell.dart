@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../models/user_model.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/owner_providers.dart';
 import '../../theme/app_radius.dart';
 import '../../theme/app_spacing.dart';
 import '../../widgets/app_background.dart';
@@ -26,6 +27,19 @@ class MainShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final role = ref.watch(authControllerProvider).user?.role;
     final isOwner = role == UserRole.clubOwner;
+
+    // During owner onboarding (no approved club yet) hide the bottom navigation
+    // so the owner stays focused on the registration form / status screen. The
+    // full owner tabs appear only once their club is approved.
+    var ownerApproved = false;
+    if (isOwner) {
+      ownerApproved = ref.watch(myClubProvider).maybeWhen(
+            data: (club) => club?.status == 'approved',
+            orElse: () => false,
+          );
+    }
+    final showNav = !isOwner || ownerApproved;
+
     final destinations = isOwner
         ? const [
             NavigationDestination(
@@ -86,27 +100,29 @@ class MainShell extends ConsumerWidget {
       backgroundColor: Colors.transparent,
       body: navigationShell,
       extendBody: true,
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.lg,
-          0,
-          AppSpacing.lg,
-          AppSpacing.lg,
-        ),
-        child: GlassSurface(
-          borderRadius: AppRadius.xlAll,
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-          child: NavigationBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            height: 64,
-            selectedIndex: navigationShell.currentIndex,
-            onDestinationSelected: _onTap,
-            labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-            destinations: destinations,
-          ),
-        ),
-      ),
+      bottomNavigationBar: showNav
+          ? Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg,
+                0,
+                AppSpacing.lg,
+                AppSpacing.lg,
+              ),
+              child: GlassSurface(
+                borderRadius: AppRadius.xlAll,
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                child: NavigationBar(
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  height: 64,
+                  selectedIndex: navigationShell.currentIndex,
+                  onDestinationSelected: _onTap,
+                  labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+                  destinations: destinations,
+                ),
+              ),
+            )
+          : null,
     );
   }
 }

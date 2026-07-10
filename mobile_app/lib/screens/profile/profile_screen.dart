@@ -80,10 +80,6 @@ class ProfileScreen extends ConsumerWidget {
               ],
             ),
           ),
-          if (user != null && !user.isEmailVerified) ...[
-            const SizedBox(height: AppSpacing.md),
-            _VerifyBanner(email: user.email),
-          ],
           const SizedBox(height: AppSpacing.lg),
           _Tile(
             icon: Icons.edit_outlined,
@@ -143,50 +139,3 @@ class _Tile extends StatelessWidget {
   }
 }
 
-class _VerifyBanner extends ConsumerStatefulWidget {
-  final String email;
-  const _VerifyBanner({required this.email});
-
-  @override
-  ConsumerState<_VerifyBanner> createState() => _VerifyBannerState();
-}
-
-class _VerifyBannerState extends ConsumerState<_VerifyBanner> {
-  bool _busy = false;
-
-  Future<void> _resend() async {
-    setState(() => _busy = true);
-    try {
-      await ref.read(authRepositoryProvider).resendVerification(widget.email);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Verification email sent')),
-        );
-      }
-    } catch (_) {
-      // best-effort
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AppCard(
-      child: Row(
-        children: [
-          const Icon(Icons.mark_email_unread_outlined, color: AppColors.warning),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Text('Verify your email to unlock all features.',
-                style: Theme.of(context).textTheme.bodyMedium),
-          ),
-          TextButton(
-            onPressed: _busy ? null : _resend,
-            child: Text(_busy ? 'Sending…' : 'Resend'),
-          ),
-        ],
-      ),
-    );
-  }
-}

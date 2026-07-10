@@ -13,3 +13,12 @@ final userRepositoryProvider = Provider<UserRepository>((ref) {
 final myClubsProvider = FutureProvider.autoDispose<List<Club>>((ref) {
   return ref.watch(clubRepositoryProvider).myClubs();
 });
+
+/// The owner's single club (or null if they haven't registered one yet). Drives
+/// the onboarding gate: null → show the registration form, non-approved → show
+/// the status screen, approved → show the dashboard. Refreshes whenever
+/// [myClubsProvider] is invalidated.
+final myClubProvider = FutureProvider.autoDispose<Club?>((ref) async {
+  final clubs = await ref.watch(myClubsProvider.future);
+  return clubs.isEmpty ? null : clubs.first;
+});

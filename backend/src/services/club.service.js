@@ -76,6 +76,15 @@ const buildPublicFilter = (query) => {
 };
 
 export const createClub = async (ownerId, data) => {
+  // One club per owner. A club owner registers and manages a single club, so a
+  // second registration is rejected — they edit the existing one instead.
+  const existing = await clubRepository.findByOwner(ownerId);
+  if (existing && existing.length > 0) {
+    throw ApiError.conflict(
+      'You already have a club registered. Each owner can manage only one club.'
+    );
+  }
+
   const club = await clubRepository.create({ ...data, owner: ownerId });
   return toClubResponse(club);
 };

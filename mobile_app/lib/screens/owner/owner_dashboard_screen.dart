@@ -113,20 +113,14 @@ class OwnerDashboardScreen extends ConsumerWidget {
                     children: [
                       AppListTileCard(
                         icon: Icons.storefront_outlined,
-                        title: 'Manage my clubs',
-                        subtitle: 'Edit details, status, and club information.',
+                        title: 'Manage my club',
+                        subtitle: 'Edit details and club information.',
                         onTap: () => context.go(RouteNames.searchPath),
-                      ),
-                      AppListTileCard(
-                        icon: Icons.add_business_outlined,
-                        title: 'Register a new club',
-                        subtitle: 'Create another club listing for review.',
-                        onTap: () => context.go(RouteNames.favoritesPath),
                       ),
                       AppListTileCard(
                         icon: Icons.event_available_outlined,
                         title: 'Manage club events',
-                        subtitle: 'Create and publish events for approved clubs.',
+                        subtitle: 'Create and publish events for your club.',
                         onTap: () => context.go(RouteNames.eventsPath),
                         showDivider: false,
                       ),
