@@ -16,13 +16,21 @@ export const QUERY_KEYS = {
 /** Application route paths — single source of truth for navigation. */
 export const ROUTES = {
   login: '/login',
+  forgotPassword: '/forgot-password',
+  resetPassword: '/reset-password',
   dashboard: '/',
   clubs: '/clubs',
   clubNew: '/clubs/new',
   clubEdit: '/clubs/:id/edit',
   users: '/users',
   events: '/events',
+  eventNew: '/events/new',
+  eventEdit: '/events/:id/edit',
+  settings: '/settings',
 };
 
 /** Build the edit route for a specific club id. */
 export const clubEditPath = (id) => `/clubs/${id}/edit`;
+
+/** Build the edit route for a specific event id. */
+export const eventEditPath = (id) => `/events/${id}/edit`;

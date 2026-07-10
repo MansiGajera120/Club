@@ -77,6 +77,12 @@ export const removeGallery = asyncHandler(async (req, res) => {
   return ApiResponse.ok(res, { club }, MESSAGES.CLUB.GALLERY_UPDATED);
 });
 
+/** POST /admin/admins — invite a new admin by email. */
+export const createAdmin = asyncHandler(async (req, res) => {
+  await adminService.createAdmin(req.body.email);
+  return ApiResponse.created(res, null, MESSAGES.ADMIN.ADMIN_INVITED);
+});
+
 /** GET /admin/users — all users with filters. */
 export const listUsers = asyncHandler(async (req, res) => {
   const { data, meta } = await adminService.listUsers(req.query);

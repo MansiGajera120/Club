@@ -1,6 +1,8 @@
+import crypto from 'crypto';
+
 import { ApiError } from '../errors/ApiError.js';
 import { MESSAGES } from '../constants/messages.js';
-import { CLUB_STATUS, USER_STATUS, ROLES } from '../enums/index.js';
+import { CLUB_STATUS, USER_STATUS, ROLES, AUTH_PROVIDER } from '../enums/index.js';
 import { clubRepository } from '../repositories/club.repository.js';
 import { userRepository } from '../repositories/user.repository.js';
 import { eventRepository } from '../repositories/event.repository.js';
@@ -11,6 +13,7 @@ import { getPagination, buildPaginationMeta } from '../utils/pagination.js';
 import { buildClubSearchClause } from '../utils/clubSearch.js';
 import * as clubService from './club.service.js';
 import * as eventService from './event.service.js';
+import * as authService from './auth.service.js';
 
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -187,6 +190,39 @@ export const listUsers = async (query) => {
     data: items.map((user) => toUserResponse(user)),
     meta: buildPaginationMeta({ total, page, limit }),
   };
+};
+
+/** Turn an email's local part into a readable placeholder display name. */
+const deriveAdminName = (email) => {
+  const local = email.split('@')[0].replace(/[._-]+/g, ' ').trim();
+  if (local.length < 2) return 'New Admin';
+  return local.replace(/\b\w/g, (c) => c.toUpperCase());
+};
+
+/**
+ * Invite a new admin by email. Creates a verified admin account with an
+ * unguessable random password, then emails them a set-password link (the same
+ * token used by "forgot password"). They finish onboarding by choosing their
+ * own password and signing in.
+ */
+export const createAdmin = async (email) => {
+  const existing = await userRepository.findByEmail(email);
+  if (existing) {
+    throw ApiError.conflict('A user with this email already exists');
+  }
+
+  await userRepository.create({
+    name: deriveAdminName(email),
+    email,
+    // Random secret the invitee never sees — they must reset to a known value.
+    password: crypto.randomBytes(32).toString('hex'),
+    role: ROLES.ADMIN,
+    provider: AUTH_PROVIDER.LOCAL,
+    isEmailVerified: true,
+  });
+
+  // Fire the reset-password email so they can create their own credentials.
+  await authService.forgotPassword(email);
 };
 
 export const setUserStatus = async (targetId, status, adminUser) => {

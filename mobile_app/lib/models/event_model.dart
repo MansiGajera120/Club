@@ -15,6 +15,8 @@ abstract class Event with _$Event {
     String? location,
     required DateTime startDate,
     DateTime? endDate,
+    @Default(0) num price,
+    @Default('USD') String priceCurrency,
     String? registrationLink,
     DateTime? registrationStartDate,
     DateTime? registrationEndDate,

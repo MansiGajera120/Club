@@ -12,6 +12,7 @@ import {
   adminUpdateClubSchema,
   updateClubStatusSchema,
   setFeaturedSchema,
+  createAdminSchema,
   listClubsQuerySchema,
   listUsersQuerySchema,
   setUserStatusSchema,
@@ -59,6 +60,9 @@ router.delete(
   validate(removeGallerySchema),
   adminController.removeGallery
 );
+
+// Admins
+router.post('/admins', validate(createAdminSchema), adminController.createAdmin);
 
 // Users
 router.get('/users', validate(listUsersQuerySchema, 'query'), adminController.listUsers);

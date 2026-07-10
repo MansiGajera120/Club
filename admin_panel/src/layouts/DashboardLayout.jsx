@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import {
   AppBar,
   Avatar,
@@ -20,6 +21,7 @@ import DashboardIcon from '@mui/icons-material/SpaceDashboard';
 import GroupsIcon from '@mui/icons-material/Groups';
 import PeopleIcon from '@mui/icons-material/People';
 import EventIcon from '@mui/icons-material/Event';
+import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
 import MenuIcon from '@mui/icons-material/Menu';
 
@@ -35,6 +37,7 @@ const NAV_ITEMS = [
   { label: 'Clubs', path: ROUTES.clubs, icon: <GroupsIcon /> },
   { label: 'Users', path: ROUTES.users, icon: <PeopleIcon /> },
   { label: 'Events', path: ROUTES.events, icon: <EventIcon /> },
+  { label: 'Settings', path: ROUTES.settings, icon: <SettingsIcon /> },
 ];
 
 const PAGE_TITLES = {
@@ -42,6 +45,7 @@ const PAGE_TITLES = {
   [ROUTES.clubs]: 'Clubs',
   [ROUTES.users]: 'Users',
   [ROUTES.events]: 'Events',
+  [ROUTES.settings]: 'Settings',
 };
 
 function getPageTitle(pathname) {
@@ -74,6 +78,15 @@ export function DashboardLayout() {
   const go = (path) => {
     navigate(path);
     setMobileOpen(false);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast.success('Signed out successfully');
+    } catch {
+      toast.error('Could not sign out. Please try again.');
+    }
   };
 
   const drawerContent = (
@@ -193,7 +206,7 @@ export function DashboardLayout() {
               </Typography>
             </Box>
           </Box>
-          <ListItemButton onClick={logout} sx={{ borderRadius: 2 }}>
+          <ListItemButton onClick={handleLogout} sx={{ borderRadius: 2 }}>
             <ListItemIcon sx={{ minWidth: 40 }}>
               <LogoutIcon />
             </ListItemIcon>

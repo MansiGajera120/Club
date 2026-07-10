@@ -99,6 +99,30 @@ class ClubRepository {
     });
   }
 
+  /// Upload one or more gallery photos (field name `images`).
+  Future<Club> addGallery(String id, List<String> filePaths) {
+    return _guard(() async {
+      final form = FormData.fromMap({
+        'images': [
+          for (final path in filePaths) await MultipartFile.fromFile(path),
+        ],
+      });
+      final res = await _dio.post('${ApiEndpoints.club(id)}/gallery', data: form);
+      return Club.fromJson(res.data['data']['club'] as Map<String, dynamic>);
+    });
+  }
+
+  /// Remove one gallery photo by its stored URL/path.
+  Future<Club> removeGallery(String id, String image) {
+    return _guard(() async {
+      final res = await _dio.delete(
+        '${ApiEndpoints.club(id)}/gallery',
+        data: {'image': image},
+      );
+      return Club.fromJson(res.data['data']['club'] as Map<String, dynamic>);
+    });
+  }
+
   Future<void> deleteClub(String id) {
     return _guard(() async {
       await _dio.delete(ApiEndpoints.club(id));

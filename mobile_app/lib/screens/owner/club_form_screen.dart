@@ -57,9 +57,21 @@ class _ClubFormScreenState extends ConsumerState<ClubFormScreen> {
   late final _instagram =
       TextEditingController(text: widget.club?.contact?.instagram ?? '');
   late final _tiktok = TextEditingController(text: widget.club?.contact?.tiktok ?? '');
+  late final _services =
+      TextEditingController(text: (widget.club?.services ?? []).join(', '));
+  late final _registrationLink =
+      TextEditingController(text: widget.club?.registrationLink ?? '');
 
   late String _gender = widget.club?.gender ?? 'mixed';
+  late String _currency = widget.club?.priceCurrency ?? 'INR';
   String? _logoPath;
+
+  /// Newly-picked gallery photos (local file paths), uploaded after save.
+  final List<String> _galleryPaths = [];
+
+  /// Existing gallery photo URLs (edit mode) — removable immediately.
+  late final List<String> _existingGallery = [...(widget.club?.gallery ?? [])];
+
   bool _busy = false;
 
   bool get _isEdit => widget.club != null;
@@ -68,7 +80,7 @@ class _ClubFormScreenState extends ConsumerState<ClubFormScreen> {
   void dispose() {
     for (final c in [
       _name, _sport, _city, _address, _description, _ageMin, _ageMax, _price,
-      _phone, _email, _website, _instagram, _tiktok,
+      _phone, _email, _website, _instagram, _tiktok, _services, _registrationLink,
     ]) {
       c.dispose();
     }
@@ -161,9 +173,34 @@ class _ClubFormScreenState extends ConsumerState<ClubFormScreen> {
     if (picked != null) setState(() => _logoPath = picked.path);
   }
 
+  Future<void> _pickGallery() async {
+    final picked = await ImagePicker()
+        .pickMultiImage(maxWidth: 1600, imageQuality: 85);
+    if (picked.isNotEmpty) {
+      setState(() => _galleryPaths.addAll(picked.map((x) => x.path)));
+    }
+  }
+
+  Future<void> _removeExistingPhoto(String url) async {
+    try {
+      await ref.read(clubRepositoryProvider).removeGallery(widget.club!.id, url);
+      setState(() => _existingGallery.remove(url));
+      ref.invalidate(clubDetailProvider(widget.club!.id));
+    } catch (e) {
+      _error(e);
+    }
+  }
+
+  List<String> _servicesList() => _services.text
+      .split(',')
+      .map((s) => s.trim())
+      .where((s) => s.isNotEmpty)
+      .toList();
+
   Map<String, dynamic> _body() => {
         'name': _name.text.trim(),
         'sport': _sport.text.trim(),
+        'services': _servicesList(),
         'city': _city.text.trim(),
         'address': _address.text.trim(),
         'description': _description.text.trim(),
@@ -171,7 +208,8 @@ class _ClubFormScreenState extends ConsumerState<ClubFormScreen> {
         'ageMin': int.tryParse(_ageMin.text.trim()) ?? 0,
         'ageMax': int.tryParse(_ageMax.text.trim()) ?? 100,
         'price': num.tryParse(_price.text.trim()) ?? 0,
-        'priceCurrency': 'INR',
+        'priceCurrency': _currency,
+        'registrationLink': _registrationLink.text.trim(),
         'contact': {
           'phone': _phone.text.trim(),
           'email': _email.text.trim(),
@@ -192,6 +230,9 @@ class _ClubFormScreenState extends ConsumerState<ClubFormScreen> {
 
       if (_logoPath != null) {
         await repo.uploadLogo(saved.id, _logoPath!);
+      }
+      if (_galleryPaths.isNotEmpty) {
+        await repo.addGallery(saved.id, _galleryPaths);
       }
 
       ref.invalidate(myClubsProvider);
@@ -307,17 +348,28 @@ class _ClubFormScreenState extends ConsumerState<ClubFormScreen> {
                     AppTextField(
                       label: 'Club name',
                       controller: _name,
+                      maxLength: 120,
                       validator: (v) =>
                           Validators.required(v, field: 'Club name'),
                     ),
-                    AppTextField(label: 'Sport', controller: _sport),
-                    AppTextField(label: 'City', controller: _city),
-                    AppTextField(label: 'Address', controller: _address),
+                    AppTextField(
+                        label: 'Sport', controller: _sport, maxLength: 80),
+                    AppTextField(
+                      label: 'Services (comma separated)',
+                      controller: _services,
+                      hint: 'Coaching, Summer camp, Trials',
+                      maxLength: 500,
+                    ),
+                    AppTextField(
+                        label: 'City', controller: _city, maxLength: 120),
+                    AppTextField(
+                        label: 'Address', controller: _address, maxLength: 300),
                     AppTextField(
                       label: 'Description',
                       controller: _description,
                       maxLines: 4,
                       minLines: 3,
+                      maxLength: 4000,
                     ),
                   ],
                 ),
@@ -352,6 +404,10 @@ class _ClubFormScreenState extends ConsumerState<ClubFormScreen> {
                             label: 'Min age',
                             controller: _ageMin,
                             keyboardType: TextInputType.number,
+                            maxLength: 3,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],
                           ),
                         ),
                         const SizedBox(width: AppSpacing.md),
@@ -360,14 +416,42 @@ class _ClubFormScreenState extends ConsumerState<ClubFormScreen> {
                             label: 'Max age',
                             controller: _ageMax,
                             keyboardType: TextInputType.number,
+                            maxLength: 3,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: AppTextField(
+                            label: 'Price',
+                            controller: _price,
+                            keyboardType: TextInputType.number,
+                            maxLength: 9,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],
                           ),
                         ),
                         const SizedBox(width: AppSpacing.md),
                         Expanded(
-                          child: AppTextField(
-                            label: 'Price (INR)',
-                            controller: _price,
-                            keyboardType: TextInputType.number,
+                          child: AppDropdownField<String>(
+                            label: 'Currency',
+                            value: _currency,
+                            items: const [
+                              DropdownMenuItem(value: 'USD', child: Text('USD')),
+                              DropdownMenuItem(value: 'INR', child: Text('INR')),
+                              DropdownMenuItem(value: 'EUR', child: Text('EUR')),
+                              DropdownMenuItem(value: 'GBP', child: Text('GBP')),
+                            ],
+                            onChanged: (v) =>
+                                setState(() => _currency = v ?? _currency),
                           ),
                         ),
                       ],
@@ -394,10 +478,42 @@ class _ClubFormScreenState extends ConsumerState<ClubFormScreen> {
                       label: 'Email',
                       controller: _email,
                       keyboardType: TextInputType.emailAddress,
+                      maxLength: 160,
                     ),
-                    AppTextField(label: 'Website', controller: _website),
-                    AppTextField(label: 'Instagram', controller: _instagram),
-                    AppTextField(label: 'TikTok', controller: _tiktok),
+                    AppTextField(
+                      label: 'Website',
+                      controller: _website,
+                      hint: 'https://…',
+                      maxLength: 300,
+                    ),
+                    AppTextField(
+                        label: 'Instagram',
+                        controller: _instagram,
+                        maxLength: 300),
+                    AppTextField(
+                        label: 'TikTok', controller: _tiktok, maxLength: 300),
+                    AppTextField(
+                      label: 'Registration link',
+                      controller: _registrationLink,
+                      hint: 'https://…',
+                      maxLength: 300,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                FormSection(
+                  title: 'Photos',
+                  subtitle: 'Showcase your club — shown in the gallery',
+                  icon: Icons.photo_library_outlined,
+                  children: [
+                    _GalleryEditor(
+                      existing: _existingGallery,
+                      staged: _galleryPaths,
+                      onAdd: _busy ? null : _pickGallery,
+                      onRemoveExisting: _busy ? null : _removeExistingPhoto,
+                      onRemoveStaged: (path) =>
+                          setState(() => _galleryPaths.remove(path)),
+                    ),
                   ],
                 ),
                 const SizedBox(height: AppSpacing.xl),
@@ -410,6 +526,110 @@ class _ClubFormScreenState extends ConsumerState<ClubFormScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Grid of gallery photos (existing + newly-picked) with a remove control on
+/// each and an "Add photos" tile. Existing photos are removed from the server
+/// immediately; staged photos are removed locally.
+class _GalleryEditor extends StatelessWidget {
+  final List<String> existing;
+  final List<String> staged;
+  final VoidCallback? onAdd;
+  final void Function(String url)? onRemoveExisting;
+  final void Function(String path) onRemoveStaged;
+
+  const _GalleryEditor({
+    required this.existing,
+    required this.staged,
+    required this.onAdd,
+    required this.onRemoveExisting,
+    required this.onRemoveStaged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: AppSpacing.sm,
+      runSpacing: AppSpacing.sm,
+      children: [
+        for (final url in existing)
+          _Thumb(
+            onRemove: onRemoveExisting == null
+                ? null
+                : () => onRemoveExisting!(url),
+            child: CachedImage(url: url, fit: BoxFit.cover),
+          ),
+        for (final path in staged)
+          _Thumb(
+            onRemove: () => onRemoveStaged(path),
+            child: Image.file(File(path), fit: BoxFit.cover),
+          ),
+        // Add tile
+        InkWell(
+          onTap: onAdd,
+          borderRadius: AppRadius.mdAll,
+          child: Container(
+            width: 84,
+            height: 84,
+            decoration: BoxDecoration(
+              color: AppColors.card,
+              borderRadius: AppRadius.mdAll,
+              border: Border.all(color: AppColors.borderStrong, width: 1.25),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.add_a_photo_outlined,
+                    size: 22, color: AppColors.textTertiary),
+                const SizedBox(height: 4),
+                Text('Add',
+                    style: Theme.of(context)
+                        .textTheme
+                        .labelSmall
+                        ?.copyWith(color: AppColors.textTertiary)),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _Thumb extends StatelessWidget {
+  final Widget child;
+  final VoidCallback? onRemove;
+
+  const _Thumb({required this.child, required this.onRemove});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 84,
+      height: 84,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          ClipRRect(borderRadius: AppRadius.mdAll, child: child),
+          Positioned(
+            top: 2,
+            right: 2,
+            child: GestureDetector(
+              onTap: onRemove,
+              child: Container(
+                padding: const EdgeInsets.all(2),
+                decoration: const BoxDecoration(
+                  color: Colors.black54,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.close, size: 16, color: Colors.white),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

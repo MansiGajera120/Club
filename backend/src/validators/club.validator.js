@@ -3,7 +3,11 @@ import Joi from 'joi';
 import { GENDER, GENDER_VALUES } from '../enums/index.js';
 
 const contactSchema = Joi.object({
-  phone: Joi.string().trim().allow('').max(40),
+  phone: Joi.string()
+    .trim()
+    .allow('')
+    .pattern(/^[0-9]{10}$/)
+    .messages({ 'string.pattern.base': 'Phone must be a 10-digit number' }),
   email: Joi.string().email().allow('').max(160),
   website: Joi.string().uri().allow('').max(300),
   instagram: Joi.string().trim().allow('').max(300),

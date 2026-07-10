@@ -77,6 +77,17 @@ class EventRepository {
     });
   }
 
+  /// Upload/replace the event cover image (field name `cover`).
+  Future<Event> uploadCover(String id, String filePath) {
+    return _guard(() async {
+      final form = FormData.fromMap({
+        'cover': await MultipartFile.fromFile(filePath),
+      });
+      final res = await _dio.post('${ApiEndpoints.events}/$id/cover', data: form);
+      return Event.fromJson(res.data['data']['event'] as Map<String, dynamic>);
+    });
+  }
+
   Future<void> deleteEvent(String id) {
     return _guard(() async {
       await _dio.delete('${ApiEndpoints.events}/$id');

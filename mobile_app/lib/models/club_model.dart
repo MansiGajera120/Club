@@ -27,6 +27,7 @@ abstract class Club with _$Club {
     required String name,
     String? description,
     String? sport,
+    @Default(<String>[]) List<String> services,
     String? city,
     String? address,
     @Default('mixed') String gender,

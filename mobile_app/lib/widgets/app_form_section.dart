@@ -110,6 +110,68 @@ class FormSection extends StatelessWidget {
   }
 }
 
+/// Labeled dropdown styled to match [AppTextField].
+class AppDropdownField<T> extends StatelessWidget {
+  final String label;
+  final T value;
+  final List<DropdownMenuItem<T>> items;
+  final ValueChanged<T?> onChanged;
+
+  const AppDropdownField({
+    super.key,
+    required this.label,
+    required this.value,
+    required this.items,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: theme.textTheme.labelLarge?.copyWith(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textSecondary,
+            letterSpacing: 0.1,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        DropdownButtonFormField<T>(
+          initialValue: value,
+          items: items,
+          onChanged: onChanged,
+          isExpanded: true,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: AppColors.textPrimary,
+          ),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: AppColors.card,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.lg,
+              vertical: AppSpacing.md + 2,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: AppRadius.mdAll,
+              borderSide: const BorderSide(color: AppColors.borderStrong),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: AppRadius.mdAll,
+              borderSide: const BorderSide(color: AppColors.primary, width: 1.8),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 /// Date/time picker row styled to match [AppTextField].
 class AppPickerField extends StatelessWidget {
   final String label;

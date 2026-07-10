@@ -1,9 +1,15 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../models/event_model.dart';
 import '../../providers/event_providers.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_radius.dart';
 import '../../theme/app_spacing.dart';
 import '../../utils/app_toast.dart';
 import '../../utils/formatters.dart';
@@ -37,9 +43,14 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
   late final TextEditingController _description;
   late final TextEditingController _location;
   late final TextEditingController _registration;
+  late final TextEditingController _price;
   DateTime? _startDate;
+  DateTime? _endDate;
   DateTime? _regStart;
   DateTime? _regEnd;
+  late String _currency;
+  late bool _isActive;
+  String? _coverPath;
   bool _busy = false;
 
   @override
@@ -50,9 +61,13 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     _description = TextEditingController(text: event?.description ?? '');
     _location = TextEditingController(text: event?.location ?? '');
     _registration = TextEditingController(text: event?.registrationLink ?? '');
+    _price = TextEditingController(text: (event?.price ?? 0).toString());
     _startDate = event?.startDate.toLocal();
+    _endDate = event?.endDate?.toLocal();
     _regStart = event?.registrationStartDate?.toLocal();
     _regEnd = event?.registrationEndDate?.toLocal();
+    _currency = event?.priceCurrency ?? 'INR';
+    _isActive = event?.isActive ?? true;
   }
 
   @override
@@ -61,6 +76,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     _description.dispose();
     _location.dispose();
     _registration.dispose();
+    _price.dispose();
     super.dispose();
   }
 
@@ -166,9 +182,29 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     if (picked != null) {
       setState(() {
         _startDate = picked;
+        if (_endDate != null && _endDate!.isBefore(picked)) _endDate = null;
         _clearInvalidRegistrationDates();
       });
     }
+  }
+
+  Future<void> _pickEnd() async {
+    if (_startDate == null) {
+      AppToast.info('Choose the start date first');
+      return;
+    }
+    final picked = await _pickDateTime(
+      _endDate,
+      minDateTime: _startDate!,
+      maxDateTime: _maxEventDate,
+    );
+    if (picked != null) setState(() => _endDate = picked);
+  }
+
+  Future<void> _pickCover() async {
+    final picked = await ImagePicker()
+        .pickImage(source: ImageSource.gallery, maxWidth: 1600, imageQuality: 85);
+    if (picked != null) setState(() => _coverPath = picked.path);
   }
 
   Future<void> _pickRegStart() async {
@@ -224,15 +260,23 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
   }
 
   Map<String, dynamic> _buildPayload() {
-    return {
+    final payload = <String, dynamic>{
       'title': _title.text.trim(),
       'description': _description.text.trim(),
       'location': _location.text.trim(),
       'startDate': _startDate!.toUtc().toIso8601String(),
+      'price': num.tryParse(_price.text.trim()) ?? 0,
+      'priceCurrency': _currency,
       'registrationLink': _registration.text.trim(),
       'registrationStartDate': _regStart?.toUtc().toIso8601String(),
       'registrationEndDate': _regEnd?.toUtc().toIso8601String(),
+      'isActive': _isActive,
     };
+    // endDate is optional and cannot be null server-side — include only if set.
+    if (_endDate != null) {
+      payload['endDate'] = _endDate!.toUtc().toIso8601String();
+    }
+    return payload;
   }
 
   Future<void> _submit() async {
@@ -241,18 +285,24 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
       AppToast.info('Please choose a start date');
       return;
     }
+    if (_endDate != null && _endDate!.isBefore(_startDate!)) {
+      AppToast.error('End date must be on or after the start date');
+      return;
+    }
     if (!_validateRegistrationDates()) return;
 
     setState(() => _busy = true);
     try {
       final repo = ref.read(eventRepositoryProvider);
-      if (widget.isEditing) {
-        await repo.updateEvent(widget.event!.id, _buildPayload());
-      } else {
-        await repo.createEvent({
-          'club': widget.clubId,
-          ..._buildPayload(),
-        });
+      final Event saved = widget.isEditing
+          ? await repo.updateEvent(widget.event!.id, _buildPayload())
+          : await repo.createEvent({
+              'club': widget.clubId,
+              ..._buildPayload(),
+            });
+
+      if (_coverPath != null) {
+        await repo.uploadCover(saved.id, _coverPath!);
       }
       ref.invalidate(ownerEventsScreenProvider);
       ref.invalidate(ownerEventsProvider);
@@ -285,6 +335,19 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 FormSection(
+                  title: 'Cover image',
+                  subtitle: 'Shown at the top of the event card',
+                  icon: Icons.image_outlined,
+                  children: [
+                    _CoverPicker(
+                      localPath: _coverPath,
+                      existingUrl: widget.event?.coverImage,
+                      onTap: _busy ? null : _pickCover,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                FormSection(
                   title: 'Event details',
                   subtitle: 'What parents will see in the events feed',
                   icon: Icons.event_outlined,
@@ -292,6 +355,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                     AppTextField(
                       label: 'Title',
                       controller: _title,
+                      maxLength: 160,
                       validator: (v) =>
                           Validators.required(v, field: 'Title'),
                     ),
@@ -300,8 +364,12 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                       controller: _description,
                       maxLines: 4,
                       minLines: 3,
+                      maxLength: 4000,
                     ),
-                    AppTextField(label: 'Location', controller: _location),
+                    AppTextField(
+                        label: 'Location',
+                        controller: _location,
+                        maxLength: 300),
                   ],
                 ),
                 const SizedBox(height: AppSpacing.lg),
@@ -317,10 +385,59 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                       placeholder: 'Choose date and time',
                       onTap: _pickStart,
                     ),
+                    AppPickerField(
+                      label: 'End date & time (optional)',
+                      value:
+                          _endDate == null ? '' : Formatters.dateTime(_endDate!),
+                      placeholder: _startDate == null
+                          ? 'Set start date first'
+                          : 'Choose date and time',
+                      onTap: _pickEnd,
+                    ),
                     AppTextField(
                       label: 'Registration link',
                       controller: _registration,
                       hint: 'https://…',
+                      maxLength: 300,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                FormSection(
+                  title: 'Pricing',
+                  icon: Icons.payments_outlined,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: AppTextField(
+                            label: 'Price',
+                            controller: _price,
+                            keyboardType: TextInputType.number,
+                            maxLength: 7,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.md),
+                        Expanded(
+                          child: AppDropdownField<String>(
+                            label: 'Currency',
+                            value: _currency,
+                            items: const [
+                              DropdownMenuItem(value: 'USD', child: Text('USD')),
+                              DropdownMenuItem(value: 'INR', child: Text('INR')),
+                              DropdownMenuItem(value: 'EUR', child: Text('EUR')),
+                              DropdownMenuItem(value: 'GBP', child: Text('GBP')),
+                            ],
+                            onChanged: (v) =>
+                                setState(() => _currency = v ?? _currency),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -353,6 +470,20 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                     ),
                   ],
                 ),
+                const SizedBox(height: AppSpacing.lg),
+                FormSection(
+                  title: 'Visibility',
+                  icon: Icons.visibility_outlined,
+                  children: [
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: const Text('Active'),
+                      subtitle: const Text('Visible to parents in the app'),
+                      value: _isActive,
+                      onChanged: (v) => setState(() => _isActive = v),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: AppSpacing.xl),
                 AppButton(
                   label: widget.isEditing ? 'Save changes' : 'Create event',
@@ -362,6 +493,60 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Wide 16:9 cover picker showing the newly-picked local file, the existing
+/// cover (edit mode), or an empty prompt.
+class _CoverPicker extends StatelessWidget {
+  final String? localPath;
+  final String? existingUrl;
+  final VoidCallback? onTap;
+
+  const _CoverPicker({
+    required this.localPath,
+    required this.existingUrl,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    Widget content;
+    if (localPath != null) {
+      content = Image.file(File(localPath!), fit: BoxFit.cover);
+    } else if (existingUrl != null) {
+      content = CachedImage(url: existingUrl, fit: BoxFit.cover);
+    } else {
+      content = Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.add_photo_alternate_outlined,
+              size: 30, color: AppColors.textTertiary),
+          const SizedBox(height: 6),
+          Text('Tap to add a cover',
+              style: Theme.of(context)
+                  .textTheme
+                  .labelMedium
+                  ?.copyWith(color: AppColors.textTertiary)),
+        ],
+      );
+    }
+
+    return GestureDetector(
+      onTap: onTap,
+      child: AspectRatio(
+        aspectRatio: 16 / 9,
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppColors.card,
+            borderRadius: AppRadius.lgAll,
+            border: Border.all(color: AppColors.borderStrong, width: 1.25),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: content,
         ),
       ),
     );

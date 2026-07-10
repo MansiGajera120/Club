@@ -77,6 +77,7 @@ export const MESSAGES = Object.freeze({
     CLUB_FEATURED_UPDATED: 'Club featured status updated successfully',
     USERS_LIST: 'Users fetched successfully',
     USER_STATUS_UPDATED: 'User status updated successfully',
+    ADMIN_INVITED: 'Admin added — a set-password link has been emailed to them',
     CANNOT_MODIFY_ADMIN: 'Admin accounts cannot be modified',
     CANNOT_MODIFY_SELF: 'You cannot change your own account status',
   },

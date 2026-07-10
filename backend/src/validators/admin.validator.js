@@ -12,7 +12,11 @@ import {
 const objectId = Joi.string().hex().length(24);
 
 const contactSchema = Joi.object({
-  phone: Joi.string().trim().allow('').max(40),
+  phone: Joi.string()
+    .trim()
+    .allow('')
+    .pattern(/^[0-9]{10}$/)
+    .messages({ 'string.pattern.base': 'Phone must be a 10-digit number' }),
   email: Joi.string().email().allow('').max(160),
   website: Joi.string().uri().allow('').max(300),
   instagram: Joi.string().trim().allow('').max(300),
@@ -81,6 +85,11 @@ export const updateClubStatusSchema = Joi.object({
 
 export const setFeaturedSchema = Joi.object({
   isFeatured: Joi.boolean().required(),
+});
+
+// Invite a new admin by email — they set their own password via the reset flow.
+export const createAdminSchema = Joi.object({
+  email: Joi.string().email().lowercase().trim().max(160).required(),
 });
 
 export const listClubsQuerySchema = Joi.object({

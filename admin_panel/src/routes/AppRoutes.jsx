@@ -5,11 +5,15 @@ import ProtectedRoute from './ProtectedRoute';
 import AuthLayout from '@/layouts/AuthLayout';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import LoginPage from '@/pages/LoginPage';
+import ForgotPasswordPage from '@/pages/ForgotPasswordPage';
+import ResetPasswordPage from '@/pages/ResetPasswordPage';
 import DashboardPage from '@/pages/DashboardPage';
 import ClubsPage from '@/pages/ClubsPage';
 import ClubFormPage from '@/pages/ClubFormPage';
 import UsersPage from '@/pages/UsersPage';
 import EventsPage from '@/pages/EventsPage';
+import EventFormPage from '@/pages/EventFormPage';
+import SettingsPage from '@/pages/SettingsPage';
 import NotFoundPage from '@/pages/NotFoundPage';
 
 /**
@@ -22,6 +26,8 @@ export function AppRoutes() {
       {/* Public */}
       <Route element={<AuthLayout />}>
         <Route path={ROUTES.login} element={<LoginPage />} />
+        <Route path={ROUTES.forgotPassword} element={<ForgotPasswordPage />} />
+        <Route path={ROUTES.resetPassword} element={<ResetPasswordPage />} />
       </Route>
 
       {/* Protected */}
@@ -33,6 +39,9 @@ export function AppRoutes() {
           <Route path={ROUTES.clubEdit} element={<ClubFormPage />} />
           <Route path={ROUTES.users} element={<UsersPage />} />
           <Route path={ROUTES.events} element={<EventsPage />} />
+          <Route path={ROUTES.eventNew} element={<EventFormPage />} />
+          <Route path={ROUTES.eventEdit} element={<EventFormPage />} />
+          <Route path={ROUTES.settings} element={<SettingsPage />} />
         </Route>
       </Route>
 

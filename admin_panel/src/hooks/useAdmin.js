@@ -166,6 +166,19 @@ export function useRemoveClubGallery() {
   });
 }
 
+/** Invite a new admin by email. */
+export function useCreateAdmin() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (email) => adminService.createAdmin(email),
+    onSuccess: () => {
+      invalidateKeys(qc, [['admin', 'users'], ['admin', 'stats']]);
+      toast.success('Admin added — a set-password link has been emailed to them');
+    },
+    onError: (error) => toast.error(getApiErrorMessage(error)),
+  });
+}
+
 export function useSetUserStatus() {
   const qc = useQueryClient();
   return useMutation({
@@ -189,6 +202,56 @@ export function useDeleteEvent() {
     onSuccess: () => {
       invalidateKeys(qc, [['admin', 'events'], ['admin', 'stats']]);
       toast.success('Event deleted permanently');
+    },
+    onError: (error) => toast.error(getApiErrorMessage(error)),
+  });
+}
+
+/** Single event detail for the create/edit form. */
+export function useAdminEvent(id) {
+  return useQuery({
+    queryKey: ['admin', 'event', id],
+    queryFn: () => adminService.getEvent(id),
+    enabled: Boolean(id),
+  });
+}
+
+/** Create an event for an organization. */
+export function useCreateEvent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body) => adminService.createEvent(body),
+    onSuccess: () => {
+      invalidateKeys(qc, [['admin', 'events'], ['admin', 'stats']]);
+      toast.success('Event created');
+    },
+    onError: (error) => toast.error(getApiErrorMessage(error)),
+  });
+}
+
+/** Edit an event. */
+export function useUpdateEvent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, body }) => adminService.updateEvent(id, body),
+    onSuccess: (_data, variables) => {
+      invalidateKeys(qc, [['admin', 'events']]);
+      qc.invalidateQueries({ queryKey: ['admin', 'event', variables.id] });
+      toast.success('Event updated');
+    },
+    onError: (error) => toast.error(getApiErrorMessage(error)),
+  });
+}
+
+/** Upload/replace an event's cover image. */
+export function useUploadEventCover() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, file }) => adminService.uploadEventCover(id, file),
+    onSuccess: (_data, variables) => {
+      invalidateKeys(qc, [['admin', 'events']]);
+      qc.invalidateQueries({ queryKey: ['admin', 'event', variables.id] });
+      toast.success('Cover image updated');
     },
     onError: (error) => toast.error(getApiErrorMessage(error)),
   });

@@ -1,14 +1,15 @@
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
-import { Box, Button, Stack, TextField, Typography } from '@mui/material';
+import { Box, Button, Link, Stack, TextField, Typography } from '@mui/material';
 
 import { env } from '@/config/env';
 import { ROUTES } from '@/constants';
 import { useAuth } from '@/hooks/useAuth';
 import { getApiErrorMessage } from '@/services/apiClient';
+import PasswordField from '@/components/common/PasswordField';
 
 /**
  * Admin sign-in. Email/password form (React Hook Form) that authenticates via
@@ -67,9 +68,8 @@ export function LoginPage() {
             },
           })}
         />
-        <TextField
+        <PasswordField
           label="Password"
-          type="password"
           autoComplete="current-password"
           error={Boolean(errors.password)}
           helperText={errors.password?.message}
@@ -83,6 +83,16 @@ export function LoginPage() {
         >
           {mutation.isPending ? 'Signing in…' : 'Sign In'}
         </Button>
+        <Box sx={{ textAlign: 'center' }}>
+          <Link
+            component={RouterLink}
+            to={ROUTES.forgotPassword}
+            variant="body2"
+            underline="hover"
+          >
+            Forgot password?
+          </Link>
+        </Box>
       </Stack>
     </Box>
   );

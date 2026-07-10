@@ -3,7 +3,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import {
   Box,
   Button,
-  Chip,
   CircularProgress,
   Divider,
   FormControlLabel,
@@ -69,6 +68,9 @@ const EMPTY_FORM = {
   isFeatured: false,
 };
 
+const isUrl = (v) => /^https?:\/\/.+/i.test(v.trim());
+const isEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+
 /** Map a loaded club DTO into the flat form state. */
 function clubToForm(club) {
   return {
@@ -94,21 +96,6 @@ function clubToForm(club) {
   };
 }
 
-/** Two-column responsive grid for form fields. */
-function FieldGrid({ children, columns = 2 }) {
-  return (
-    <Box
-      sx={{
-        display: 'grid',
-        gridTemplateColumns: { xs: '1fr', sm: `repeat(${columns}, 1fr)` },
-        gap: 2,
-      }}
-    >
-      {children}
-    </Box>
-  );
-}
-
 export function ClubFormPage() {
   const { id } = useParams();
   const isEdit = Boolean(id);
@@ -123,6 +110,14 @@ export function ClubFormPage() {
 
   const [form, setForm] = useState(EMPTY_FORM);
   const [errors, setErrors] = useState({});
+
+  // Media staged locally (create mode) — uploaded straight after the record is
+  // created. In edit mode uploads happen immediately since the club exists.
+  const [logoFile, setLogoFile] = useState(null);
+  const [logoPreview, setLogoPreview] = useState(null);
+  const [staged, setStaged] = useState([]); // [{ file, url }]
+  const [mediaError, setMediaError] = useState('');
+
   const logoInputRef = useRef(null);
   const galleryInputRef = useRef(null);
 
@@ -131,27 +126,80 @@ export function ClubFormPage() {
     if (club) setForm(clubToForm(club));
   }, [club]);
 
+  // Revoke object URLs on unmount to avoid leaks.
+  useEffect(
+    () => () => {
+      if (logoPreview) URL.revokeObjectURL(logoPreview);
+      staged.forEach((s) => URL.revokeObjectURL(s.url));
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
+
   const set = (key) => (e) => {
     const value =
       e?.target?.type === 'checkbox' ? e.target.checked : e.target.value;
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
+  // Phone accepts digits only, capped at 10.
+  const setPhone = (e) => {
+    const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
+    setForm((prev) => ({ ...prev, phone: digits }));
+  };
+
   const validate = () => {
     const next = {};
-    if (!form.name.trim() || form.name.trim().length < 2) {
-      next.name = 'Name is required (min 2 characters)';
-    }
+    const req = (key, label) => {
+      if (!String(form[key]).trim()) next[key] = `${label} is required`;
+    };
+
+    req('name', 'Name');
+    if (!next.name && form.name.trim().length < 2) next.name = 'Min 2 characters';
+    req('description', 'Description');
+    req('sport', 'Sport');
+    req('services', 'At least one service');
+    req('city', 'City');
+    req('address', 'Address');
+    if (!form.phone.trim()) next.phone = 'Phone is required';
+    else if (!/^\d{10}$/.test(form.phone)) next.phone = 'Enter a 10-digit number';
+
+    if (!form.email.trim()) next.email = 'Email is required';
+    else if (!isEmail(form.email)) next.email = 'Enter a valid email';
+
+    if (!form.website.trim()) next.website = 'Website is required';
+    else if (!isUrl(form.website)) next.website = 'Start with http:// or https://';
+
+    if (!form.registrationLink.trim())
+      next.registrationLink = 'Registration link is required';
+    else if (!isUrl(form.registrationLink))
+      next.registrationLink = 'Start with http:// or https://';
+
+    req('instagram', 'Instagram');
+    req('tiktok', 'TikTok');
+
     const min = Number(form.ageMin);
     const max = Number(form.ageMax);
-    if (Number.isNaN(min) || min < 0 || min > 100) next.ageMin = 'Age 0–100';
-    if (Number.isNaN(max) || max < 0 || max > 100) next.ageMax = 'Age 0–100';
-    if (!next.ageMin && !next.ageMax && max < min) {
+    if (form.ageMin === '' || Number.isNaN(min) || min < 0 || min > 100)
+      next.ageMin = 'Age 0–100';
+    if (form.ageMax === '' || Number.isNaN(max) || max < 0 || max > 100)
+      next.ageMax = 'Age 0–100';
+    if (!next.ageMin && !next.ageMax && max < min)
       next.ageMax = 'Max age must be ≥ min age';
+
+    if (form.price === '' || Number(form.price) < 0)
+      next.price = 'Enter a price (0 for free)';
+
+    // Media is mandatory on create; on edit it already exists on the server.
+    let media = '';
+    if (!isEdit) {
+      if (!logoFile) media = 'A logo is required.';
+      else if (staged.length === 0) media = 'Add at least one photo.';
     }
-    if (Number(form.price) < 0) next.price = 'Price cannot be negative';
+    setMediaError(media);
+
     setErrors(next);
-    return Object.keys(next).length === 0;
+    return Object.keys(next).length === 0 && !media;
   };
 
   const buildPayload = () => ({
@@ -181,35 +229,73 @@ export function ClubFormPage() {
     isFeatured: form.isFeatured,
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
     const payload = buildPayload();
 
     if (isEdit) {
       updateClub.mutate({ id, body: payload });
-    } else {
-      createClub.mutate(payload, {
-        // After creating, jump into edit mode so logo & photos can be added.
-        onSuccess: (created) => navigate(clubEditPath(created.id)),
-      });
+      return;
+    }
+
+    // Create + upload logo + upload photos as one flow.
+    try {
+      const created = await createClub.mutateAsync(payload);
+      if (logoFile) await uploadLogo.mutateAsync({ id: created.id, file: logoFile });
+      if (staged.length)
+        await addGallery.mutateAsync({
+          id: created.id,
+          files: staged.map((s) => s.file),
+        });
+      navigate(clubEditPath(created.id));
+    } catch {
+      // Individual hooks already surface a toast on failure.
     }
   };
 
   const onLogoPicked = (e) => {
     const file = e.target.files?.[0];
-    if (file) uploadLogo.mutate({ id, file });
     e.target.value = '';
+    if (!file) return;
+    if (isEdit) {
+      uploadLogo.mutate({ id, file });
+      return;
+    }
+    if (logoPreview) URL.revokeObjectURL(logoPreview);
+    setLogoFile(file);
+    setLogoPreview(URL.createObjectURL(file));
+    setMediaError('');
   };
 
   const onGalleryPicked = (e) => {
     const files = Array.from(e.target.files ?? []);
-    if (files.length) addGallery.mutate({ id, files });
     e.target.value = '';
+    if (!files.length) return;
+    if (isEdit) {
+      addGallery.mutate({ id, files });
+      return;
+    }
+    setStaged((prev) => [
+      ...prev,
+      ...files.map((file) => ({ file, url: URL.createObjectURL(file) })),
+    ]);
+    setMediaError('');
   };
 
-  const saving = createClub.isPending || updateClub.isPending;
-  const gallery = club?.gallery ?? [];
+  const removeStaged = (url) => {
+    URL.revokeObjectURL(url);
+    setStaged((prev) => prev.filter((s) => s.url !== url));
+  };
+
+  const saving =
+    createClub.isPending ||
+    updateClub.isPending ||
+    uploadLogo.isPending ||
+    addGallery.isPending;
+
+  const serverGallery = club?.gallery ?? [];
+  const logoSrc = isEdit ? club?.logo : logoPreview;
 
   const title = useMemo(
     () => (isEdit ? 'Edit organization' : 'Add organization'),
@@ -224,15 +310,18 @@ export function ClubFormPage() {
     );
   }
 
+  // Field cell that spans the full width of the grid.
+  const full = { gridColumn: '1 / -1' };
+
   return (
-    <Box component="form" onSubmit={handleSubmit}>
+    <Box component="form" onSubmit={handleSubmit} noValidate>
       <PageHeader
         eyebrow="Organizations"
         title={title}
         subtitle={
           isEdit
             ? 'Update details, media and visibility for this organization.'
-            : 'Register a new organization directly. It goes live immediately unless you pick another status.'
+            : 'All fields are required. Add the logo and photos here — they upload as soon as you create.'
         }
         actions={
           <Button
@@ -245,95 +334,125 @@ export function ClubFormPage() {
         }
       />
 
-      {/* Basic details */}
-      <ContentCard sx={{ p: 3, mb: 2 }}>
+      {/* Details */}
+      <ContentCard sx={{ p: 3, mb: 2.5 }}>
         <SectionHeading title="Details" />
-        <Stack spacing={2} sx={{ mt: 2 }}>
+        <Box
+          sx={{
+            mt: 2.5,
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+            columnGap: 2.5,
+            rowGap: 2.5,
+          }}
+        >
           <TextField
+            sx={full}
             label="Organization name"
             required
             value={form.name}
             onChange={set('name')}
             error={Boolean(errors.name)}
             helperText={errors.name}
-            fullWidth
+            slotProps={{ htmlInput: { maxLength: 120 } }}
           />
           <TextField
+            sx={full}
             label="Description"
+            required
             value={form.description}
             onChange={set('description')}
+            error={Boolean(errors.description)}
+            helperText={errors.description}
             multiline
             minRows={3}
-            fullWidth
+            slotProps={{ htmlInput: { maxLength: 4000 } }}
           />
-          <FieldGrid>
-            <TextField label="Sport" value={form.sport} onChange={set('sport')} fullWidth />
-            <TextField
-              label="Services (comma separated)"
-              placeholder="Coaching, Summer camp, Trials"
-              value={form.services}
-              onChange={set('services')}
-              fullWidth
-            />
-          </FieldGrid>
-        </Stack>
+          <TextField
+            label="Sport"
+            required
+            value={form.sport}
+            onChange={set('sport')}
+            error={Boolean(errors.sport)}
+            helperText={errors.sport}
+            slotProps={{ htmlInput: { maxLength: 80 } }}
+          />
+          <TextField
+            label="Services (comma separated)"
+            required
+            placeholder="Coaching, Summer camp, Trials"
+            value={form.services}
+            onChange={set('services')}
+            error={Boolean(errors.services)}
+            helperText={errors.services}
+            slotProps={{ htmlInput: { maxLength: 500 } }}
+          />
+        </Box>
       </ContentCard>
 
       {/* Location */}
-      <ContentCard sx={{ p: 3, mb: 2 }}>
+      <ContentCard sx={{ p: 3, mb: 2.5 }}>
         <SectionHeading title="Location" />
-        <FieldGrid>
-          <TextField label="City" value={form.city} onChange={set('city')} fullWidth />
-          <TextField label="Address" value={form.address} onChange={set('address')} fullWidth />
-        </FieldGrid>
+        <Box
+          sx={{
+            mt: 2.5,
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+            columnGap: 2.5,
+            rowGap: 2.5,
+          }}
+        >
+          <TextField
+            label="City"
+            required
+            value={form.city}
+            onChange={set('city')}
+            error={Boolean(errors.city)}
+            helperText={errors.city}
+            slotProps={{ htmlInput: { maxLength: 120 } }}
+          />
+          <TextField
+            label="Address"
+            required
+            value={form.address}
+            onChange={set('address')}
+            error={Boolean(errors.address)}
+            helperText={errors.address}
+            slotProps={{ htmlInput: { maxLength: 300 } }}
+          />
+        </Box>
       </ContentCard>
 
       {/* Audience & pricing */}
-      <ContentCard sx={{ p: 3, mb: 2 }}>
+      <ContentCard sx={{ p: 3, mb: 2.5 }}>
         <SectionHeading title="Audience & pricing" />
-        <FieldGrid>
-          <TextField select label="Gender category" value={form.gender} onChange={set('gender')} fullWidth>
+        <Box
+          sx={{
+            mt: 2.5,
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(4, 1fr)' },
+            columnGap: 2.5,
+            rowGap: 2.5,
+          }}
+        >
+          <TextField
+            sx={{ gridColumn: { xs: '1 / -1', sm: 'auto' } }}
+            select
+            label="Gender category"
+            value={form.gender}
+            onChange={set('gender')}
+          >
             {GENDERS.map((g) => (
               <MenuItem key={g.value} value={g.value}>
                 {g.label}
               </MenuItem>
             ))}
           </TextField>
-          <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
-            <TextField
-              label="Min age"
-              type="number"
-              value={form.ageMin}
-              onChange={set('ageMin')}
-              error={Boolean(errors.ageMin)}
-              helperText={errors.ageMin}
-              fullWidth
-            />
-            <TextField
-              label="Max age"
-              type="number"
-              value={form.ageMax}
-              onChange={set('ageMax')}
-              error={Boolean(errors.ageMax)}
-              helperText={errors.ageMax}
-              fullWidth
-            />
-          </Box>
-          <TextField
-            label="Price"
-            type="number"
-            value={form.price}
-            onChange={set('price')}
-            error={Boolean(errors.price)}
-            helperText={errors.price || 'Use 0 for free'}
-            fullWidth
-          />
           <TextField
             select
             label="Currency"
             value={form.priceCurrency}
             onChange={set('priceCurrency')}
-            fullWidth
           >
             {CURRENCIES.map((c) => (
               <MenuItem key={c} value={c}>
@@ -341,27 +460,130 @@ export function ClubFormPage() {
               </MenuItem>
             ))}
           </TextField>
-        </FieldGrid>
+          <TextField
+            label="Price"
+            type="number"
+            required
+            value={form.price}
+            onChange={set('price')}
+            error={Boolean(errors.price)}
+            helperText={errors.price || '0 for free'}
+          />
+          <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
+            <TextField
+              label="Min age"
+              type="number"
+              required
+              value={form.ageMin}
+              onChange={set('ageMin')}
+              error={Boolean(errors.ageMin)}
+              helperText={errors.ageMin}
+            />
+            <TextField
+              label="Max age"
+              type="number"
+              required
+              value={form.ageMax}
+              onChange={set('ageMax')}
+              error={Boolean(errors.ageMax)}
+              helperText={errors.ageMax}
+            />
+          </Box>
+        </Box>
       </ContentCard>
 
       {/* Contact & links */}
-      <ContentCard sx={{ p: 3, mb: 2 }}>
+      <ContentCard sx={{ p: 3, mb: 2.5 }}>
         <SectionHeading title="Contact & social links" />
-        <FieldGrid>
-          <TextField label="Phone" value={form.phone} onChange={set('phone')} fullWidth />
-          <TextField label="Email" value={form.email} onChange={set('email')} fullWidth />
-          <TextField label="Website" placeholder="https://…" value={form.website} onChange={set('website')} fullWidth />
-          <TextField label="Registration link" placeholder="https://…" value={form.registrationLink} onChange={set('registrationLink')} fullWidth />
-          <TextField label="Instagram" value={form.instagram} onChange={set('instagram')} fullWidth />
-          <TextField label="TikTok" value={form.tiktok} onChange={set('tiktok')} fullWidth />
-        </FieldGrid>
+        <Box
+          sx={{
+            mt: 2.5,
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+            columnGap: 2.5,
+            rowGap: 2.5,
+          }}
+        >
+          <TextField
+            label="Phone"
+            required
+            value={form.phone}
+            onChange={setPhone}
+            error={Boolean(errors.phone)}
+            helperText={errors.phone || '10-digit number'}
+            slotProps={{
+              htmlInput: { maxLength: 10, inputMode: 'numeric', pattern: '[0-9]*' },
+            }}
+          />
+          <TextField
+            label="Email"
+            required
+            value={form.email}
+            onChange={set('email')}
+            error={Boolean(errors.email)}
+            helperText={errors.email}
+            slotProps={{ htmlInput: { maxLength: 160 } }}
+          />
+          <TextField
+            label="Website"
+            required
+            placeholder="https://…"
+            value={form.website}
+            onChange={set('website')}
+            error={Boolean(errors.website)}
+            helperText={errors.website}
+            slotProps={{ htmlInput: { maxLength: 300 } }}
+          />
+          <TextField
+            label="Registration link"
+            required
+            placeholder="https://…"
+            value={form.registrationLink}
+            onChange={set('registrationLink')}
+            error={Boolean(errors.registrationLink)}
+            helperText={errors.registrationLink}
+            slotProps={{ htmlInput: { maxLength: 300 } }}
+          />
+          <TextField
+            label="Instagram"
+            required
+            value={form.instagram}
+            onChange={set('instagram')}
+            error={Boolean(errors.instagram)}
+            helperText={errors.instagram}
+            slotProps={{ htmlInput: { maxLength: 300 } }}
+          />
+          <TextField
+            label="TikTok"
+            required
+            value={form.tiktok}
+            onChange={set('tiktok')}
+            error={Boolean(errors.tiktok)}
+            helperText={errors.tiktok}
+            slotProps={{ htmlInput: { maxLength: 300 } }}
+          />
+        </Box>
       </ContentCard>
 
       {/* Visibility */}
-      <ContentCard sx={{ p: 3, mb: 2 }}>
+      <ContentCard sx={{ p: 3, mb: 2.5 }}>
         <SectionHeading title="Visibility" />
-        <FieldGrid>
-          <TextField select label="Status" value={form.status} onChange={set('status')} fullWidth>
+        <Box
+          sx={{
+            mt: 2.5,
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+            columnGap: 2.5,
+            rowGap: 2.5,
+            alignItems: 'center',
+          }}
+        >
+          <TextField
+            select
+            label="Status"
+            value={form.status}
+            onChange={set('status')}
+          >
             {STATUSES.map((s) => (
               <MenuItem key={s.value} value={s.value}>
                 {s.label}
@@ -373,157 +595,122 @@ export function ClubFormPage() {
             control={<Switch checked={form.isFeatured} onChange={set('isFeatured')} />}
             label={
               <Stack direction="row" spacing={0.5} alignItems="center">
-                <StarIcon fontSize="small" color={form.isFeatured ? 'primary' : 'disabled'} />
+                <StarIcon
+                  fontSize="small"
+                  color={form.isFeatured ? 'primary' : 'disabled'}
+                />
                 <span>Featured organization</span>
               </Stack>
             }
           />
-        </FieldGrid>
+        </Box>
       </ContentCard>
 
-      {/* Media — only available once the club exists */}
-      <ContentCard sx={{ p: 3, mb: 2 }}>
+      {/* Media */}
+      <ContentCard sx={{ p: 3, mb: 2.5 }}>
         <SectionHeading title="Logo & photos" />
-        {!isEdit ? (
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            Save the organization first, then you can upload a logo and gallery photos.
+        {mediaError && (
+          <Typography variant="body2" color="error" sx={{ mt: 1 }}>
+            {mediaError}
           </Typography>
-        ) : (
-          <Stack spacing={3} sx={{ mt: 2 }}>
-            {/* Logo */}
-            <Box>
-              <Typography variant="subtitle2" gutterBottom>
-                Logo
-              </Typography>
-              <Stack direction="row" spacing={2} alignItems="center">
-                <Box
-                  sx={{
-                    width: 88,
-                    height: 88,
-                    borderRadius: 2,
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    bgcolor: 'background.default',
-                    display: 'grid',
-                    placeItems: 'center',
-                    overflow: 'hidden',
-                  }}
-                >
-                  {club?.logo ? (
-                    <Box
-                      component="img"
-                      src={club.logo}
-                      alt="logo"
-                      sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    />
-                  ) : (
-                    <PhotoCameraIcon color="disabled" />
-                  )}
-                </Box>
-                <Button
-                  variant="outlined"
-                  startIcon={<PhotoCameraIcon />}
-                  onClick={() => logoInputRef.current?.click()}
-                  disabled={uploadLogo.isPending}
-                >
-                  {club?.logo ? 'Replace logo' : 'Upload logo'}
-                </Button>
-                <input
-                  ref={logoInputRef}
-                  type="file"
-                  accept="image/*"
-                  hidden
-                  onChange={onLogoPicked}
-                />
-              </Stack>
-            </Box>
-
-            <Divider />
-
-            {/* Gallery */}
-            <Box>
-              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-                <Typography variant="subtitle2">Photos ({gallery.length})</Typography>
-                <Button
-                  variant="outlined"
-                  size="small"
-                  startIcon={<AddPhotoAlternateIcon />}
-                  onClick={() => galleryInputRef.current?.click()}
-                  disabled={addGallery.isPending}
-                >
-                  Add photos
-                </Button>
-                <input
-                  ref={galleryInputRef}
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  hidden
-                  onChange={onGalleryPicked}
-                />
-              </Stack>
-              {gallery.length === 0 ? (
-                <Typography variant="body2" color="text.secondary">
-                  No photos yet.
-                </Typography>
-              ) : (
-                <Box
-                  sx={{
-                    display: 'grid',
-                    gridTemplateColumns: {
-                      xs: 'repeat(3, 1fr)',
-                      sm: 'repeat(4, 1fr)',
-                      md: 'repeat(6, 1fr)',
-                    },
-                    gap: 1.5,
-                  }}
-                >
-                  {gallery.map((url) => (
-                    <Box
-                      key={url}
-                      sx={{
-                        position: 'relative',
-                        paddingTop: '100%',
-                        borderRadius: 2,
-                        overflow: 'hidden',
-                        border: '1px solid',
-                        borderColor: 'divider',
-                      }}
-                    >
-                      <Box
-                        component="img"
-                        src={url}
-                        alt="gallery"
-                        sx={{
-                          position: 'absolute',
-                          inset: 0,
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover',
-                        }}
-                      />
-                      <IconButton
-                        size="small"
-                        onClick={() => removeGallery.mutate({ id, image: url })}
-                        disabled={removeGallery.isPending}
-                        sx={{
-                          position: 'absolute',
-                          top: 4,
-                          right: 4,
-                          bgcolor: 'rgba(0,0,0,0.55)',
-                          color: '#fff',
-                          '&:hover': { bgcolor: 'rgba(0,0,0,0.75)' },
-                        }}
-                      >
-                        <CloseIcon fontSize="small" />
-                      </IconButton>
-                    </Box>
-                  ))}
-                </Box>
-              )}
-            </Box>
-          </Stack>
         )}
+        <Stack spacing={3} sx={{ mt: 2.5 }}>
+          {/* Logo */}
+          <Box>
+            <Typography variant="subtitle2" gutterBottom>
+              Logo *
+            </Typography>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Box
+                sx={{
+                  width: 88,
+                  height: 88,
+                  flexShrink: 0,
+                  borderRadius: 2,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  bgcolor: 'background.default',
+                  display: 'grid',
+                  placeItems: 'center',
+                  overflow: 'hidden',
+                }}
+              >
+                {logoSrc ? (
+                  <Box
+                    component="img"
+                    src={logoSrc}
+                    alt="logo"
+                    sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                ) : (
+                  <PhotoCameraIcon color="disabled" />
+                )}
+              </Box>
+              <Button
+                variant="outlined"
+                startIcon={<PhotoCameraIcon />}
+                onClick={() => logoInputRef.current?.click()}
+                disabled={uploadLogo.isPending}
+              >
+                {logoSrc ? 'Replace logo' : 'Upload logo'}
+              </Button>
+              <input
+                ref={logoInputRef}
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={onLogoPicked}
+              />
+            </Stack>
+          </Box>
+
+          <Divider />
+
+          {/* Gallery */}
+          <Box>
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center"
+              sx={{ mb: 1.5 }}
+            >
+              <Typography variant="subtitle2">
+                Photos * ({isEdit ? serverGallery.length : staged.length})
+              </Typography>
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<AddPhotoAlternateIcon />}
+                onClick={() => galleryInputRef.current?.click()}
+                disabled={addGallery.isPending}
+              >
+                Add photos
+              </Button>
+              <input
+                ref={galleryInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                hidden
+                onChange={onGalleryPicked}
+              />
+            </Stack>
+
+            <GalleryGrid
+              items={
+                isEdit
+                  ? serverGallery.map((url) => ({ url, key: url }))
+                  : staged.map((s) => ({ url: s.url, key: s.url }))
+              }
+              onRemove={(item) =>
+                isEdit
+                  ? removeGallery.mutate({ id, image: item.url })
+                  : removeStaged(item.url)
+              }
+              removing={removeGallery.isPending}
+            />
+          </Box>
+        </Stack>
       </ContentCard>
 
       {/* Save bar */}
@@ -535,6 +722,72 @@ export function ClubFormPage() {
           {saving ? 'Saving…' : isEdit ? 'Save changes' : 'Create organization'}
         </Button>
       </Stack>
+    </Box>
+  );
+}
+
+/** Square thumbnail grid with a remove button on each photo. */
+function GalleryGrid({ items, onRemove, removing }) {
+  if (items.length === 0) {
+    return (
+      <Typography variant="body2" color="text.secondary">
+        No photos yet.
+      </Typography>
+    );
+  }
+  return (
+    <Box
+      sx={{
+        display: 'grid',
+        gridTemplateColumns: {
+          xs: 'repeat(3, 1fr)',
+          sm: 'repeat(4, 1fr)',
+          md: 'repeat(6, 1fr)',
+        },
+        gap: 1.5,
+      }}
+    >
+      {items.map((item) => (
+        <Box
+          key={item.key}
+          sx={{
+            position: 'relative',
+            paddingTop: '100%',
+            borderRadius: 2,
+            overflow: 'hidden',
+            border: '1px solid',
+            borderColor: 'divider',
+          }}
+        >
+          <Box
+            component="img"
+            src={item.url}
+            alt="gallery"
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+            }}
+          />
+          <IconButton
+            size="small"
+            onClick={() => onRemove(item)}
+            disabled={removing}
+            sx={{
+              position: 'absolute',
+              top: 4,
+              right: 4,
+              bgcolor: 'rgba(0,0,0,0.55)',
+              color: '#fff',
+              '&:hover': { bgcolor: 'rgba(0,0,0,0.75)' },
+            }}
+          >
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </Box>
+      ))}
     </Box>
   );
 }

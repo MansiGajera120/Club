@@ -21,6 +21,7 @@ class AppTextField extends StatelessWidget {
   final List<TextInputFormatter>? inputFormatters;
   final int? maxLines;
   final int? minLines;
+  final int? maxLength;
 
   const AppTextField({
     super.key,
@@ -38,6 +39,7 @@ class AppTextField extends StatelessWidget {
     this.inputFormatters,
     this.maxLines = 1,
     this.minLines,
+    this.maxLength,
   });
 
   @override
@@ -66,6 +68,7 @@ class AppTextField extends StatelessWidget {
           onChanged: onChanged,
           enabled: enabled,
           inputFormatters: inputFormatters,
+          maxLength: maxLength,
           maxLines: obscureText ? 1 : maxLines,
           minLines: minLines,
           style: theme.textTheme.bodyMedium?.copyWith(
