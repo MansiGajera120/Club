@@ -34,7 +34,17 @@ export const createEvent = async (user, data) => {
 };
 
 export const updateEvent = async (id, user, data) => {
-  await loadManageableEvent(id, user);
+  const event = await loadManageableEvent(id, user);
+
+  // Guard the case where only one of the dates is being changed: compare the
+  // incoming value against the stored one so end can never precede start.
+  const nextStart = data.startDate ? new Date(data.startDate) : event.startDate;
+  const nextEnd =
+    data.endDate !== undefined ? data.endDate && new Date(data.endDate) : event.endDate;
+  if (nextEnd && nextStart && nextEnd.getTime() < nextStart.getTime()) {
+    throw ApiError.badRequest('End date must be on or after the start date');
+  }
+
   const updated = await eventRepository.updateById(id, data);
   return toEventResponse(updated);
 };
@@ -61,9 +71,25 @@ export const updateCover = async (id, user, file) => {
   return toEventResponse(updated);
 };
 
-export const getEvent = async (id) => {
+export const getEvent = async (id, currentUser) => {
   const event = await eventRepository.findById(id);
   if (!event) throw ApiError.notFound(MESSAGES.EVENT.NOT_FOUND);
+
+  // Only expose events belonging to an approved, publicly-visible club unless
+  // the caller owns that club (or is an admin). Otherwise events of pending /
+  // rejected / hidden / suspended clubs would be readable directly by id.
+  const club = await clubRepository.findById(event.club);
+  const isManager =
+    currentUser &&
+    club &&
+    (club.owner.toString() === currentUser.id || currentUser.role === ROLES.ADMIN);
+  if (!club || (club.status !== CLUB_STATUS.APPROVED && !isManager)) {
+    throw ApiError.notFound(MESSAGES.EVENT.NOT_FOUND);
+  }
+  if (!isManager && !event.isActive) {
+    throw ApiError.notFound(MESSAGES.EVENT.NOT_FOUND);
+  }
+
   return toEventResponse(event);
 };
 

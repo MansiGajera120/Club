@@ -62,6 +62,7 @@ const userSchema = new Schema(
     // Email verification / password reset (hashed tokens, never selected).
     emailVerificationToken: { type: String, select: false },
     emailVerificationExpires: { type: Date, select: false },
+    emailVerificationAttempts: { type: Number, default: 0, select: false },
     passwordResetToken: { type: String, select: false },
     passwordResetExpires: { type: Date, select: false },
 

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import {
   Box,
   Chip,
+  CircularProgress,
   IconButton,
   Table,
   TableBody,
@@ -74,6 +75,13 @@ export function EventsPage() {
                 </TableCell>
               </TableRow>
             ))}
+            {isLoading && events.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={5} align="center" sx={{ py: 6 }}>
+                  <CircularProgress size={28} />
+                </TableCell>
+              </TableRow>
+            )}
             {!isLoading && events.length === 0 && (
               <TableRow>
                 <TableCell colSpan={5} align="center" sx={{ py: 4 }}>

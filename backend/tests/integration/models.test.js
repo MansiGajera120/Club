@@ -19,14 +19,7 @@ const { Club } = await import('../../src/models/club.model.js');
 const { Favorite } = await import('../../src/models/favorite.model.js');
 
 test('all collections are registered as models', () => {
-  for (const name of [
-    'User',
-    'RefreshToken',
-    'Club',
-    'Event',
-    'Favorite',
-    'Notification',
-  ]) {
+  for (const name of ['User', 'RefreshToken', 'Club', 'Event', 'Favorite']) {
     assert.ok(mongoose.models[name], `${name} should be registered`);
   }
 });
@@ -48,11 +41,11 @@ test('club schema exposes search + filter fields', () => {
   }
 });
 
-test('club has a full-text search index', () => {
-  const hasText = Club.schema
+test('club indexes the browse query (status + featured + recency)', () => {
+  const hasBrowseIndex = Club.schema
     .indexes()
-    .some(([def]) => Object.values(def).includes('text'));
-  assert.ok(hasText, 'club should define a text index');
+    .some(([def]) => def.status === 1 && def.isFeatured === -1 && def.createdAt === -1);
+  assert.ok(hasBrowseIndex, 'club should index the approved+featured browse query');
 });
 
 test('favorite enforces a unique {user, club} index', () => {

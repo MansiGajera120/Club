@@ -1,8 +1,9 @@
 import { ApiError } from '../errors/ApiError.js';
 import { verifyAccessToken } from '../utils/jwt.js';
 import { userRepository } from '../repositories/user.repository.js';
-import { USER_STATUS } from '../enums/index.js';
+import { USER_STATUS, ROLES } from '../enums/index.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+import config from '../config/index.js';
 
 /**
  * Authenticate the request via a Bearer access token. On success attaches the
@@ -55,5 +56,27 @@ export const optionalAuthenticate = asyncHandler(async (req, _res, next) => {
 
   return next();
 });
+
+/**
+ * Guard that blocks unverified accounts from state-changing actions. Must run
+ * AFTER `authenticate`. Admins and social/verified accounts pass; unverified
+ * local accounts get a clear 403 telling them to verify their email. Toggle via
+ * `REQUIRE_EMAIL_VERIFICATION`.
+ */
+export const requireVerifiedEmail = (req, _res, next) => {
+  if (!req.user) {
+    return next(ApiError.unauthorized());
+  }
+  if (
+    config.auth.requireEmailVerification &&
+    req.user.role !== ROLES.ADMIN &&
+    !req.user.isEmailVerified
+  ) {
+    return next(
+      ApiError.forbidden('Please verify your email address to perform this action')
+    );
+  }
+  return next();
+};
 
 export default authenticate;

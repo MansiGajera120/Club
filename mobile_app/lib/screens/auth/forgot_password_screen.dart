@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/error/exceptions.dart';
 import '../../providers/auth_provider.dart';
+import '../../routes/route_names.dart';
 import '../../theme/app_spacing.dart';
 import '../../utils/validators.dart';
 import '../../widgets/widgets.dart';
@@ -57,13 +59,23 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         title: 'Check your email',
         subtitle: 'Password reset instructions are on the way',
         onBack: () => Navigator.of(context).pop(),
-        child: EmptyState(
-          icon: Icons.mark_email_read_outlined,
-          title: 'Email sent',
-          message:
-              'If an account exists for ${_emailCtrl.text.trim()}, we\'ve sent a link to reset your password.',
-          actionLabel: 'Back to sign in',
-          onAction: () => Navigator.of(context).pop(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            EmptyState(
+              icon: Icons.mark_email_read_outlined,
+              title: 'Email sent',
+              message:
+                  'If an account exists for ${_emailCtrl.text.trim()}, we\'ve sent a code to reset your password.',
+              actionLabel: 'I have a reset code',
+              onAction: () => context.pushNamed(RouteNames.resetPassword),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Back to sign in'),
+            ),
+          ],
         ),
       );
     }

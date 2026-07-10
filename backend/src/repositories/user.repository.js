@@ -25,7 +25,7 @@ export const userRepository = {
   /** Include the hashed email-verification OTP + expiry (needed to verify a code). */
   findByEmailWithVerification(email) {
     return User.findOne({ email: email.toLowerCase() }).select(
-      '+emailVerificationToken +emailVerificationExpires'
+      '+emailVerificationToken +emailVerificationExpires +emailVerificationAttempts'
     );
   },
 

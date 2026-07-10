@@ -128,8 +128,19 @@ export const getMyClubs = async (ownerId) => {
 };
 
 export const updateClub = async (id, user, data) => {
-  await loadManageableClub(id, user);
-  const updated = await clubRepository.updateById(id, data);
+  const club = await loadManageableClub(id, user);
+
+  const patch = { ...data };
+  // Resubmit flow: when an owner edits a REJECTED club, it re-enters moderation
+  // as PENDING and its rejection reason is cleared. Admins are unaffected (they
+  // manage status via the admin endpoints). This is the only path back into the
+  // moderation queue for a rejected club.
+  if (user.role !== ROLES.ADMIN && club.status === CLUB_STATUS.REJECTED) {
+    patch.status = CLUB_STATUS.PENDING;
+    patch.rejectionReason = null;
+  }
+
+  const updated = await clubRepository.updateById(id, patch);
   return toClubResponse(updated);
 };
 

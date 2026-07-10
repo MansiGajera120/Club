@@ -23,9 +23,9 @@ export const listEvents = asyncHandler(async (req, res) => {
   });
 });
 
-/** GET /events/:id — public detail. */
+/** GET /events/:id — public detail (managers may view non-public clubs' events). */
 export const getEvent = asyncHandler(async (req, res) => {
-  const event = await eventService.getEvent(req.params.id);
+  const event = await eventService.getEvent(req.params.id, req.user);
   return ApiResponse.ok(res, { event }, MESSAGES.EVENT.DETAIL);
 });
 

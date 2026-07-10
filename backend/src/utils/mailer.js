@@ -26,6 +26,12 @@ const getTransporter = () => {
       config.smtp.user || config.smtp.pass
         ? { user: config.smtp.user, pass: config.smtp.pass }
         : undefined,
+    // Fail fast instead of hanging when the host blocks / can't reach SMTP
+    // (common on cloud platforms). Without these a stuck connection would keep
+    // a request open until the platform's gateway timeout.
+    connectionTimeout: 10000, // TCP connect
+    greetingTimeout: 10000, // wait for server greeting
+    socketTimeout: 15000, // inactivity on an open socket
   });
 
   return transporter;

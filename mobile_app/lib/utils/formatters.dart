@@ -14,7 +14,9 @@ class Formatters {
   static String price(num value, String currency) {
     if (value <= 0) return 'Free';
     final raw = currency.trim().toUpperCase();
-    final code = raw.isEmpty || raw == 'USD' ? 'INR' : raw;
+    // Respect the currency the backend actually sends; only fall back to USD
+    // when it's missing. (Previously USD was silently rewritten to INR.)
+    final code = raw.isEmpty ? 'USD' : raw;
     final symbol = _currencySymbols[code];
     // Indian rupees use Indian digit grouping (e.g. ₹1,00,000).
     final locale = code == 'INR' ? 'en_IN' : 'en_US';

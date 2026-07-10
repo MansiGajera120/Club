@@ -53,14 +53,3 @@ export const GENDER = Object.freeze({
 });
 
 export const GENDER_VALUES = Object.freeze(Object.values(GENDER));
-
-/**
- * Notification categories (structure prepared for future delivery).
- */
-export const NOTIFICATION_TYPE = Object.freeze({
-  SYSTEM: 'system',
-  CLUB_STATUS: 'club_status',
-  EVENT: 'event',
-});
-
-export const NOTIFICATION_TYPE_VALUES = Object.freeze(Object.values(NOTIFICATION_TYPE));

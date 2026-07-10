@@ -17,6 +17,7 @@ export const toClubResponse = (club, { isFavorite } = {}) => {
     name: club.name,
     description: club.description ?? null,
     sport: club.sport ?? null,
+    services: club.services ?? [],
     city: club.city ?? null,
     address: club.address ?? null,
     gender: club.gender,

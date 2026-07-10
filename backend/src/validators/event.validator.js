@@ -9,6 +9,8 @@ export const createEventSchema = Joi.object({
   location: Joi.string().trim().allow('').max(300),
   startDate: Joi.date().iso().required(),
   endDate: Joi.date().iso().min(Joi.ref('startDate')),
+  price: Joi.number().min(0).max(1000000).default(0),
+  priceCurrency: Joi.string().trim().uppercase().length(3).default('USD'),
   registrationLink: Joi.string().uri().allow('').max(300),
   isActive: Joi.boolean().default(true),
 });
@@ -18,7 +20,16 @@ export const updateEventSchema = Joi.object({
   description: Joi.string().trim().allow('').max(4000),
   location: Joi.string().trim().allow('').max(300),
   startDate: Joi.date().iso(),
-  endDate: Joi.date().iso(),
+  // When both dates are provided, enforce ordering here. When only endDate is
+  // sent, the service compares it against the stored startDate.
+  endDate: Joi.date()
+    .iso()
+    .when('startDate', {
+      is: Joi.exist(),
+      then: Joi.date().min(Joi.ref('startDate')),
+    }),
+  price: Joi.number().min(0).max(1000000),
+  priceCurrency: Joi.string().trim().uppercase().length(3),
   registrationLink: Joi.string().uri().allow('').max(300),
   isActive: Joi.boolean(),
 }).min(1);

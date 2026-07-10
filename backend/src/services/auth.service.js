@@ -1,10 +1,16 @@
 import { ApiError } from '../errors/ApiError.js';
 import { userRepository } from '../repositories/user.repository.js';
 import { toUserResponse } from '../dto/user.dto.js';
-import { generateRawToken, generateNumericOtp, hashToken } from '../utils/crypto.js';
+import {
+  generateRawToken,
+  generateNumericOtp,
+  hashToken,
+  safeEqualHex,
+} from '../utils/crypto.js';
 import {
   EMAIL_OTP_LENGTH,
   EMAIL_OTP_TTL_MS,
+  EMAIL_OTP_MAX_ATTEMPTS,
   PASSWORD_RESET_TTL_MS,
 } from '../constants/auth.js';
 import { AUTH_PROVIDER, USER_STATUS, ROLES } from '../enums/index.js';
@@ -20,6 +26,15 @@ import { verifyAppleIdToken } from './oauth/apple.service.js';
 import logger from '../logger/index.js';
 
 /**
+ * Send a transactional email in the background. Never awaited by request
+ * handlers and never rejects the caller — so slow/blocked SMTP (common on cloud
+ * hosts) can't stall or fail the HTTP response. Delivery failures are logged;
+ * the client can trigger a resend.
+ */
+const dispatchEmail = (promise, context) =>
+  promise.catch((err) => logger.error(`${context}: ${err.message}`));
+
+/**
  * Attach a fresh email-verification OTP to a user doc (does not save). Only the
  * hash is stored; the returned plaintext code is emailed once.
  */
@@ -27,6 +42,7 @@ const setVerificationOtp = (user) => {
   const code = generateNumericOtp(EMAIL_OTP_LENGTH);
   user.emailVerificationToken = hashToken(code);
   user.emailVerificationExpires = new Date(Date.now() + EMAIL_OTP_TTL_MS);
+  user.emailVerificationAttempts = 0;
   return code;
 };
 
@@ -51,12 +67,8 @@ export const register = async ({ name, email, password, role }, meta) => {
   const code = setVerificationOtp(user);
   await user.save();
 
-  // Best-effort: a mail failure must not block signup.
-  try {
-    await sendOtpEmail(user, code);
-  } catch (err) {
-    logger.error(`Failed to send verification OTP email: ${err.message}`);
-  }
+  // Fire-and-forget: the signup response must not wait on SMTP delivery.
+  dispatchEmail(sendOtpEmail(user, code), 'Failed to send verification OTP email');
 
   const tokens = await issueAuthTokens(user, meta);
   return { user: toUserResponse(user), ...tokens };
@@ -129,13 +141,29 @@ export const verifyEmailOtp = async ({ email, code }) => {
   if (user.emailVerificationExpires.getTime() < Date.now()) {
     throw ApiError.badRequest('Verification code has expired. Please request a new one.');
   }
-  if (hashToken(code) !== user.emailVerificationToken) {
+
+  // Constant-time compare; throttle brute-force by invalidating the code after
+  // too many wrong guesses (an attacker would otherwise have the whole TTL to
+  // walk the 10^6 space, and IP rate limits can be rotated around).
+  if (!safeEqualHex(hashToken(code), user.emailVerificationToken)) {
+    user.emailVerificationAttempts = (user.emailVerificationAttempts || 0) + 1;
+    if (user.emailVerificationAttempts >= EMAIL_OTP_MAX_ATTEMPTS) {
+      user.emailVerificationToken = undefined;
+      user.emailVerificationExpires = undefined;
+      user.emailVerificationAttempts = 0;
+      await user.save();
+      throw ApiError.badRequest(
+        'Too many incorrect attempts. Please request a new verification code.'
+      );
+    }
+    await user.save();
     throw ApiError.badRequest('Invalid verification code');
   }
 
   user.isEmailVerified = true;
   user.emailVerificationToken = undefined;
   user.emailVerificationExpires = undefined;
+  user.emailVerificationAttempts = 0;
   await user.save();
 
   return toUserResponse(user);
@@ -150,11 +178,7 @@ export const resendVerification = async (email) => {
   if (user && !user.isEmailVerified && user.provider === AUTH_PROVIDER.LOCAL) {
     const code = setVerificationOtp(user);
     await user.save();
-    try {
-      await sendOtpEmail(user, code);
-    } catch (err) {
-      logger.error(`Failed to resend verification OTP email: ${err.message}`);
-    }
+    dispatchEmail(sendOtpEmail(user, code), 'Failed to resend verification OTP email');
   }
 };
 
@@ -168,11 +192,10 @@ export const forgotPassword = async (email) => {
     user.passwordResetToken = hashToken(raw);
     user.passwordResetExpires = new Date(Date.now() + PASSWORD_RESET_TTL_MS);
     await user.save();
-    try {
-      await sendPasswordResetEmail(user, raw);
-    } catch (err) {
-      logger.error(`Failed to send password reset email: ${err.message}`);
-    }
+    dispatchEmail(
+      sendPasswordResetEmail(user, raw),
+      'Failed to send password reset email'
+    );
   }
 };
 
@@ -202,12 +225,19 @@ const socialLogin = async (provider, profile, meta) => {
   if (!user) {
     user = await userRepository.findByEmail(profile.email);
     if (user) {
-      // Link the social identity to the existing account.
+      // Only auto-link the social identity to a pre-existing account when the
+      // provider asserts the email is verified. Otherwise a provider token
+      // carrying an unverified email could hijack an existing local account.
+      if (!profile.emailVerified) {
+        throw ApiError.conflict(
+          'An account with this email already exists. Please sign in with your password.'
+        );
+      }
       user.provider = user.provider === AUTH_PROVIDER.LOCAL ? user.provider : provider;
       if (!user.providerId) {
         user.providerId = profile.providerId;
       }
-      if (profile.emailVerified) user.isEmailVerified = true;
+      user.isEmailVerified = true;
       await user.save();
     } else {
       user = await userRepository.create({

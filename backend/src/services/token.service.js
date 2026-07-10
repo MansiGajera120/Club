@@ -3,7 +3,9 @@ import { generateRawToken, hashToken } from '../utils/crypto.js';
 import { durationToMs } from '../utils/duration.js';
 import config from '../config/index.js';
 import { ApiError } from '../errors/ApiError.js';
+import { USER_STATUS } from '../enums/index.js';
 import { refreshTokenRepository } from '../repositories/refreshToken.repository.js';
+import logger from '../logger/index.js';
 
 const refreshTtlMs = durationToMs(config.jwt.refreshExpiresIn);
 
@@ -40,19 +42,43 @@ export const rotateRefreshToken = async (rawRefresh, meta = {}) => {
   const tokenHash = hashToken(rawRefresh);
   const existing = await refreshTokenRepository.findByHash(tokenHash);
 
-  if (!existing || !existing.isActive()) {
+  if (!existing) {
     throw ApiError.unauthorized('Invalid or expired refresh token');
   }
 
-  const user = await existing.populate('user');
-  if (!user.user) {
-    throw ApiError.unauthorized('Account no longer exists');
+  // Reuse detection: a token that was already revoked *and rotated* is being
+  // replayed. This means the token was leaked (the legitimate client already
+  // rotated it). Revoke the entire token family so a thief cannot ride the
+  // valid chain, and force the real user to re-authenticate.
+  if (existing.revokedAt) {
+    if (existing.replacedByTokenHash) {
+      logger.warn(
+        `Refresh token reuse detected for user ${existing.user}; revoking all sessions`
+      );
+      await refreshTokenRepository.revokeAllForUser(existing.user);
+    }
+    throw ApiError.unauthorized('Invalid or expired refresh token');
   }
 
-  const tokens = await issueAuthTokens(user.user, meta);
+  if (!existing.isActive()) {
+    throw ApiError.unauthorized('Invalid or expired refresh token');
+  }
+
+  const populated = await existing.populate('user');
+  const user = populated.user;
+  if (!user) {
+    throw ApiError.unauthorized('Account no longer exists');
+  }
+  // A disabled account must not be able to mint fresh access tokens.
+  if (user.status === USER_STATUS.DISABLED) {
+    await refreshTokenRepository.revokeAllForUser(user.id);
+    throw ApiError.forbidden('This account has been disabled');
+  }
+
+  const tokens = await issueAuthTokens(user, meta);
   await refreshTokenRepository.revoke(tokenHash, hashToken(tokens.refreshToken));
 
-  return { ...tokens, user: user.user };
+  return { ...tokens, user };
 };
 
 /**

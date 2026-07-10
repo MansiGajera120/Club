@@ -36,6 +36,8 @@ const clubSchema = new Schema(
     name: { type: String, required: true, trim: true, maxlength: 120 },
     description: { type: String, trim: true, maxlength: 4000 },
     sport: { type: String, trim: true, index: true },
+    // Services / programmes the club offers (e.g. "Coaching", "Camps").
+    services: { type: [String], default: [] },
 
     // Location
     city: { type: String, trim: true, index: true },
@@ -77,14 +79,20 @@ const clubSchema = new Schema(
   }
 );
 
-// Full-text search across name, description and city (keyword search).
-clubSchema.index(
-  { name: 'text', description: 'text', city: 'text' },
-  { weights: { name: 5, city: 3, description: 1 }, name: 'club_text' }
-);
+// Keyword search is intentionally regex-based (see utils/clubSearch.js) to
+// support partial / typeahead matching on name, city and sport — behaviour a
+// Mongo `$text` index cannot provide (it only matches whole/stemmed words).
+// The individual `name`, `city` and `sport` fields carry their own indexes for
+// the equality filters; for large-scale full-text ranking, migrate keyword
+// search to a dedicated engine (e.g. Atlas Search) rather than reintroducing a
+// `$text` index that this query pattern would never use.
+clubSchema.index({ name: 1 });
 
 // Common browse query: approved + featured, newest first.
 clubSchema.index({ status: 1, isFeatured: -1, createdAt: -1 });
+
+// Supports the `popular` sort (favoritesCount desc) without an in-memory sort.
+clubSchema.index({ status: 1, favoritesCount: -1 });
 
 export const Club = model('Club', clubSchema);
 

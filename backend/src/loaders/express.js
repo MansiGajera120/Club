@@ -8,6 +8,7 @@ import morgan from 'morgan';
 import config from '../config/index.js';
 import { httpLogStream } from '../logger/index.js';
 import { apiRateLimiter } from '../middlewares/rateLimiter.middleware.js';
+import { sanitizeRequest } from '../middlewares/sanitize.middleware.js';
 import { notFoundHandler } from '../middlewares/notFound.middleware.js';
 import { errorHandler } from '../middlewares/error.middleware.js';
 import { ApiResponse } from '../responses/ApiResponse.js';
@@ -32,12 +33,26 @@ export const configureExpress = (app) => {
   // Build CORS matchers. Entries in CORS_ORIGINS may be exact origins
   // (`https://app.example.com`) or wildcard patterns (`https://*.vercel.app`)
   // so preview/branch deployments are allowed without redeploying the backend.
+  //
+  // Security: `*` matches a SINGLE DNS label (`[a-z0-9-]+`, no dots), so a
+  // pattern like `https://*.vercel.app` matches `https://app.vercel.app` but
+  // NOT `https://evil.attacker.vercel.app` or path/scheme traversal. Because we
+  // send credentials, a wildcard still trusts every direct subdomain of the
+  // configured host — prefer exact origins in production (see warning below).
+  const hasWildcard = config.server.corsOrigins.some((p) => p.includes('*'));
+  if (hasWildcard && config.isProduction) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      '⚠️  CORS_ORIGINS contains a wildcard while credentials are enabled. ' +
+        'Every direct subdomain of that host is trusted. Prefer exact origins in production.'
+    );
+  }
   const originMatchers = config.server.corsOrigins.map((pattern) => {
     if (pattern.includes('*')) {
       const escaped = pattern
         .replace(/[.+?^${}()|[\]\\]/g, '\\$&')
-        .replace(/\*/g, '.*');
-      return new RegExp(`^${escaped}$`);
+        .replace(/\*/g, '[a-z0-9-]+');
+      return new RegExp(`^${escaped}$`, 'i');
     }
     return pattern;
   });
@@ -61,6 +76,9 @@ export const configureExpress = (app) => {
   app.use(express.json({ limit: '1mb' }));
   app.use(express.urlencoded({ extended: true, limit: '1mb' }));
   app.use(cookieParser());
+
+  // Strip Mongo operators ($/.) from all incoming data (NoSQL-injection guard).
+  app.use(sanitizeRequest);
 
   // ---------- Performance ----------
   app.use(compression());

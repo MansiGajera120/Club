@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   Box,
   Chip,
+  CircularProgress,
   IconButton,
   InputAdornment,
   MenuItem,
@@ -29,6 +30,7 @@ const ROLE_LABELS = { parent: 'User', club_owner: 'Club Owner', admin: 'Admin' }
 
 export function UsersPage() {
   const [role, setRole] = useState('');
+  const [status, setStatusFilter] = useState('');
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [page, setPage] = useState(0);
@@ -36,6 +38,7 @@ export function UsersPage() {
 
   const params = {
     ...(role ? { role } : {}),
+    ...(status ? { status } : {}),
     ...(search ? { search } : {}),
     page: page + 1,
     limit,
@@ -83,6 +86,22 @@ export function UsersPage() {
             <MenuItem value="club_owner">Club Owner</MenuItem>
             <MenuItem value="admin">Admin</MenuItem>
           </TextField>
+          <TextField
+            select
+            fullWidth={false}
+            label="Status"
+            size="small"
+            value={status}
+            onChange={(e) => {
+              setPage(0);
+              setStatusFilter(e.target.value);
+            }}
+            sx={{ width: { xs: '100%', sm: 200 }, flexShrink: 0 }}
+          >
+            <MenuItem value="">All statuses</MenuItem>
+            <MenuItem value="active">Active</MenuItem>
+            <MenuItem value="disabled">Disabled</MenuItem>
+          </TextField>
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <TextField
               fullWidth
@@ -127,6 +146,13 @@ export function UsersPage() {
             </TableRow>
           </TableHead>
           <TableBody>
+            {isLoading && users.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={5} align="center" sx={{ py: 6 }}>
+                  <CircularProgress size={28} />
+                </TableCell>
+              </TableRow>
+            )}
             {users.map((user) => (
               <TableRow key={user.id} hover>
                 <TableCell>

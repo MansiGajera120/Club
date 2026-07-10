@@ -12,9 +12,10 @@ export const addFavorite = async (userId, clubId) => {
     throw ApiError.notFound(MESSAGES.CLUB.NOT_FOUND);
   }
 
-  const already = await favoriteRepository.exists(userId, clubId);
-  if (!already) {
-    await favoriteRepository.add(userId, clubId);
+  // Atomic: the counter is bumped only when the upsert actually inserted a row,
+  // so two concurrent requests can never both increment for a single favorite.
+  const inserted = await favoriteRepository.add(userId, clubId);
+  if (inserted) {
     await clubRepository.incrementFavorites(clubId, 1);
   }
 };

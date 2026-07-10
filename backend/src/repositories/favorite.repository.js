@@ -4,13 +4,19 @@ import { Favorite } from '../models/favorite.model.js';
  * Data-access layer for favorites (parent ↔ club).
  */
 export const favoriteRepository = {
-  /** Idempotent add — relies on the unique {user, club} index. */
-  add(userId, clubId) {
-    return Favorite.updateOne(
+  /**
+   * Idempotent add — relies on the unique {user, club} index.
+   * Returns `true` only when a new favorite row was actually inserted, so the
+   * caller can increment the club's counter exactly once (no drift under
+   * concurrent double-taps).
+   */
+  async add(userId, clubId) {
+    const res = await Favorite.updateOne(
       { user: userId, club: clubId },
       { $setOnInsert: { user: userId, club: clubId } },
       { upsert: true }
     );
+    return res.upsertedCount > 0;
   },
 
   remove(userId, clubId) {

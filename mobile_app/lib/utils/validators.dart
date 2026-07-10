@@ -13,10 +13,16 @@ class Validators {
     return null;
   }
 
+  static final RegExp _hasLetter = RegExp(r'[A-Za-z]');
+  static final RegExp _hasDigit = RegExp(r'\d');
+
   static String? password(String? value) {
     final v = value ?? '';
     if (v.isEmpty) return 'Password is required';
     if (v.length < 8) return 'Password must be at least 8 characters';
+    if (!_hasLetter.hasMatch(v) || !_hasDigit.hasMatch(v)) {
+      return 'Include at least one letter and one number';
+    }
     return null;
   }
 

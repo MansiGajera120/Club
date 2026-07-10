@@ -31,3 +31,18 @@ export const generateNumericOtp = (length = 6) => {
   const max = 10 ** length;
   return crypto.randomInt(0, max).toString().padStart(length, '0');
 };
+
+/**
+ * Constant-time comparison of two hex-encoded hashes of equal length. Avoids
+ * leaking match progress through timing when comparing tokens/OTP hashes.
+ *
+ * @param {string} a
+ * @param {string} b
+ * @returns {boolean}
+ */
+export const safeEqualHex = (a, b) => {
+  if (typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length) {
+    return false;
+  }
+  return crypto.timingSafeEqual(Buffer.from(a, 'hex'), Buffer.from(b, 'hex'));
+};

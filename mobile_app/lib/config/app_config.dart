@@ -2,18 +2,26 @@ import 'package:flutter/foundation.dart';
 
 /// Application environment configuration.
 ///
-/// API URL is chosen automatically:
-/// - **Debug / dev** → `http://localhost:5000/api/v1`
+/// API URL is chosen automatically in debug:
+/// - **Android** (emulator) → `http://10.0.2.2:5000/api/v1`
+///   (`10.0.2.2` is the emulator's alias for the host machine's `localhost`)
+/// - **iOS simulator / web / desktop** → `http://localhost:5000/api/v1`
 /// - **Release / prod** → `https://club-1r4i.onrender.com/api/v1`
 ///
-/// Override any time with `--dart-define=API_BASE_URL=...`
-/// (Android emulator: `http://10.0.2.2:5000/api/v1`).
+/// Running on a **physical device**? `localhost`/`10.0.2.2` won't work — point
+/// it at your computer's LAN IP:
+///   `--dart-define=API_BASE_URL=http://<your-pc-ip>:5000/api/v1`
 enum Environment { dev, staging, prod }
 
 class AppConfig {
   const AppConfig._();
 
-  static const String _localApiBaseUrl = 'http://localhost:5000/api/v1';
+  // `10.0.2.2` reaches the host machine from inside the Android emulator;
+  // every other local target can use plain `localhost`.
+  static final String _localApiBaseUrl =
+      (!kIsWeb && defaultTargetPlatform == TargetPlatform.android)
+          ? 'http://10.0.2.2:5000/api/v1'
+          : 'http://localhost:5000/api/v1';
   static const String _productionApiBaseUrl =
       'https://club-1r4i.onrender.com/api/v1';
 

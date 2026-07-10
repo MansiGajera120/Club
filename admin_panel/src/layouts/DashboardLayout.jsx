@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   AppBar,
@@ -5,18 +6,22 @@ import {
   Box,
   Divider,
   Drawer,
+  IconButton,
   List,
   ListItemButton,
   ListItemIcon,
   ListItemText,
   Toolbar,
   Typography,
+  useMediaQuery,
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import DashboardIcon from '@mui/icons-material/SpaceDashboard';
 import GroupsIcon from '@mui/icons-material/Groups';
 import PeopleIcon from '@mui/icons-material/People';
 import EventIcon from '@mui/icons-material/Event';
 import LogoutIcon from '@mui/icons-material/Logout';
+import MenuIcon from '@mui/icons-material/Menu';
 
 import { ROUTES } from '@/constants';
 import { env } from '@/config/env';
@@ -55,6 +60,9 @@ export function DashboardLayout() {
   const location = useLocation();
   const { logout, user } = useAuth();
   const pageTitle = getPageTitle(location.pathname);
+  const theme = useTheme();
+  const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const initials = user?.name
     ?.split(' ')
@@ -63,22 +71,13 @@ export function DashboardLayout() {
     .slice(0, 2)
     .toUpperCase() ?? 'AD';
 
-  return (
-    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-      <Drawer
-        variant="permanent"
-        sx={{
-          width: DRAWER_WIDTH,
-          flexShrink: 0,
-          '& .MuiDrawer-paper': {
-            width: DRAWER_WIDTH,
-            boxSizing: 'border-box',
-            borderRight: '1px solid',
-            borderColor: 'divider',
-            bgcolor: 'background.paper',
-          },
-        }}
-      >
+  const go = (path) => {
+    navigate(path);
+    setMobileOpen(false);
+  };
+
+  const drawerContent = (
+    <>
         <Box sx={{ px: 2.5, pt: 3, pb: 2 }}>
           <Box
             sx={{
@@ -135,7 +134,7 @@ export function DashboardLayout() {
                 <ListItemButton
                   key={item.path}
                   selected={selected}
-                  onClick={() => navigate(item.path)}
+                  onClick={() => go(item.path)}
                   sx={{
                     borderRadius: 2,
                     mb: 0.5,
@@ -201,7 +200,39 @@ export function DashboardLayout() {
             <ListItemText primary="Logout" />
           </ListItemButton>
         </Box>
-      </Drawer>
+    </>
+  );
+
+  const paperSx = {
+    width: DRAWER_WIDTH,
+    boxSizing: 'border-box',
+    borderRight: '1px solid',
+    borderColor: 'divider',
+    bgcolor: 'background.paper',
+    display: 'flex',
+    flexDirection: 'column',
+  };
+
+  return (
+    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+      {isDesktop ? (
+        <Drawer
+          variant="permanent"
+          sx={{ width: DRAWER_WIDTH, flexShrink: 0, '& .MuiDrawer-paper': paperSx }}
+        >
+          {drawerContent}
+        </Drawer>
+      ) : (
+        <Drawer
+          variant="temporary"
+          open={mobileOpen}
+          onClose={() => setMobileOpen(false)}
+          ModalProps={{ keepMounted: true }}
+          sx={{ '& .MuiDrawer-paper': paperSx }}
+        >
+          {drawerContent}
+        </Drawer>
+      )}
 
       <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         <AppBar
@@ -214,6 +245,16 @@ export function DashboardLayout() {
           }}
         >
           <Toolbar sx={{ minHeight: { xs: 56, sm: 60 }, px: { xs: 2, sm: 3 } }}>
+            {!isDesktop && (
+              <IconButton
+                edge="start"
+                aria-label="Open navigation menu"
+                onClick={() => setMobileOpen(true)}
+                sx={{ mr: 1.5 }}
+              >
+                <MenuIcon />
+              </IconButton>
+            )}
             <Box>
               <Typography variant="caption" color="text.secondary" fontWeight={600}>
                 Admin / {pageTitle}

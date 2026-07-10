@@ -14,6 +14,7 @@ export const createClubSchema = Joi.object({
   name: Joi.string().trim().min(2).max(120).required(),
   description: Joi.string().trim().allow('').max(4000),
   sport: Joi.string().trim().allow('').max(80),
+  services: Joi.array().items(Joi.string().trim().max(80)).max(30).default([]),
   city: Joi.string().trim().allow('').max(120),
   address: Joi.string().trim().allow('').max(300),
   gender: Joi.string()
@@ -37,6 +38,7 @@ export const updateClubSchema = Joi.object({
   name: Joi.string().trim().min(2).max(120),
   description: Joi.string().trim().allow('').max(4000),
   sport: Joi.string().trim().allow('').max(80),
+  services: Joi.array().items(Joi.string().trim().max(80)).max(30),
   city: Joi.string().trim().allow('').max(120),
   address: Joi.string().trim().allow('').max(300),
   gender: Joi.string().valid(...GENDER_VALUES),

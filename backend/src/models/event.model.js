@@ -25,6 +25,10 @@ const eventSchema = new Schema(
     startDate: { type: Date, required: true, index: true },
     endDate: { type: Date },
 
+    // Ticket / entry price (0 = free).
+    price: { type: Number, min: 0, default: 0 },
+    priceCurrency: { type: String, trim: true, default: 'USD' },
+
     registrationLink: { type: String, trim: true },
     isActive: { type: Boolean, default: true, index: true },
   },

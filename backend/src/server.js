@@ -3,6 +3,7 @@ import config from './config/index.js';
 import logger from './logger/index.js';
 import { connectDatabase, disconnectDatabase } from './config/database.js';
 import { ensureUploadDirs } from './utils/paths.js';
+import { startKeepAlive } from './jobs/keepAlive.js';
 
 /**
  * Application entry point. Connects to MongoDB, starts the HTTP server, and
@@ -19,6 +20,8 @@ const start = async () => {
         `🚀 Server running in ${config.env} mode on port ${config.server.port}`
       );
       logger.info(`   Health: ${config.server.appUrl}${config.server.apiPrefix}/health`);
+      // Keep free hosts (Render) awake via a periodic self-ping (prod only).
+      startKeepAlive();
     });
 
     /**

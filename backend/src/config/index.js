@@ -28,8 +28,19 @@ const envSchema = Joi.object({
   JWT_ACCESS_EXPIRES_IN: Joi.string().default('15m'),
   JWT_REFRESH_EXPIRES_IN: Joi.string().default('30d'),
 
+  // When true, unverified local accounts may authenticate but cannot perform
+  // state-changing actions (create club/event, favorite, edit profile).
+  REQUIRE_EMAIL_VERIFICATION: Joi.boolean().default(true),
+
   RATE_LIMIT_WINDOW_MS: Joi.number().default(15 * 60 * 1000),
   RATE_LIMIT_MAX: Joi.number().default(100),
+
+  // Self-ping keep-alive to stop free hosts (e.g. Render) idling to sleep.
+  // Enabled by default in production; pings APP_URL health every interval.
+  KEEP_ALIVE_ENABLED: Joi.boolean().default(true),
+  KEEP_ALIVE_INTERVAL_MS: Joi.number()
+    .min(60000)
+    .default(10 * 60 * 1000),
 
   MAX_FILE_SIZE: Joi.number().default(5 * 1024 * 1024),
   // Optional absolute/relative path override. When empty, the app auto-picks
@@ -96,9 +107,18 @@ const config = Object.freeze({
     refreshExpiresIn: env.JWT_REFRESH_EXPIRES_IN,
   },
 
+  auth: {
+    requireEmailVerification: env.REQUIRE_EMAIL_VERIFICATION,
+  },
+
   rateLimit: {
     windowMs: env.RATE_LIMIT_WINDOW_MS,
     max: env.RATE_LIMIT_MAX,
+  },
+
+  keepAlive: {
+    enabled: env.KEEP_ALIVE_ENABLED,
+    intervalMs: env.KEEP_ALIVE_INTERVAL_MS,
   },
 
   uploads: {

@@ -21,6 +21,8 @@ class _FilterSheetState extends State<FilterSheet> {
   late String _sort = widget.initial.sort;
   late bool _featured = widget.initial.featured ?? false;
   late final _cityCtrl = TextEditingController(text: widget.initial.city ?? '');
+  late final _sportCtrl =
+      TextEditingController(text: widget.initial.sport ?? '');
   late final _ageCtrl =
       TextEditingController(text: widget.initial.age?.toString() ?? '');
   late final _minPriceCtrl =
@@ -31,6 +33,7 @@ class _FilterSheetState extends State<FilterSheet> {
   @override
   void dispose() {
     _cityCtrl.dispose();
+    _sportCtrl.dispose();
     _ageCtrl.dispose();
     _minPriceCtrl.dispose();
     _maxPriceCtrl.dispose();
@@ -43,6 +46,7 @@ class _FilterSheetState extends State<FilterSheet> {
       _sort = 'newest';
       _featured = false;
       _cityCtrl.clear();
+      _sportCtrl.clear();
       _ageCtrl.clear();
       _minPriceCtrl.clear();
       _maxPriceCtrl.clear();
@@ -61,6 +65,7 @@ class _FilterSheetState extends State<FilterSheet> {
         sort: _sort,
         featured: _featured ? true : null,
         city: _cityCtrl.text.trim().isEmpty ? null : _cityCtrl.text.trim(),
+        sport: _sportCtrl.text.trim().isEmpty ? null : _sportCtrl.text.trim(),
         age: parseInt(_ageCtrl.text),
         minPrice: parseNum(_minPriceCtrl.text),
         maxPrice: parseNum(_maxPriceCtrl.text),
@@ -155,6 +160,15 @@ class _FilterSheetState extends State<FilterSheet> {
                       ),
                       const SizedBox(height: AppSpacing.md),
                       TextField(
+                        controller: _sportCtrl,
+                        textCapitalization: TextCapitalization.words,
+                        decoration: const InputDecoration(
+                          labelText: 'Sport',
+                          hintText: 'e.g. Football, Swimming',
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      TextField(
                         controller: _ageCtrl,
                         keyboardType: TextInputType.number,
                         decoration: const InputDecoration(labelText: 'Age'),
@@ -167,7 +181,7 @@ class _FilterSheetState extends State<FilterSheet> {
                               controller: _minPriceCtrl,
                               keyboardType: TextInputType.number,
                               decoration:
-                                  const InputDecoration(labelText: 'Min price (₹)'),
+                                  const InputDecoration(labelText: 'Min price'),
                             ),
                           ),
                           const SizedBox(width: AppSpacing.md),
@@ -176,7 +190,7 @@ class _FilterSheetState extends State<FilterSheet> {
                               controller: _maxPriceCtrl,
                               keyboardType: TextInputType.number,
                               decoration:
-                                  const InputDecoration(labelText: 'Max price (₹)'),
+                                  const InputDecoration(labelText: 'Max price'),
                             ),
                           ),
                         ],

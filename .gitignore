@@ -54,6 +54,12 @@ mobile_app/ios/Pods/
 mobile_app/android/.gradle/
 mobile_app/android/local.properties
 
+# ---------- Build binaries ----------
+*.apk
+*.aab
+*.ipa
+*.app
+
 # ---------- Temp ----------
 *.tmp
 *.temp

@@ -15,6 +15,8 @@ export const toEventResponse = (event) => ({
   location: event.location ?? null,
   startDate: event.startDate,
   endDate: event.endDate ?? null,
+  price: event.price ?? 0,
+  priceCurrency: event.priceCurrency ?? 'USD',
   registrationLink: event.registrationLink ?? null,
   isActive: Boolean(event.isActive),
   createdAt: event.createdAt,

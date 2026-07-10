@@ -1,7 +1,12 @@
 # API Documentation
 
-> Populated in Phase 8. This document will describe every REST endpoint, its request
-> validation, required role, and response shape.
+This document describes every REST endpoint, its request validation, required
+role, and response shape.
+
+> Notes: Clubs carry a `services` string array. Events carry `price` /
+> `priceCurrency`. When `REQUIRE_EMAIL_VERIFICATION=true` (default), unverified
+> local accounts receive `403` on state-changing actions until they verify their
+> email OTP.
 
 ## Conventions
 
