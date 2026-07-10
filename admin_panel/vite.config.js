@@ -17,11 +17,14 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        // Split large vendors into their own chunks for better caching.
+        // Split the heavy MUI/Emotion UI layer into its own chunk for caching.
+        // Everything else (React runtime, router, query, forms) stays in a
+        // single `vendor` chunk. Isolating only `react` previously created a
+        // circular `vendor -> react -> vendor` chunk graph, which executes
+        // modules out of order in production and blanks the page.
         manualChunks(id) {
           if (!id.includes('node_modules')) return undefined;
           if (id.includes('@mui') || id.includes('@emotion')) return 'mui';
-          if (id.includes('react')) return 'react';
           return 'vendor';
         },
       },
