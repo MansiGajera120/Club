@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,6 +12,7 @@ import '../../theme/app_gradients.dart';
 import '../../theme/app_radius.dart';
 import '../../theme/app_shadows.dart';
 import '../../theme/app_spacing.dart';
+import '../../utils/formatters.dart';
 import '../../widgets/widgets.dart';
 
 /// Home tab: editorial header, featured carousel and explore list.
@@ -63,8 +64,8 @@ class HomeScreen extends ConsumerWidget {
               child: _SectionHeader(title: 'Explore clubs'),
             ),
             recent.when(
-              loading: () => const SliverToBoxAdapter(child: _ListSkeleton()),
-              error: (e, _) => SliverToBoxAdapter(
+              loading: () => const _GridSkeleton(),
+              error: (e, _) => const SliverToBoxAdapter(
                 child: _InlineEmpty(text: 'Could not load clubs'),
               ),
               data: (clubs) => clubs.isEmpty
@@ -83,14 +84,19 @@ class HomeScreen extends ConsumerWidget {
                         AppSpacing.lg,
                         100,
                       ),
-                      sliver: SliverList.separated(
-                        itemCount: clubs.length,
-                        separatorBuilder: (_, _) =>
-                            const SizedBox(height: AppSpacing.md),
-                        itemBuilder: (_, i) => ClubCard(
-                          club: clubs[i],
-                          onTap: () => _openClub(context, clubs[i].id),
-                          showFavorite: true,
+                      sliver: SliverGrid(
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 1,
+                          mainAxisSpacing: AppSpacing.md,
+                          crossAxisSpacing: AppSpacing.md,
+                          childAspectRatio: 1.35,
+                        ),
+                        delegate: SliverChildBuilderDelegate(
+                          (context, i) => _ExploreClubGridCard(
+                            club: clubs[i],
+                            onTap: () => _openClub(context, clubs[i].id),
+                          ),
+                          childCount: clubs.length,
                         ),
                       ),
                     ),
@@ -401,18 +407,207 @@ class _FeaturedSkeleton extends StatelessWidget {
   }
 }
 
-class _ListSkeleton extends StatelessWidget {
-  const _ListSkeleton();
+class _GridSkeleton extends StatelessWidget {
+  const _GridSkeleton();
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: List.generate(
-        4,
-        (_) => const Padding(
-          padding: EdgeInsets.fromLTRB(
-              AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.md),
-          child: AppSkeleton(height: 96),
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+      sliver: SliverGrid(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 1,
+          mainAxisSpacing: AppSpacing.md,
+          crossAxisSpacing: AppSpacing.md,
+          childAspectRatio: 1.35,
+        ),
+        delegate: SliverChildBuilderDelegate(
+          (context, i) => AppSkeleton(borderRadius: AppRadius.lgAll),
+          childCount: 4,
+        ),
+      ),
+    );
+  }
+}
+
+class _ExploreClubGridCard extends StatelessWidget {
+  final Club club;
+  final VoidCallback onTap;
+
+  const _ExploreClubGridCard({
+    required this.club,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final String? imageUrl = club.gallery.isNotEmpty ? club.gallery.first : club.logo;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: theme.cardTheme.color ?? theme.colorScheme.surface,
+        borderRadius: AppRadius.lgAll,
+        border: Border.all(color: theme.dividerColor),
+        boxShadow: AppShadows.sm,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: AppRadius.lgAll,
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: CachedImage(
+                        url: imageUrl,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    const Positioned.fill(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Colors.transparent, Colors.black45],
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (club.isFeatured)
+                      Positioned(
+                        top: 10,
+                        left: 10,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            borderRadius: AppRadius.pillAll,
+                          ),
+                          child: const Text(
+                            'Featured',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ),
+                      ),
+                    if (club.sport != null && club.sport!.isNotEmpty)
+                      Positioned(
+                        left: AppSpacing.md,
+                        bottom: AppSpacing.md,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            borderRadius: AppRadius.pillAll,
+                          ),
+                          child: Text(
+                            club.sport!.toUpperCase(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ),
+                      ),
+                    Positioned(
+                      top: 10,
+                      right: 10,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surface.withValues(alpha: 0.90),
+                          shape: BoxShape.circle,
+                        ),
+                        child: ClubFavoriteButton(
+                          club: club,
+                          iconSize: 18,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      club.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    if (club.city != null && club.city!.isNotEmpty) ...[
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.location_on_outlined,
+                            size: 13,
+                            color: theme.textTheme.bodySmall?.color ?? AppColors.textSecondary,
+                          ),
+                          const SizedBox(width: 3),
+                          Expanded(
+                            child: Text(
+                              club.city!,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.bodySmall,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                    ],
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '${Formatters.genderLabel(club.gender)} · Ages ${club.ageMin}-${club.ageMax}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              fontSize: 10.5,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          Formatters.price(club.price, club.priceCurrency),
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

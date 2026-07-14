@@ -1,0 +1,1 @@
+[error] Undefined name 'AppColors'. Try correcting the name to one that is defined, or defining the name (C:\Users\PC\Desktop\Sunny\club\mobile_app\lib\screens\events\events_screen.dart:242:12)

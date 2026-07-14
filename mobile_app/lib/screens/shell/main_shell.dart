@@ -16,10 +16,20 @@ class MainShell extends ConsumerWidget {
 
   const MainShell({super.key, required this.navigationShell});
 
-  void _onTap(int index) {
+  void _onTap(WidgetRef ref, int index) {
+    final role = ref.read(authControllerProvider).user?.role;
+    final isOwner = role == UserRole.clubOwner;
+    int targetBranch = index;
+    if (isOwner) {
+      if (index == 2) {
+        targetBranch = 3;
+      } else if (index == 3) {
+        targetBranch = 4;
+      }
+    }
     navigationShell.goBranch(
-      index,
-      initialLocation: index == navigationShell.currentIndex,
+      targetBranch,
+      initialLocation: targetBranch == navigationShell.currentIndex,
     );
   }
 
@@ -48,14 +58,9 @@ class MainShell extends ConsumerWidget {
               label: 'Dashboard',
             ),
             NavigationDestination(
-              icon: Icon(Icons.storefront_outlined),
-              selectedIcon: Icon(Icons.storefront_rounded),
-              label: 'Clubs',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.add_business_outlined),
-              selectedIcon: Icon(Icons.add_business_rounded),
-              label: 'Tools',
+              icon: Icon(Icons.search_outlined),
+              selectedIcon: Icon(Icons.search_rounded),
+              label: 'Search',
             ),
             NavigationDestination(
               icon: Icon(Icons.event_outlined),
@@ -96,6 +101,17 @@ class MainShell extends ConsumerWidget {
             ),
           ];
 
+    int selectedIndex = navigationShell.currentIndex;
+    if (isOwner) {
+      if (navigationShell.currentIndex == 3) {
+        selectedIndex = 2;
+      } else if (navigationShell.currentIndex == 4) {
+        selectedIndex = 3;
+      } else if (navigationShell.currentIndex == 2) {
+        selectedIndex = 0;
+      }
+    }
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: navigationShell,
@@ -112,11 +128,11 @@ class MainShell extends ConsumerWidget {
                 borderRadius: AppRadius.xlAll,
                 padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                 child: NavigationBar(
-                  backgroundColor: Colors.transparent,
+                   backgroundColor: Colors.transparent,
                   elevation: 0,
                   height: 64,
-                  selectedIndex: navigationShell.currentIndex,
-                  onDestinationSelected: _onTap,
+                  selectedIndex: selectedIndex,
+                  onDestinationSelected: (idx) => _onTap(ref, idx),
                   labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
                   destinations: destinations,
                 ),

@@ -1,9 +1,10 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../models/event_model.dart';
 import '../../providers/event_providers.dart';
+import '../../theme/app_colors.dart';
 import '../../theme/app_radius.dart';
 import '../../theme/app_spacing.dart';
 import '../../utils/app_toast.dart';
@@ -99,13 +100,22 @@ class EventCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(event.title, style: theme.textTheme.titleMedium),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(event.title, style: theme.textTheme.titleMedium),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    _TypeBadge(type: event.type),
+                  ],
+                ),
                 const SizedBox(height: 4),
                 Row(
                   children: [
                     const Icon(Icons.schedule, size: 16),
                     const SizedBox(width: 6),
-                    Text(Formatters.dateTime(event.startDate),
+                    Text(Formatters.date(event.startDate),
                         style: theme.textTheme.bodySmall),
                   ],
                 ),
@@ -220,3 +230,35 @@ class _RegStatus extends StatelessWidget {
     );
   }
 }
+
+class _TypeBadge extends StatelessWidget {
+  final String type;
+  const _TypeBadge({required this.type});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = switch (type) {
+      'Camps' => Colors.deepOrange,
+      'Clinics' => Colors.teal,
+      _ => AppColors.primary,
+    };
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: AppRadius.pillAll,
+        border: Border.all(color: color.withValues(alpha: 0.15), width: 0.8),
+      ),
+      child: Text(
+        type,
+        style: TextStyle(
+          color: color,
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
+

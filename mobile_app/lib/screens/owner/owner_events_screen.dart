@@ -347,7 +347,7 @@ class _CompactEventRow extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '${item.club.name} · ${Formatters.dateTime(event.startDate)}',
+                  '${item.club.name} · ${Formatters.date(event.startDate)}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.bodySmall?.copyWith(

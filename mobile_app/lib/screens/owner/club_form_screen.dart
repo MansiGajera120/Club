@@ -1,4 +1,4 @@
-﻿import 'dart:io';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -39,7 +39,6 @@ class _ClubFormScreenState extends ConsumerState<ClubFormScreen> {
   final _formKey = GlobalKey<FormState>();
 
   late final _name = TextEditingController(text: widget.club?.name ?? '');
-  late final _sport = TextEditingController(text: widget.club?.sport ?? '');
   late final _city = TextEditingController(text: widget.club?.city ?? '');
   late final _address = TextEditingController(text: widget.club?.address ?? '');
   late final _description =
@@ -63,7 +62,6 @@ class _ClubFormScreenState extends ConsumerState<ClubFormScreen> {
       TextEditingController(text: widget.club?.registrationLink ?? '');
 
   late String _gender = widget.club?.gender ?? 'mixed';
-  late String _currency = widget.club?.priceCurrency ?? 'INR';
   String? _logoPath;
 
   /// Newly-picked gallery photos (local file paths), uploaded after save.
@@ -79,7 +77,7 @@ class _ClubFormScreenState extends ConsumerState<ClubFormScreen> {
   @override
   void dispose() {
     for (final c in [
-      _name, _sport, _city, _address, _description, _ageMin, _ageMax, _price,
+      _name, _address, _description, _ageMin, _ageMax, _price,
       _phone, _email, _website, _instagram, _tiktok, _services, _registrationLink,
     ]) {
       c.dispose();
@@ -199,7 +197,7 @@ class _ClubFormScreenState extends ConsumerState<ClubFormScreen> {
 
   Map<String, dynamic> _body() => {
         'name': _name.text.trim(),
-        'sport': _sport.text.trim(),
+        'sport': _servicesList().firstOrNull ?? '',
         'services': _servicesList(),
         'city': _city.text.trim(),
         'address': _address.text.trim(),
@@ -208,7 +206,7 @@ class _ClubFormScreenState extends ConsumerState<ClubFormScreen> {
         'ageMin': int.tryParse(_ageMin.text.trim()) ?? 0,
         'ageMax': int.tryParse(_ageMax.text.trim()) ?? 100,
         'price': num.tryParse(_price.text.trim()) ?? 0,
-        'priceCurrency': _currency,
+        'priceCurrency': 'INR',
         'registrationLink': _registrationLink.text.trim(),
         'contact': {
           'phone': _phone.text.trim(),
@@ -353,15 +351,13 @@ class _ClubFormScreenState extends ConsumerState<ClubFormScreen> {
                           Validators.required(v, field: 'Club name'),
                     ),
                     AppTextField(
-                        label: 'Sport', controller: _sport, maxLength: 80),
-                    AppTextField(
-                      label: 'Services (comma separated)',
+                      label: 'Services offered (comma-separated)',
                       controller: _services,
                       hint: 'Coaching, Summer camp, Trials',
                       maxLength: 500,
+                      validator: (v) =>
+                          Validators.required(v, field: 'Services offered'),
                     ),
-                    AppTextField(
-                        label: 'City', controller: _city, maxLength: 120),
                     AppTextField(
                         label: 'Address', controller: _address, maxLength: 300),
                     AppTextField(
@@ -424,36 +420,13 @@ class _ClubFormScreenState extends ConsumerState<ClubFormScreen> {
                         ),
                       ],
                     ),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          flex: 2,
-                          child: AppTextField(
-                            label: 'Price',
-                            controller: _price,
-                            keyboardType: TextInputType.number,
-                            maxLength: 9,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.md),
-                        Expanded(
-                          child: AppDropdownField<String>(
-                            label: 'Currency',
-                            value: _currency,
-                            items: const [
-                              DropdownMenuItem(value: 'USD', child: Text('USD')),
-                              DropdownMenuItem(value: 'INR', child: Text('INR')),
-                              DropdownMenuItem(value: 'EUR', child: Text('EUR')),
-                              DropdownMenuItem(value: 'GBP', child: Text('GBP')),
-                            ],
-                            onChanged: (v) =>
-                                setState(() => _currency = v ?? _currency),
-                          ),
-                        ),
+                    AppTextField(
+                      label: 'Price (₹)',
+                      controller: _price,
+                      keyboardType: TextInputType.number,
+                      maxLength: 9,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
                       ],
                     ),
                   ],

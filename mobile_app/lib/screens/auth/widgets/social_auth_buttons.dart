@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../theme/app_colors.dart';
-import '../../../theme/app_radius.dart';
 import '../../../theme/app_spacing.dart';
 import '../../../widgets/google_logo.dart';
 
@@ -44,46 +43,45 @@ class SocialAuthButtons extends StatelessWidget {
             const Expanded(child: Divider(color: AppColors.border)),
           ],
         ),
-        const SizedBox(height: AppSpacing.lg),
-        _SocialButton(
-          label: 'Continue with Google',
-          leading: const GoogleLogo(size: 20),
-          onPressed: isBusy ? null : onGoogle,
+        const SizedBox(height: AppSpacing.md),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _SocialCircleButton(
+              leading: const GoogleLogo(size: 24),
+              onPressed: isBusy ? null : onGoogle,
+            ),
+            if (_showApple) ...[
+              const SizedBox(width: AppSpacing.md),
+              _SocialCircleButton(
+                leading: const Icon(Icons.apple, size: 26, color: AppColors.textPrimary),
+                onPressed: isBusy ? null : onApple,
+              ),
+            ],
+          ],
         ),
-        if (_showApple) ...[
-          const SizedBox(height: AppSpacing.md),
-          _SocialButton(
-            label: 'Continue with Apple',
-            leading: const Icon(Icons.apple, size: 22, color: AppColors.textPrimary),
-            onPressed: isBusy ? null : onApple,
-          ),
-        ],
       ],
     );
   }
 }
 
-class _SocialButton extends StatelessWidget {
-  final String label;
+class _SocialCircleButton extends StatelessWidget {
   final Widget leading;
   final VoidCallback? onPressed;
 
-  const _SocialButton({
-    required this.label,
+  const _SocialCircleButton({
     required this.leading,
     this.onPressed,
   });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final enabled = onPressed != null;
 
     return Material(
       color: AppColors.card,
-      shape: RoundedRectangleBorder(
-        borderRadius: AppRadius.lgAll,
-        side: const BorderSide(color: AppColors.borderStrong, width: 1.25),
+      shape: const CircleBorder(
+        side: BorderSide(color: AppColors.borderStrong, width: 1.25),
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -92,22 +90,9 @@ class _SocialButton extends StatelessWidget {
           duration: const Duration(milliseconds: 150),
           opacity: enabled ? 1 : 0.5,
           child: SizedBox(
-            width: double.infinity,
+            width: 52,
             height: 52,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                leading,
-                const SizedBox(width: AppSpacing.md),
-                Text(
-                  label,
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-              ],
-            ),
+            child: Center(child: leading),
           ),
         ),
       ),

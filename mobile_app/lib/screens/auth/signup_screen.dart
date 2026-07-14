@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../providers/auth_provider.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_radius.dart';
 import '../../theme/app_spacing.dart';
 import '../../utils/app_toast.dart';
 import '../../utils/validators.dart';
@@ -11,9 +13,9 @@ import 'widgets/auth_scaffold.dart';
 import 'widgets/otp_code_field.dart';
 import 'widgets/social_auth_buttons.dart';
 
-/// The two stages of the signup screen: collect details, then confirm the
-/// emailed one-time passcode.
-enum _SignupStep { form, otp }
+/// The three stages of the signup screen: choose profile type, collect details,
+/// then confirm the emailed one-time passcode.
+enum _SignupStep { roleSelection, form, otp }
 
 /// Registration for users and club owners.
 class SignupScreen extends ConsumerStatefulWidget {
@@ -34,7 +36,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   String _role = 'parent';
   bool _obscure = true;
   bool _busy = false;
-  _SignupStep _step = _SignupStep.form;
+  _SignupStep _step = _SignupStep.roleSelection;
 
   @override
   void dispose() {
@@ -111,15 +113,22 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     if (_step == _SignupStep.otp) {
       return _buildOtp(context);
     }
+    if (_step == _SignupStep.roleSelection) {
+      return _buildRoleSelection(context);
+    }
     return _buildForm(context);
   }
 
   Widget _buildForm(BuildContext context) {
     final theme = Theme.of(context);
+    final isParent = _role == 'parent';
 
     return AuthScaffold(
-      title: 'Create account',
-      subtitle: 'Join as a user or register your sports club',
+      title: 'Register details',
+      subtitle: isParent
+          ? 'Enter your details to discover local sports clubs'
+          : 'Enter your details to register as a club provider',
+      onBack: () => setState(() => _step = _SignupStep.roleSelection),
       footer: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -135,18 +144,13 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            AuthRolePicker(
-              selected: _role,
-              onChanged: (role) => setState(() => _role = role),
-            ),
-            const SizedBox(height: AppSpacing.xl),
             AppTextField(
               label: 'Full name',
               controller: _nameCtrl,
               textInputAction: TextInputAction.next,
               validator: Validators.name,
             ),
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.md),
             AppTextField(
               label: 'Email',
               hint: 'you@example.com',
@@ -155,7 +159,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               textInputAction: TextInputAction.next,
               validator: Validators.email,
             ),
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.md),
             AppTextField(
               label: 'Password',
               controller: _passwordCtrl,
@@ -169,7 +173,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 onPressed: () => setState(() => _obscure = !_obscure),
               ),
             ),
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.md),
             AppTextField(
               label: 'Confirm password',
               controller: _confirmCtrl,
@@ -177,13 +181,13 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               textInputAction: TextInputAction.done,
               validator: Validators.confirmPassword(() => _passwordCtrl.text),
             ),
-            const SizedBox(height: AppSpacing.xl),
+            const SizedBox(height: AppSpacing.lg),
             AppButton(
-              label: 'Continue',
+              label: 'Sign up',
               isLoading: _busy,
               onPressed: _submitDetails,
             ),
-            const SizedBox(height: AppSpacing.xl),
+            const SizedBox(height: AppSpacing.lg),
             SocialAuthButtons(
               isBusy: _busy,
               onGoogle: () => _run(
@@ -244,6 +248,131 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               child: const Text('Change email'),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRoleSelection(BuildContext context) {
+    return AuthScaffold(
+      title: 'Choose profile type',
+      subtitle: 'Select how you want to use the platform to continue',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _RoleSelectCard(
+            title: 'Parent / Athlete',
+            description: 'Find local sports programs, summer camps, and event registrations.',
+            imageAsset: 'assets/images/parent_illus.png',
+            selected: _role == 'parent',
+            onTap: () => setState(() => _role = 'parent'),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          _RoleSelectCard(
+            title: 'Club Owner / Coach',
+            description: 'Register your club, list programs, and publish clinic events.',
+            imageAsset: 'assets/images/owner_illus.png',
+            selected: _role == 'club_owner',
+            onTap: () => setState(() => _role = 'club_owner'),
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          AppButton(
+            label: 'Continue',
+            onPressed: () => setState(() => _step = _SignupStep.form),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RoleSelectCard extends StatelessWidget {
+  final String title;
+  final String description;
+  final String imageAsset;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _RoleSelectCard({
+    required this.title,
+    required this.description,
+    required this.imageAsset,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeInOut,
+      decoration: BoxDecoration(
+        color: selected
+            ? AppColors.primary.withValues(alpha: 0.04)
+            : Colors.transparent,
+        borderRadius: AppRadius.lgAll,
+        border: Border.all(
+          color: selected ? AppColors.primary : AppColors.borderStrong,
+          width: selected ? 2.25 : 1.25,
+        ),
+        boxShadow: selected
+            ? [
+                BoxShadow(
+                  color: AppColors.primary.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                )
+              ]
+            : null,
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: AppRadius.lgAll,
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: AppRadius.mdAll,
+                child: SizedBox(
+                  width: 72,
+                  height: 72,
+                  child: Image.asset(
+                    imageAsset,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: selected ? AppColors.primary : AppColors.textPrimary,
+                        fontSize: 15,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      description,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: AppColors.textSecondary,
+                        fontSize: 12,
+                        height: 1.3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

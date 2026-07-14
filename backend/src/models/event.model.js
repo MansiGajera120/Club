@@ -16,6 +16,7 @@ const eventSchema = new Schema(
     },
 
     title: { type: String, required: true, trim: true, maxlength: 160 },
+    type: { type: String, enum: ['Camps', 'Clinics', 'Events'], default: 'Events' },
     description: { type: String, trim: true, maxlength: 4000 },
 
     // Relative upload path; absolute URL built in the DTO.

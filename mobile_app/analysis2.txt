@@ -1,0 +1,5 @@
+[error] Expected a method, getter, setter or operator declaration. This appears to be incomplete code. Try removing it or completing it (C:\Users\PC\Desktop\Sunny\club\mobile_app\lib\screens\search\widgets\filter_sheet.dart:165:2)
+[error] Unexpected text ';'. Try removing the text (C:\Users\PC\Desktop\Sunny\club\mobile_app\lib\screens\search\widgets\filter_sheet.dart:165:3)
+[error] Expected a method, getter, setter or operator declaration. This appears to be incomplete code. Try removing it or completing it (C:\Users\PC\Desktop\Sunny\club\mobile_app\lib\screens\search\widgets\filter_sheet.dart:166:1)
+[warning] A value for optional parameter 'icon' isn't ever given. Try removing the unused parameter (C:\Users\PC\Desktop\Sunny\club\mobile_app\lib\screens\search\widgets\filter_sheet.dart:274:10)
+[warning] The declaration '_ToggleCard' isn't referenced. Try removing the declaration of '_ToggleCard' (C:\Users\PC\Desktop\Sunny\club\mobile_app\lib\screens\search\widgets\filter_sheet.dart:331:7)

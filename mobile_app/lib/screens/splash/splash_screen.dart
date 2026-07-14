@@ -15,60 +15,112 @@ class SplashScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          for (final mesh in AppGradients.mesh)
-            DecoratedBox(decoration: mesh),
-          Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 88,
-                  height: 88,
-                  decoration: BoxDecoration(
-                    gradient: AppGradients.brand,
-                    borderRadius: AppRadius.xlAll,
-                    boxShadow: AppShadows.brand,
-                  ),
-                  child: const Icon(
-                    Icons.sports_soccer_rounded,
-                    size: 44,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 28),
-                Text(
-                  AppConfig.appName,
-                  style: AppFonts.display(AppTypography.h2).copyWith(
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.5,
+      backgroundColor: Colors.black,
+      body: TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0.0, end: 1.0),
+        duration: const Duration(milliseconds: 2500),
+        curve: Curves.easeOutExpo,
+        builder: (context, value, child) {
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              // Beautiful aesthetic background image
+              Image.asset(
+                'assets/images/splash_bg.png',
+                fit: BoxFit.cover,
+                alignment: Alignment.center,
+              ),
+              
+              // Dark gradient overlay for extreme cinematic contrast
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.black.withValues(alpha: 0.3),
+                      Colors.black.withValues(alpha: 0.8),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  'Sports clubs, simplified.',
-                  style: AppFonts.body(AppTypography.bodySm).copyWith(
-                    color: AppColors.textSecondary,
-                    fontWeight: FontWeight.w500,
+              ),
+              
+              // Centered dynamic logo sequence
+              Center(
+                child: Transform.scale(
+                  scale: 0.90 + (0.10 * value),
+                  child: Opacity(
+                    opacity: value,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 110,
+                          height: 110,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white.withValues(alpha: 0.1),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              width: 1,
+                            ),
+                          ),
+                          child: Center(
+                            child: Icon(
+                              Icons.sports_soccer_rounded,
+                              size: 56,
+                              color: Colors.white.withValues(alpha: 0.95),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 38),
+                        Text(
+                          AppConfig.appName,
+                          style: AppFonts.display(AppTypography.h2).copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 2.0,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'SPORTS CLUBS, SIMPLIFIED.',
+                          style: AppFonts.body(AppTypography.bodySm).copyWith(
+                            color: Colors.white.withValues(alpha: 0.7),
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 4.0, // wide luxury spacing
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-                const SizedBox(height: 36),
-                const SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    valueColor: AlwaysStoppedAnimation(AppColors.primary),
+              ),
+              
+              // Subtle bottom loader fades in purely towards the end of the duration
+              Positioned(
+                bottom: 80,
+                left: 0,
+                right: 0,
+                child: Opacity(
+                  opacity: value > 0.8 ? ((value - 0.8) * 5) : 0.0,
+                  child: Center(
+                    child: SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        valueColor: AlwaysStoppedAnimation(
+                          Colors.white.withValues(alpha: 0.8),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-              ],
-            ),
-          ),
-        ],
+              ),
+            ],
+          );
+        },
       ),
     );
   }

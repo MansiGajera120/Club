@@ -21,6 +21,7 @@ export const buildClubSearchClause = (search) => {
           { name: { $regex: term, $options: 'i' } },
           { city: { $regex: term, $options: 'i' } },
           { sport: { $regex: term, $options: 'i' } },
+          { services: { $regex: term, $options: 'i' } },
         ],
       };
     }),

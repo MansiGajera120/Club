@@ -10,6 +10,7 @@ abstract class Event with _$Event {
     required String id,
     required String club,
     required String title,
+    @Default('Events') String type,
     String? description,
     String? coverImage,
     String? location,

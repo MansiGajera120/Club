@@ -1,4 +1,6 @@
 import crypto from 'crypto';
+import { User } from '../models/user.model.js';
+import { Club } from '../models/club.model.js';
 
 import { ApiError } from '../errors/ApiError.js';
 import { MESSAGES } from '../constants/messages.js';
@@ -49,7 +51,41 @@ export const getDashboardStats = async () => {
     eventRepository.count(),
   ]);
 
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+  sevenDaysAgo.setHours(0, 0, 0, 0);
+
+  const [parentGrowthRaw, ownerGrowthRaw, adminGrowthRaw] = await Promise.all([
+    User.aggregate([
+      { $match: { createdAt: { $gte: sevenDaysAgo }, role: ROLES.PARENT } },
+      { $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } }, count: { $sum: 1 } } }
+    ]),
+    User.aggregate([
+      { $match: { createdAt: { $gte: sevenDaysAgo }, role: ROLES.CLUB_OWNER } },
+      { $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } }, count: { $sum: 1 } } }
+    ]),
+    User.aggregate([
+      { $match: { createdAt: { $gte: sevenDaysAgo }, role: ROLES.ADMIN } },
+      { $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } }, count: { $sum: 1 } } }
+    ])
+  ]);
+
+  const growth = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(sevenDaysAgo);
+    d.setDate(d.getDate() + i);
+    const dateStr = d.toISOString().split('T')[0];
+    const name = d.toLocaleDateString('en-US', { weekday: 'short' }); 
+    growth.push({ 
+      name, 
+      Parents: parentGrowthRaw.find(g => g._id === dateStr)?.count || 0,
+      ClubOwners: ownerGrowthRaw.find(g => g._id === dateStr)?.count || 0,
+      Admins: adminGrowthRaw.find(g => g._id === dateStr)?.count || 0
+    });
+  }
+
   return {
+    growth,
     clubs: {
       total: totalClubs,
       pending: pendingClubs,

@@ -63,13 +63,13 @@ class OwnerActionsScreen extends ConsumerWidget {
                         label: 'Edit my club',
                         icon: Icons.edit_outlined,
                         onPressed: () =>
-                            _openClubForm(context, ref, club: clubs.first),
+                            context.pushNamed(RouteNames.editProfile),
                       ),
                       const SizedBox(height: AppSpacing.md),
                     ],
                     AppButton(
-                      label: 'Open my clubs',
-                      icon: Icons.storefront_outlined,
+                      label: 'Search clubs',
+                      icon: Icons.search_rounded,
                       variant: AppButtonVariant.outline,
                       onPressed: () => context.go(RouteNames.searchPath),
                     ),

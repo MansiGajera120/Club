@@ -1,19 +1,14 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Box,
   Button,
   CircularProgress,
-  Divider,
-  FormControlLabel,
   MenuItem,
   Stack,
-  Switch,
   TextField,
-  Typography,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import ImageIcon from '@mui/icons-material/Image';
 
 import { PageHeader, ContentCard, SectionHeading } from '@/components/ui';
 import {
@@ -21,37 +16,31 @@ import {
   useAdminEvent,
   useCreateEvent,
   useUpdateEvent,
-  useUploadEventCover,
 } from '@/hooks/useAdmin';
 import { ROUTES } from '@/constants';
 
-const CURRENCIES = ['USD', 'INR', 'EUR', 'GBP'];
+const EVENT_TYPES = ['Camps', 'Clinics', 'Events'];
 
 const isUrl = (v) => /^https?:\/\/.+/i.test(v.trim());
 
-/** ISO string → value for <input type="datetime-local"> (local time). */
-const toLocalInput = (iso) => {
+/** ISO string → value for <input type="date"> */
+const toDateInput = (iso) => {
   if (!iso) return '';
-  const d = new Date(iso);
-  const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
-  return local.toISOString().slice(0, 16);
+  return new Date(iso).toISOString().slice(0, 10);
 };
 
-/** datetime-local value → ISO string (or null when empty). */
-const toIso = (local) => (local ? new Date(local).toISOString() : null);
+/** date input value → ISO string (or null when empty). */
+const toIso = (dateStr) => (dateStr ? new Date(dateStr).toISOString() : null);
 
 const EMPTY_FORM = {
   club: '',
   title: '',
+  type: 'Events',
   description: '',
   location: '',
   startDate: '',
-  endDate: '',
   price: '0',
-  priceCurrency: 'USD',
   registrationLink: '',
-  registrationStartDate: '',
-  registrationEndDate: '',
   isActive: true,
 };
 
@@ -59,23 +48,15 @@ function eventToForm(event) {
   return {
     club: event.club ?? '',
     title: event.title ?? '',
+    type: event.type ?? 'Events',
     description: event.description ?? '',
     location: event.location ?? '',
-    startDate: toLocalInput(event.startDate),
-    endDate: toLocalInput(event.endDate),
+    startDate: toDateInput(event.startDate),
     price: String(event.price ?? 0),
-    priceCurrency: event.priceCurrency || 'USD',
     registrationLink: event.registrationLink ?? '',
-    registrationStartDate: toLocalInput(event.registrationStartDate),
-    registrationEndDate: toLocalInput(event.registrationEndDate),
     isActive: Boolean(event.isActive),
   };
 }
-
-const dtField = {
-  type: 'datetime-local',
-  InputLabelProps: { shrink: true },
-};
 
 export function EventFormPage() {
   const { id } = useParams();
@@ -88,27 +69,13 @@ export function EventFormPage() {
 
   const createEvent = useCreateEvent();
   const updateEvent = useUpdateEvent();
-  const uploadCover = useUploadEventCover();
 
   const [form, setForm] = useState(EMPTY_FORM);
   const [errors, setErrors] = useState({});
 
-  const [coverFile, setCoverFile] = useState(null);
-  const [coverPreview, setCoverPreview] = useState(null);
-  const [coverError, setCoverError] = useState('');
-  const coverInputRef = useRef(null);
-
   useEffect(() => {
     if (event) setForm(eventToForm(event));
   }, [event]);
-
-  useEffect(
-    () => () => {
-      if (coverPreview) URL.revokeObjectURL(coverPreview);
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
-  );
 
   const set = (key) => (e) => {
     const value =
@@ -128,10 +95,6 @@ export function EventFormPage() {
 
     if (!form.startDate) next.startDate = 'Start date is required';
 
-    if (!form.endDate) next.endDate = 'End date is required';
-    else if (form.startDate && form.endDate < form.startDate)
-      next.endDate = 'End must be on or after start';
-
     if (form.price === '' || Number(form.price) < 0)
       next.price = 'Enter a price (0 for free)';
 
@@ -140,48 +103,25 @@ export function EventFormPage() {
     else if (!isUrl(form.registrationLink))
       next.registrationLink = 'Start with http:// or https://';
 
-    if (!form.registrationStartDate)
-      next.registrationStartDate = 'Registration open date is required';
-    else if (form.startDate && form.registrationStartDate >= form.startDate)
-      next.registrationStartDate = 'Must be before the event start';
-
-    if (!form.registrationEndDate)
-      next.registrationEndDate = 'Registration close date is required';
-    else if (form.startDate && form.registrationEndDate >= form.startDate)
-      next.registrationEndDate = 'Must be before the event start';
-    else if (
-      form.registrationStartDate &&
-      form.registrationEndDate < form.registrationStartDate
-    )
-      next.registrationEndDate = 'Close must be on or after open';
-
-    // Cover is mandatory; on edit it already exists on the server.
-    let cover = '';
-    if (!isEdit && !coverFile) cover = 'A cover image is required.';
-    setCoverError(cover);
-
     setErrors(next);
-    return Object.keys(next).length === 0 && !cover;
+    return Object.keys(next).length === 0;
   };
 
   const buildPayload = () => {
     const payload = {
       title: form.title.trim(),
+      type: form.type,
       description: form.description.trim(),
       location: form.location.trim(),
       startDate: toIso(form.startDate),
       price: Number(form.price) || 0,
-      priceCurrency: form.priceCurrency,
+      priceCurrency: 'INR',
       registrationLink: form.registrationLink.trim(),
-      registrationStartDate: form.registrationStartDate
-        ? toIso(form.registrationStartDate)
-        : null,
-      registrationEndDate: form.registrationEndDate
-        ? toIso(form.registrationEndDate)
-        : null,
+      registrationStartDate: null,
+      registrationEndDate: null,
+      endDate: null,
       isActive: form.isActive,
     };
-    if (form.endDate) payload.endDate = toIso(form.endDate);
     if (!isEdit) payload.club = form.club;
     return payload;
   };
@@ -196,31 +136,14 @@ export function EventFormPage() {
       return;
     }
     try {
-      const created = await createEvent.mutateAsync(payload);
-      if (coverFile) await uploadCover.mutateAsync({ id: created.id, file: coverFile });
+      await createEvent.mutateAsync(payload);
       navigate(ROUTES.events);
     } catch {
       // Hooks surface their own error toast.
     }
   };
 
-  const onCoverPicked = (e) => {
-    const file = e.target.files?.[0];
-    e.target.value = '';
-    if (!file) return;
-    if (isEdit) {
-      uploadCover.mutate({ id, file });
-      return;
-    }
-    if (coverPreview) URL.revokeObjectURL(coverPreview);
-    setCoverFile(file);
-    setCoverPreview(URL.createObjectURL(file));
-    setCoverError('');
-  };
-
-  const saving =
-    createEvent.isPending || updateEvent.isPending || uploadCover.isPending;
-  const coverSrc = isEdit ? event?.coverImage : coverPreview;
+  const saving = createEvent.isPending || updateEvent.isPending;
 
   const clubName = useMemo(() => {
     if (!isEdit) return '';
@@ -253,8 +176,8 @@ export function EventFormPage() {
         title={title}
         subtitle={
           isEdit
-            ? 'Update this event’s details, schedule and registration window.'
-            : 'Create an event for an organization. All fields are required; the registration window must close before the event starts.'
+            ? "Update this event's details, schedule and registration."
+            : 'Create an event for an organization. All fields are required.'
         }
         actions={
           <Button
@@ -269,7 +192,7 @@ export function EventFormPage() {
 
       {/* Details */}
       <ContentCard sx={{ p: 3, mb: 2.5 }}>
-        <SectionHeading title="Details" />
+        <SectionHeading title="Event details" />
         <Box sx={gridSx}>
           {isEdit ? (
             <TextField sx={full} label="Organization" value={clubName} disabled />
@@ -299,7 +222,7 @@ export function EventFormPage() {
           )}
           <TextField
             sx={full}
-            label="Event title"
+            label="Title"
             required
             value={form.title}
             onChange={set('title')}
@@ -307,6 +230,19 @@ export function EventFormPage() {
             helperText={errors.title}
             slotProps={{ htmlInput: { maxLength: 160 } }}
           />
+          <TextField
+            sx={full}
+            select
+            label="Event type"
+            value={form.type}
+            onChange={set('type')}
+          >
+            {EVENT_TYPES.map((t) => (
+              <MenuItem key={t} value={t}>
+                {t}
+              </MenuItem>
+            ))}
+          </TextField>
           <TextField
             sx={full}
             label="Description"
@@ -332,65 +268,23 @@ export function EventFormPage() {
         </Box>
       </ContentCard>
 
-      {/* Schedule */}
+      {/* Schedule & registration */}
       <ContentCard sx={{ p: 3, mb: 2.5 }}>
-        <SectionHeading title="Schedule" />
+        <SectionHeading title="Schedule & registration" />
         <Box sx={gridSx}>
-          <TextField
-            {...dtField}
-            label="Starts"
-            required
-            value={form.startDate}
-            onChange={set('startDate')}
-            error={Boolean(errors.startDate)}
-            helperText={errors.startDate}
-          />
-          <TextField
-            {...dtField}
-            label="Ends"
-            required
-            value={form.endDate}
-            onChange={set('endDate')}
-            error={Boolean(errors.endDate)}
-            helperText={errors.endDate}
-          />
-        </Box>
-      </ContentCard>
-
-      {/* Pricing */}
-      <ContentCard sx={{ p: 3, mb: 2.5 }}>
-        <SectionHeading title="Pricing" />
-        <Box sx={gridSx}>
-          <TextField
-            label="Price"
-            type="number"
-            value={form.price}
-            onChange={set('price')}
-            error={Boolean(errors.price)}
-            helperText={errors.price || '0 for free'}
-          />
-          <TextField
-            select
-            label="Currency"
-            value={form.priceCurrency}
-            onChange={set('priceCurrency')}
-          >
-            {CURRENCIES.map((c) => (
-              <MenuItem key={c} value={c}>
-                {c}
-              </MenuItem>
-            ))}
-          </TextField>
-        </Box>
-      </ContentCard>
-
-      {/* Registration */}
-      <ContentCard sx={{ p: 3, mb: 2.5 }}>
-        <SectionHeading
-          title="Registration"
-          subtitle="Where parents register, and the window during which registration is open. The window must close before the event starts."
-        />
-        <Box sx={gridSx}>
+          <Box sx={{ maxWidth: 220 }}>
+            <TextField
+              fullWidth
+              type="date"
+              InputLabelProps={{ shrink: true }}
+              label="Start date"
+              required
+              value={form.startDate}
+              onChange={set('startDate')}
+              error={Boolean(errors.startDate)}
+              helperText={errors.startDate}
+            />
+          </Box>
           <TextField
             sx={full}
             label="Registration link"
@@ -402,92 +296,23 @@ export function EventFormPage() {
             helperText={errors.registrationLink}
             slotProps={{ htmlInput: { maxLength: 300 } }}
           />
-          <TextField
-            {...dtField}
-            label="Registration opens"
-            required
-            value={form.registrationStartDate}
-            onChange={set('registrationStartDate')}
-            error={Boolean(errors.registrationStartDate)}
-            helperText={errors.registrationStartDate}
-          />
-          <TextField
-            {...dtField}
-            label="Registration closes"
-            required
-            value={form.registrationEndDate}
-            onChange={set('registrationEndDate')}
-            error={Boolean(errors.registrationEndDate)}
-            helperText={errors.registrationEndDate}
-          />
         </Box>
       </ContentCard>
 
-      {/* Cover & visibility */}
+      {/* Pricing */}
       <ContentCard sx={{ p: 3, mb: 2.5 }}>
-        <SectionHeading title="Cover & visibility" />
-        {coverError && (
-          <Typography variant="body2" color="error" sx={{ mt: 1 }}>
-            {coverError}
-          </Typography>
-        )}
-        <Stack spacing={3} sx={{ mt: 2.5 }}>
-          <Box>
-            <Typography variant="subtitle2" gutterBottom>
-              Cover image *
-            </Typography>
-            <Stack direction="row" spacing={2} alignItems="center">
-              <Box
-                sx={{
-                  width: 160,
-                  height: 90,
-                  flexShrink: 0,
-                  borderRadius: 2,
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  bgcolor: 'background.default',
-                  display: 'grid',
-                  placeItems: 'center',
-                  overflow: 'hidden',
-                }}
-              >
-                {coverSrc ? (
-                  <Box
-                    component="img"
-                    src={coverSrc}
-                    alt="cover"
-                    sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
-                ) : (
-                  <ImageIcon color="disabled" />
-                )}
-              </Box>
-              <Button
-                variant="outlined"
-                startIcon={<ImageIcon />}
-                onClick={() => coverInputRef.current?.click()}
-                disabled={uploadCover.isPending}
-              >
-                {coverSrc ? 'Replace cover' : 'Upload cover'}
-              </Button>
-              <input
-                ref={coverInputRef}
-                type="file"
-                accept="image/*"
-                hidden
-                onChange={onCoverPicked}
-              />
-            </Stack>
-          </Box>
-
-          <Divider />
-
-          <FormControlLabel
-            sx={{ ml: 0 }}
-            control={<Switch checked={form.isActive} onChange={set('isActive')} />}
-            label="Active (visible to parents)"
+        <SectionHeading title="Pricing" />
+        <Box sx={{ mt: 2.5, maxWidth: 240 }}>
+          <TextField
+            fullWidth
+            label="Price (₹)"
+            type="number"
+            value={form.price}
+            onChange={set('price')}
+            error={Boolean(errors.price)}
+            helperText={errors.price || '0 for free'}
           />
-        </Stack>
+        </Box>
       </ContentCard>
 
       {/* Save bar */}

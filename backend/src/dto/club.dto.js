@@ -61,8 +61,12 @@ export const toClubListItem = (club, { isFavorite } = {}) => ({
   gender: club.gender,
   ageMin: club.ageMin,
   ageMax: club.ageMax,
-  price: club.price,
   priceCurrency: club.priceCurrency,
+  address: club.address ?? null,
+  contact: {
+    email: club.contact?.email ?? null,
+    phone: club.contact?.phone ?? null,
+  },
   logo: buildUploadUrl(club.logo),
   isFeatured: Boolean(club.isFeatured),
   status: club.status,

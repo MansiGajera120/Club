@@ -83,13 +83,6 @@ class OwnerDashboardScreen extends ConsumerWidget {
                             club: club,
                             totalEvents: events.length,
                             upcomingCount: upcoming.length,
-                            onManageClub: () => context.go(RouteNames.searchPath),
-                            onCreateEvent: club.status == 'approved'
-                                ? () => context.pushNamed(
-                                      RouteNames.eventForm,
-                                      extra: EventFormArgs(clubId: club.id),
-                                    )
-                                : null,
                           ),
                   ),
                 ),
@@ -108,7 +101,7 @@ class OwnerDashboardScreen extends ConsumerWidget {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                     child: _QuickActionGrid(
-                      onClubProfile: () => context.go(RouteNames.searchPath),
+                      onClubProfile: () => context.pushNamed(RouteNames.editProfile),
                       onEvents: () => context.go(RouteNames.eventsPath),
                     ),
                   ),
@@ -282,15 +275,10 @@ class _ClubSpotlightCard extends StatelessWidget {
   final Club club;
   final int totalEvents;
   final int upcomingCount;
-  final VoidCallback onManageClub;
-  final VoidCallback? onCreateEvent;
-
   const _ClubSpotlightCard({
     required this.club,
     required this.totalEvents,
     required this.upcomingCount,
-    required this.onManageClub,
-    required this.onCreateEvent,
   });
 
   String? get _coverUrl {
@@ -443,41 +431,6 @@ class _ClubSpotlightCard extends StatelessWidget {
                           ),
                         ),
                       ],
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    LayoutBuilder(
-                      builder: (context, constraints) {
-                        final stacked = constraints.maxWidth < 360;
-                        final manageButton = AppButton(
-                          label: 'Manage club',
-                          variant: AppButtonVariant.outline,
-                          onPressed: onManageClub,
-                        );
-                        final eventButton = AppButton(
-                          label: 'New event',
-                          icon: Icons.add_rounded,
-                          onPressed: onCreateEvent,
-                        );
-
-                        if (stacked) {
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              manageButton,
-                              const SizedBox(height: AppSpacing.sm),
-                              eventButton,
-                            ],
-                          );
-                        }
-
-                        return Row(
-                          children: [
-                            Expanded(child: manageButton),
-                            const SizedBox(width: AppSpacing.sm),
-                            Expanded(child: eventButton),
-                          ],
-                        );
-                      },
                     ),
                   ],
                 ),
@@ -823,7 +776,7 @@ class _TimelineEventRow extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            Formatters.dateTime(date),
+                            Formatters.date(date),
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: AppColors.textSecondary,
                             ),

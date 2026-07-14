@@ -11,30 +11,34 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 const PasswordField = forwardRef(function PasswordField(props, ref) {
   const [show, setShow] = useState(false);
 
-  return (
-    <TextField
-      {...props}
-      ref={ref}
-      type={show ? 'text' : 'password'}
-      slotProps={{
-        input: {
-          endAdornment: (
-            <InputAdornment position="end">
-              <IconButton
-                aria-label={show ? 'Hide password' : 'Show password'}
-                onClick={() => setShow((s) => !s)}
-                onMouseDown={(e) => e.preventDefault()}
-                edge="end"
-                tabIndex={-1}
-              >
-                {show ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
-              </IconButton>
-            </InputAdornment>
-          ),
-        },
-      }}
-    />
-  );
+    const { slotProps, ...rest } = props;
+
+    return (
+      <TextField
+        {...rest}
+        ref={ref}
+        type={show ? 'text' : 'password'}
+        slotProps={{
+          ...slotProps,
+          input: {
+            ...slotProps?.input,
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton
+                  aria-label={show ? 'Hide password' : 'Show password'}
+                  onClick={() => setShow((s) => !s)}
+                  onMouseDown={(e) => e.preventDefault()}
+                  edge="end"
+                  tabIndex={-1}
+                >
+                  {show ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                </IconButton>
+              </InputAdornment>
+            ),
+          },
+        }}
+      />
+    );
 });
 
 export default PasswordField;

@@ -64,16 +64,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     return AuthScaffold(
       title: 'Welcome back',
       subtitle: 'Sign in to discover clubs and events near you',
-      footer: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text("Don't have an account?", style: theme.textTheme.bodyMedium),
-          TextButton(
-            onPressed: () => context.pushNamed(RouteNames.signup),
-            child: const Text('Sign up'),
-          ),
-        ],
-      ),
       child: Form(
         key: _formKey,
         child: Column(
@@ -87,7 +77,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               textInputAction: TextInputAction.next,
               validator: Validators.email,
             ),
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.md),
             AppTextField(
               label: 'Password',
               hint: '••••••••',
@@ -102,20 +92,32 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 onPressed: () => setState(() => _obscure = !_obscure),
               ),
             ),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: () => context.pushNamed(RouteNames.forgotPassword),
-                child: const Text('Forgot password?'),
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                TextButton(
+                  onPressed: () => context.pushNamed(RouteNames.signup),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+                  ),
+                  child: Text('Create account', style: TextStyle(color: theme.colorScheme.primary)),
+                ),
+                TextButton(
+                  onPressed: () => context.pushNamed(RouteNames.forgotPassword),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+                  ),
+                  child: const Text('Forgot password?'),
+                ),
+              ],
             ),
-            const SizedBox(height: AppSpacing.sm),
+            const SizedBox(height: AppSpacing.xs),
             AppButton(
               label: 'Sign in',
               isLoading: _busy,
               onPressed: _submit,
             ),
-            const SizedBox(height: AppSpacing.xl),
+            const SizedBox(height: AppSpacing.lg),
             SocialAuthButtons(
               isBusy: _busy,
               onGoogle: () => _run(

@@ -180,30 +180,76 @@ export function getTheme(mode) {
           outlined: { borderColor: neutral.border },
         },
       },
+      MuiTableContainer: {
+        styleOverrides: {
+          root: {
+            border: 'none', // Remove any container borders when tables are in cards
+            boxShadow: 'none',
+          },
+        },
+      },
+      MuiTable: {
+        styleOverrides: {
+          root: {
+            borderCollapse: 'separate',
+            borderSpacing: 0,
+          },
+        },
+      },
       MuiTableHead: {
         styleOverrides: {
           root: {
-            '& .MuiTableCell-head': {
+            '& .MuiTableRow-root': {
               backgroundColor: neutral.surfaceMuted,
+            },
+            '& .MuiTableCell-head': {
+              backgroundColor: 'transparent',
               color: neutral.textSecondary,
-              fontWeight: 700,
-              fontSize: '0.75rem',
-              letterSpacing: '0.03em',
-              textTransform: 'uppercase',
-              borderBottom: `1px solid ${neutral.border}`,
+              fontWeight: 600,
+              fontSize: '0.875rem',
+              letterSpacing: 'normal',
+              textTransform: 'none',
+              borderBottom: 'none',
+              paddingBlock: 16,
+            },
+            '& .MuiTableCell-head:first-of-type': {
+              borderTopLeftRadius: radius.md,
+              borderBottomLeftRadius: radius.md,
+              paddingLeft: 24,
+            },
+            '& .MuiTableCell-head:last-of-type': {
+              borderTopRightRadius: radius.md,
+              borderBottomRightRadius: radius.md,
+              paddingRight: 24,
             },
           },
         },
       },
       MuiTableCell: {
         styleOverrides: {
-          root: { borderColor: neutral.border },
+          root: { 
+            borderColor: neutral.border,
+            borderBottomWidth: 1,
+            borderBottomStyle: 'solid',
+          },
+          body: {
+            paddingBlock: 16,
+            '&:first-of-type': {
+              paddingLeft: 24,
+            },
+            '&:last-of-type': {
+              paddingRight: 24,
+            },
+          }
         },
       },
       MuiTableRow: {
         styleOverrides: {
           root: {
             transition: 'background-color .12s ease',
+            '&:last-child .MuiTableCell-body': {
+              borderBottom: 'none',
+            },
             '&:hover': { backgroundColor: 'rgba(255,90,95,0.03)' },
           },
         },
@@ -231,6 +277,29 @@ export function getTheme(mode) {
       MuiAvatar: {
         styleOverrides: {
           root: { fontWeight: 600 },
+        },
+      },
+      MuiTablePagination: {
+        styleOverrides: {
+          root: {
+            borderBottom: 'none',
+          },
+          select: {
+            border: `1px solid ${neutral.border}`,
+            borderRadius: radius.md,
+            paddingTop: 6,
+            paddingBottom: 6,
+            paddingLeft: 12,
+            backgroundColor: '#FFFFFF',
+          },
+          toolbar: {
+            paddingInline: 24,
+            minHeight: 64,
+          },
+          displayedRows: {
+            marginInline: 'auto', // to center the text "Showing X out of Y..." if possible
+            color: neutral.textSecondary,
+          },
         },
       },
       MuiLinearProgress: {

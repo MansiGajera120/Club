@@ -20,6 +20,7 @@ import '../screens/owner/owner_actions_screen.dart';
 import '../screens/owner/owner_home_gate.dart';
 import '../screens/owner/owner_events_screen.dart';
 import '../screens/profile/change_password_screen.dart';
+import '../screens/profile/contact_us_screen.dart';
 import '../screens/profile/edit_profile_screen.dart';
 import '../screens/profile/legal_document_screen.dart';
 import '../screens/profile/legal_content.dart';
@@ -48,10 +49,7 @@ class _RoleAwareSearch extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final role = ref.watch(authControllerProvider).user?.role;
-    return role == UserRole.clubOwner
-        ? const MyClubsScreen()
-        : const SearchScreen();
+    return const SearchScreen();
   }
 }
 
@@ -236,6 +234,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: RouteNames.changePasswordPath,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const ChangePasswordScreen(),
+      ),
+      GoRoute(
+        name: RouteNames.contactUs,
+        path: RouteNames.contactUsPath,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const ContactUsScreen(),
       ),
       GoRoute(
         name: RouteNames.legalDocument,

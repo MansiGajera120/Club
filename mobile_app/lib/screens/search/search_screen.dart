@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -114,7 +114,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     autofocus: false,
                     textInputAction: TextInputAction.search,
                     decoration: InputDecoration(
-                      hintText: 'Search clubs, city, sport…',
+                      hintText: 'Search city, organization, keywords…',
                       prefixIcon: const Icon(Icons.search),
                       suffixIcon: _searchController.text.isEmpty
                           ? null
@@ -195,7 +195,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         title: hasQuery || hasFilters ? 'No clubs found' : 'Search clubs',
         message: hasQuery || hasFilters
             ? 'Try a different keyword or adjust your filters.'
-            : 'Type a club name, city, or sport to see matching results.',
+            : 'Type a city, organization name, or keywords to see matching results.',
       );
     }
 

@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../theme/app_colors.dart';
-import '../../../theme/app_radius.dart';
-import '../../../theme/app_shadows.dart';
 import '../../../theme/app_spacing.dart';
 
-/// Shared auth flow layout — brand header + bordered form card.
+/// Shared auth flow layout — background artwork, ambient glows, and premium form.
 class AuthScaffold extends StatelessWidget {
   final String title;
   final String subtitle;
@@ -25,110 +23,135 @@ class AuthScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final size = MediaQuery.of(context).size;
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
-      appBar: onBack != null
-          ? AppBar(
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back_rounded),
-                onPressed: onBack,
+      backgroundColor: AppColors.background,
+      extendBodyBehindAppBar: true,
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          SliverAppBar(
+            expandedHeight: size.height * 0.32,
+            toolbarHeight: 80.0, // keeps a slither of the image visible when fully scrolled up
+            pinned: true,
+            stretch: true,
+            backgroundColor: AppColors.background,
+            elevation: 0,
+            leading: onBack != null
+                ? IconButton(
+                    icon: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.1),
+                            blurRadius: 10,
+                          ),
+                        ],
+                      ),
+                      child: const Icon(Icons.arrow_back_rounded, color: Colors.black, size: 20),
+                    ),
+                    onPressed: onBack,
+                  )
+                : null,
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(32.0),
+              child: Container(
+                height: 32.0,
+                decoration: BoxDecoration(
+                  color: AppColors.background,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(32),
+                    topRight: Radius.circular(32),
+                  ),
+                ),
               ),
-            )
-          : null,
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 440),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+            ),
+            flexibleSpace: FlexibleSpaceBar(
+              collapseMode: CollapseMode.parallax,
+              stretchModes: const [StretchMode.zoomBackground],
+              background: Stack(
+                fit: StackFit.expand,
                 children: [
-                  const _AuthBrandMark(),
-                  const SizedBox(height: AppSpacing.xl),
+                  Image.asset(
+                    'assets/images/auth_header.png',
+                    fit: BoxFit.cover,
+                    alignment: Alignment.topCenter,
+                  ),
+                  // 2. Soft fade mask blending into the solid background
+                  Positioned(
+                    bottom: -2,
+                    left: 0,
+                    right: 0,
+                    height: size.height * 0.15, // Blend the bottom 15% of the image
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            AppColors.background.withValues(alpha: 0.0),
+                            AppColors.background,
+                            AppColors.background,
+                          ],
+                          stops: const [0.0, 0.6, 1.0], // Pushes pure white higher to hide resting curve
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Container(
+              color: AppColors.background,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: AppSpacing.md),
+                  // Title and Subtitle seamlessly floating
                   Text(
                     title,
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.headlineSmall,
+                    textAlign: TextAlign.left,
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -0.5,
+                      fontSize: 32,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
-                  const SizedBox(height: AppSpacing.sm),
+                  const SizedBox(height: 8),
                   Text(
                     subtitle,
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyMedium?.copyWith(
+                    textAlign: TextAlign.left,
+                    style: theme.textTheme.titleMedium?.copyWith(
                       color: AppColors.textSecondary,
+                      height: 1.4,
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.xl),
-                  DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: AppColors.card,
-                      borderRadius: AppRadius.xlAll,
-                      border: Border.all(
-                        color: AppColors.borderStrong,
-                        width: 1.25,
-                      ),
-                      boxShadow: AppShadows.md,
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(AppSpacing.xl),
-                      child: child,
-                    ),
-                  ),
+                  const SizedBox(height: AppSpacing.xxxl),
+
+                  // Content fields right on the background
+                  child,
+
                   if (footer != null) ...[
-                    const SizedBox(height: AppSpacing.lg),
+                    const SizedBox(height: AppSpacing.xl),
                     footer!,
                   ],
+                  const SizedBox(height: AppSpacing.xxxl),
                 ],
               ),
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _AuthBrandMark extends StatelessWidget {
-  const _AuthBrandMark();
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          width: 64,
-          height: 64,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: AppColors.brandGradient,
-            ),
-            borderRadius: AppRadius.xlAll,
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.28),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: const Icon(
-            Icons.sports_soccer_rounded,
-            color: Colors.white,
-            size: 32,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.md),
-        Text(
-          'Sports Club',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-        ),
       ],
+      ),
     );
   }
 }

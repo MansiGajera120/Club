@@ -52,6 +52,8 @@ class AuthController extends Notifier<AuthState> {
   }
 
   Future<void> _bootstrap() async {
+    // Artificial minimum delay allowing the splash screen to present beautifully
+    await Future.delayed(const Duration(milliseconds: 2500));
     final storage = ref.read(storageServiceProvider);
     final token = await storage.accessToken;
     if (token == null || token.isEmpty) {

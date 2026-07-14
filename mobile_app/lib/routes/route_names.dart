@@ -53,6 +53,9 @@ class RouteNames {
   static const String changePassword = 'change-password';
   static const String changePasswordPath = '/change-password';
 
+  static const String contactUs = 'contact-us';
+  static const String contactUsPath = '/contact-us';
+
   static const String legalDocument = 'legal-document';
   static const String legalDocumentPath = '/legal/:type';
 

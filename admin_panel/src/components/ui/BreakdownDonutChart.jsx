@@ -158,26 +158,7 @@ export function BreakdownDonutChart({
         </>
       )}
 
-      {!loading && hasData && (
-        <Box
-          sx={{
-            mt: 2,
-            pt: 1.5,
-            borderTop: '1px solid',
-            borderColor: 'divider',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
-        >
-          <Typography variant="caption" color="text.secondary" fontWeight={600}>
-            Total
-          </Typography>
-          <Typography variant="subtitle2" fontWeight={800}>
-            {total}
-          </Typography>
-        </Box>
-      )}
+
     </Box>
   );
 }

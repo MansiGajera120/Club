@@ -8,6 +8,7 @@ import LoginPage from '@/pages/LoginPage';
 import ForgotPasswordPage from '@/pages/ForgotPasswordPage';
 import ResetPasswordPage from '@/pages/ResetPasswordPage';
 import DashboardPage from '@/pages/DashboardPage';
+import AnalyticsPage from '@/pages/AnalyticsPage';
 import ClubsPage from '@/pages/ClubsPage';
 import ClubFormPage from '@/pages/ClubFormPage';
 import UsersPage from '@/pages/UsersPage';
@@ -34,6 +35,7 @@ export function AppRoutes() {
       <Route element={<ProtectedRoute />}>
         <Route element={<DashboardLayout />}>
           <Route path={ROUTES.dashboard} element={<DashboardPage />} />
+          <Route path={ROUTES.analytics} element={<AnalyticsPage />} />
           <Route path={ROUTES.clubs} element={<ClubsPage />} />
           <Route path={ROUTES.clubNew} element={<ClubFormPage />} />
           <Route path={ROUTES.clubEdit} element={<ClubFormPage />} />

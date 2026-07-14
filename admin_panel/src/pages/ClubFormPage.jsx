@@ -31,9 +31,9 @@ import {
 import { ROUTES, clubEditPath } from '@/constants';
 
 const GENDERS = [
+  { value: 'male', label: 'Boys' },
+  { value: 'female', label: 'Girls' },
   { value: 'mixed', label: 'Mixed' },
-  { value: 'male', label: 'Male' },
-  { value: 'female', label: 'Female' },
 ];
 
 const STATUSES = [
@@ -44,20 +44,18 @@ const STATUSES = [
   { value: 'hidden', label: 'Hidden' },
 ];
 
-const CURRENCIES = ['USD', 'INR', 'EUR', 'GBP'];
 
 const EMPTY_FORM = {
   name: '',
   description: '',
   sport: '',
   services: '',
-  city: '',
   address: '',
   gender: 'mixed',
   ageMin: '0',
   ageMax: '100',
   price: '0',
-  priceCurrency: 'USD',
+  priceCurrency: 'INR',
   phone: '',
   email: '',
   website: '',
@@ -78,13 +76,12 @@ function clubToForm(club) {
     description: club.description ?? '',
     sport: club.sport ?? '',
     services: (club.services ?? []).join(', '),
-    city: club.city ?? '',
     address: club.address ?? '',
     gender: club.gender ?? 'mixed',
     ageMin: String(club.ageMin ?? 0),
     ageMax: String(club.ageMax ?? 100),
     price: String(club.price ?? 0),
-    priceCurrency: club.priceCurrency || 'USD',
+    priceCurrency: club.priceCurrency || 'INR',
     phone: club.contact?.phone ?? '',
     email: club.contact?.email ?? '',
     website: club.contact?.website ?? '',
@@ -157,7 +154,6 @@ export function ClubFormPage() {
     req('name', 'Name');
     if (!next.name && form.name.trim().length < 2) next.name = 'Min 2 characters';
     req('description', 'Description');
-    req('sport', 'Sport');
     req('services', 'At least one service');
     req('city', 'City');
     req('address', 'Address');
@@ -202,32 +198,34 @@ export function ClubFormPage() {
     return Object.keys(next).length === 0 && !media;
   };
 
-  const buildPayload = () => ({
-    name: form.name.trim(),
-    description: form.description.trim(),
-    sport: form.sport.trim(),
-    services: form.services
+  const buildPayload = () => {
+    const servicesList = form.services
       .split(',')
       .map((s) => s.trim())
-      .filter(Boolean),
-    city: form.city.trim(),
-    address: form.address.trim(),
-    gender: form.gender,
-    ageMin: Number(form.ageMin) || 0,
-    ageMax: Number(form.ageMax) || 100,
-    price: Number(form.price) || 0,
-    priceCurrency: form.priceCurrency,
-    contact: {
-      phone: form.phone.trim(),
-      email: form.email.trim(),
-      website: form.website.trim(),
-      instagram: form.instagram.trim(),
-      tiktok: form.tiktok.trim(),
-    },
-    registrationLink: form.registrationLink.trim(),
-    status: form.status,
-    isFeatured: form.isFeatured,
-  });
+      .filter(Boolean);
+    return {
+      name: form.name.trim(),
+      description: form.description.trim(),
+      sport: servicesList[0] ?? '',
+      services: servicesList,
+      address: form.address.trim(),
+      gender: form.gender,
+      ageMin: Number(form.ageMin) || 0,
+      ageMax: Number(form.ageMax) || 100,
+      price: Number(form.price) || 0,
+      priceCurrency: 'INR',
+      contact: {
+        phone: form.phone.trim(),
+        email: form.email.trim(),
+        website: form.website.trim(),
+        instagram: form.instagram.trim(),
+        tiktok: form.tiktok.trim(),
+      },
+      registrationLink: form.registrationLink.trim(),
+      status: form.status,
+      isFeatured: form.isFeatured,
+    };
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -348,13 +346,24 @@ export function ClubFormPage() {
         >
           <TextField
             sx={full}
-            label="Organization name"
+            label="Club name"
             required
             value={form.name}
             onChange={set('name')}
             error={Boolean(errors.name)}
             helperText={errors.name}
             slotProps={{ htmlInput: { maxLength: 120 } }}
+          />
+          <TextField
+            sx={full}
+            label="Services offered (comma-separated)"
+            required
+            placeholder="Coaching, Summer camp, Trials"
+            value={form.services}
+            onChange={set('services')}
+            error={Boolean(errors.services)}
+            helperText={errors.services}
+            slotProps={{ htmlInput: { maxLength: 500 } }}
           />
           <TextField
             sx={full}
@@ -368,50 +377,15 @@ export function ClubFormPage() {
             minRows={3}
             slotProps={{ htmlInput: { maxLength: 4000 } }}
           />
-          <TextField
-            label="Sport"
-            required
-            value={form.sport}
-            onChange={set('sport')}
-            error={Boolean(errors.sport)}
-            helperText={errors.sport}
-            slotProps={{ htmlInput: { maxLength: 80 } }}
-          />
-          <TextField
-            label="Services (comma separated)"
-            required
-            placeholder="Coaching, Summer camp, Trials"
-            value={form.services}
-            onChange={set('services')}
-            error={Boolean(errors.services)}
-            helperText={errors.services}
-            slotProps={{ htmlInput: { maxLength: 500 } }}
-          />
         </Box>
       </ContentCard>
 
       {/* Location */}
       <ContentCard sx={{ p: 3, mb: 2.5 }}>
         <SectionHeading title="Location" />
-        <Box
-          sx={{
-            mt: 2.5,
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
-            columnGap: 2.5,
-            rowGap: 2.5,
-          }}
-        >
+        <Box sx={{ mt: 2.5 }}>
           <TextField
-            label="City"
-            required
-            value={form.city}
-            onChange={set('city')}
-            error={Boolean(errors.city)}
-            helperText={errors.city}
-            slotProps={{ htmlInput: { maxLength: 120 } }}
-          />
-          <TextField
+            fullWidth
             label="Address"
             required
             value={form.address}
@@ -438,25 +412,13 @@ export function ClubFormPage() {
           <TextField
             sx={{ gridColumn: { xs: '1 / -1', sm: 'auto' } }}
             select
-            label="Gender category"
+            label="Gender"
             value={form.gender}
             onChange={set('gender')}
           >
             {GENDERS.map((g) => (
               <MenuItem key={g.value} value={g.value}>
                 {g.label}
-              </MenuItem>
-            ))}
-          </TextField>
-          <TextField
-            select
-            label="Currency"
-            value={form.priceCurrency}
-            onChange={set('priceCurrency')}
-          >
-            {CURRENCIES.map((c) => (
-              <MenuItem key={c} value={c}>
-                {c}
               </MenuItem>
             ))}
           </TextField>
@@ -719,7 +681,7 @@ export function ClubFormPage() {
           Cancel
         </Button>
         <Button type="submit" variant="contained" disabled={saving}>
-          {saving ? 'Saving…' : isEdit ? 'Save changes' : 'Create organization'}
+          {saving ? 'Saving…' : isEdit ? 'Save changes' : 'Submit for approval'}
         </Button>
       </Stack>
     </Box>
