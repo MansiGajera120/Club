@@ -45,7 +45,7 @@ export function getTheme(mode) {
     spacing: spacingUnit,
     shape: { borderRadius: radius.md },
     typography: {
-      fontFamily: 'DM Sans, sans-serif',
+      fontFamily: "'Inter', 'DM Sans', sans-serif",
       h1: { fontFamily: 'Outfit, sans-serif', fontSize: '2.125rem', fontWeight: 800, lineHeight: 1.15, letterSpacing: '-0.02em' },
       h2: { fontFamily: 'Outfit, sans-serif', fontSize: '1.75rem', fontWeight: 700, lineHeight: 1.2, letterSpacing: '-0.02em' },
       h3: { fontFamily: 'Outfit, sans-serif', fontSize: '1.5rem', fontWeight: 700, lineHeight: 1.25, letterSpacing: '-0.015em' },
@@ -64,10 +64,6 @@ export function getTheme(mode) {
         styleOverrides: {
           body: {
             backgroundColor: neutral.background,
-            // Subtle brand-tinted radial glows in the background.
-            backgroundImage:
-              'radial-gradient(900px 500px at 100% -5%, rgba(255,90,95,0.07), transparent 60%), radial-gradient(700px 400px at -10% 90%, rgba(255,232,220,0.35), transparent 55%)',
-            backgroundAttachment: 'fixed',
           },
           '*::-webkit-scrollbar': { width: 10, height: 10 },
           '*::-webkit-scrollbar-thumb': {
@@ -233,7 +229,10 @@ export function getTheme(mode) {
             borderBottomStyle: 'solid',
           },
           body: {
-            paddingBlock: 16,
+            paddingBlock: 24,
+            color: '#000000',
+            fontSize: '0.95rem',
+            fontWeight: 500,
             '&:first-of-type': {
               paddingLeft: 24,
             },
@@ -250,7 +249,7 @@ export function getTheme(mode) {
             '&:last-child .MuiTableCell-body': {
               borderBottom: 'none',
             },
-            '&:hover': { backgroundColor: 'rgba(255,90,95,0.03)' },
+            '&:hover': { backgroundColor: '#FAFBFC' },
           },
         },
       },

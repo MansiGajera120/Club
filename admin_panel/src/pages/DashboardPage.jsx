@@ -1,83 +1,83 @@
 import React from 'react';
 import {
   Box, Card, Typography, Avatar, Table, TableBody, TableCell,
-  TableHead, TableRow, Button, Grid, Stack, CircularProgress, Chip
+  TableHead, TableRow, Button, Grid, Stack, CircularProgress
 } from '@mui/material';
 import GroupsIcon from '@mui/icons-material/Groups';
 import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import HourglassTopRoundedIcon from '@mui/icons-material/HourglassTopRounded';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
-import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { useNavigate } from 'react-router-dom';
 
 import { useDashboardStats, useAdminUsers, useAdminClubs } from '@/hooks/useAdmin';
 import { ROUTES } from '@/constants';
 
-/* ---------- Stat Card ---------- */
-function StatCard({ title, value, trend, icon: Icon, gradient, iconBg }) {
-  const isPositive = trend?.startsWith('+');
+/* ---------- Stat Card (minimal, reference-style) ---------- */
+function StatCard({ title, value, icon: Icon, iconColor, iconBg }) {
   return (
-    <Card
+    <Box
       sx={{
-        p: 0,
+        bgcolor: '#FFFFFF',
         borderRadius: '18px',
-        overflow: 'hidden',
-        border: 'none',
-        boxShadow: '0 4px 24px rgba(0,0,0,0.07)',
+        border: '1px solid #EEEFF2',
+        boxShadow: '0 2px 16px rgba(0,0,0,0.05)',
+        p: 3.5,
+        display: 'flex',
+        flexDirection: 'column',
         height: '100%',
-        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-        '&:hover': { transform: 'translateY(-3px)', boxShadow: '0 8px 32px rgba(0,0,0,0.11)' },
-        position: 'relative',
+        minHeight: 140,
+        transition: 'box-shadow 0.2s ease, transform 0.2s ease',
+        '&:hover': {
+          boxShadow: '0 8px 24px rgba(0,0,0,0.09)',
+          transform: 'translateY(-2px)',
+        },
       }}
     >
-      {/* Coloured top slice */}
-      <Box sx={{ height: 5, background: gradient }} />
-
-      <Box sx={{ p: 2.5 }}>
-        {/* Icon + trend row */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-          <Box sx={{
-            width: 52, height: 52, borderRadius: '14px',
-            background: iconBg,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <Icon sx={{ fontSize: 26, color: '#fff' }} />
-          </Box>
-          {trend && (
-            <Chip
-              size="small"
-              icon={isPositive ? <ArrowUpwardIcon style={{ fontSize: 13 }} /> : <ArrowDownwardIcon style={{ fontSize: 13 }} />}
-              label={trend}
-              sx={{
-                height: 26, fontSize: '0.8rem', fontWeight: 700,
-                bgcolor: isPositive ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)',
-                color: isPositive ? '#059669' : '#DC2626',
-                '& .MuiChip-icon': { color: 'inherit', ml: '4px' },
-                border: 'none',
-              }}
-            />
-          )}
-        </Box>
-
-        {/* Number */}
-        <Typography variant="h3" fontWeight={800} sx={{ color: '#111827', fontSize: '2.8rem', lineHeight: 1, mb: 0.5, mt: 1.5, letterSpacing: '-0.02em' }}>
-          {value}
-        </Typography>
-        <Typography variant="body2" sx={{ color: '#9CA3AF', fontWeight: 600, fontSize: '0.9rem' }}>
+      {/* Label + Icon row */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+        <Typography
+          sx={{
+            fontSize: '0.88rem',
+            fontWeight: 500,
+            color: '#9CA3AF',
+            lineHeight: 1.4,
+          }}
+        >
           {title}
         </Typography>
+        <Box
+          sx={{
+            width: 48,
+            height: 48,
+            borderRadius: '12px',
+            bgcolor: iconBg,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+            ml: 1,
+          }}
+        >
+          <Icon sx={{ fontSize: 22, color: iconColor }} />
+        </Box>
       </Box>
 
-      {/* Decorative circle */}
-      <Box sx={{
-        position: 'absolute', bottom: -20, right: -20,
-        width: 90, height: 90, borderRadius: '50%',
-        background: iconBg, opacity: 0.06,
-      }} />
-    </Card>
+      {/* Big number */}
+      <Typography
+        sx={{
+          fontSize: '2.4rem',
+          fontWeight: 800,
+          color: '#262525',
+          lineHeight: 1,
+          letterSpacing: '-0.03em',
+          mt: 'auto',
+        }}
+      >
+        {value}
+      </Typography>
+    </Box>
   );
 }
 
@@ -90,7 +90,7 @@ function TableSection({ title, onViewAll, loading, children }) {
           <Typography variant="h5" fontWeight={800} sx={{ color: '#111827', letterSpacing: '-0.01em' }}>
             {title}
           </Typography>
-          <Typography variant="caption" sx={{ color: '#9CA3AF', fontWeight: 500, fontSize: '0.85rem' }}>
+          <Typography variant="caption" sx={{ color: '#9CA3AF', fontWeight: 500, fontSize: '0.92rem' }}>
             Latest entries from the platform
           </Typography>
         </Box>
@@ -135,10 +135,11 @@ function RoleChip({ role }) {
   const s = map[role] ?? { label: role, color: '#6B7280', bg: 'rgba(107,114,128,0.1)' };
   return (
     <Box sx={{
-      display: 'inline-block', px: 2, py: 0.5,
-      borderRadius: '20px',
+      display: 'inline-flex', justifyContent: 'center', alignItems: 'center',
+      px: 3, py: 1, minWidth: 90,
+      borderRadius: '12px',
       bgcolor: s.bg, color: s.color,
-      fontSize: '0.82rem', fontWeight: 700,
+      fontSize: '1rem', fontWeight: 600, lineHeight: 1.2,
     }}>
       {s.label}
     </Box>
@@ -148,18 +149,21 @@ function RoleChip({ role }) {
 /* ---------- Status Chip ---------- */
 function StatusChip({ status }) {
   const map = {
-    approved: { label: 'Approved', color: '#059669', bg: 'rgba(5,150,105,0.1)' },
-    pending: { label: 'Pending', color: '#D97706', bg: 'rgba(217,119,6,0.1)' },
-    rejected: { label: 'Rejected', color: '#DC2626', bg: 'rgba(220,38,38,0.1)' },
-    suspended: { label: 'Suspended', color: '#7C3AED', bg: 'rgba(124,58,237,0.1)' },
+    approved: { label: 'Active', color: '#15803D', bg: '#F0FDF4' },
+    active: { label: 'Active', color: '#15803D', bg: '#F0FDF4' },
+    pending: { label: 'Pending', color: '#D97706', bg: '#FEF3C7' },
+    rejected: { label: 'Rejected', color: '#DC2626', bg: '#FEE2E2' },
+    suspended: { label: 'Suspended', color: '#DC2626', bg: '#FEE2E2' },
+    inactive: { label: 'Inactive', color: '#8B98A5', bg: '#F6F8FA' },
   };
-  const s = map[status] ?? { label: status, color: '#6B7280', bg: 'rgba(107,114,128,0.1)' };
+  const s = map[status] ?? { label: 'Inactive', color: '#8B98A5', bg: '#F6F8FA' };
   return (
     <Box sx={{
-      display: 'inline-block', px: 2, py: 0.5,
-      borderRadius: '20px',
+      display: 'inline-flex', justifyContent: 'center', alignItems: 'center',
+      px: 3, py: 1, minWidth: 90,
+      borderRadius: '12px',
       bgcolor: s.bg, color: s.color,
-      fontSize: '0.82rem', fontWeight: 700,
+      fontSize: '1rem', fontWeight: 600, lineHeight: 1.2,
     }}>
       {s.label}
     </Box>
@@ -171,14 +175,14 @@ const TH = ({ children, ...props }) => (
   <TableCell
     {...props}
     sx={{
-      bgcolor: '#F9FAFB',
-      color: '#6B7280',
-      fontWeight: 700,
-      fontSize: '0.82rem',
-      letterSpacing: '0.06em',
-      textTransform: 'uppercase',
-      py: 2.25,
-      borderBottom: '1px solid rgba(0,0,0,0.06)',
+      bgcolor: '#F0F2F5',
+      color: '#475569',
+      fontWeight: 600,
+      fontSize: '0.9rem',
+      py: 2.5,
+      borderBottom: 'none',
+      '&:first-of-type': { borderTopLeftRadius: '12px', borderBottomLeftRadius: '12px' },
+      '&:last-of-type': { borderTopRightRadius: '12px', borderBottomRightRadius: '12px' },
       ...props.sx,
     }}
   >
@@ -204,36 +208,36 @@ export function DashboardPage() {
       title: 'Total Users',
       value: statsLoading || isError ? '—' : usersTotal.toLocaleString(),
       icon: GroupsIcon,
-      gradient: 'linear-gradient(90deg, #6366F1, #8B5CF6)',
-      iconBg: 'linear-gradient(135deg, #6366F1, #8B5CF6)',
+      iconColor: '#16A34A',
+      iconBg: '#DCFCE7',
     },
     {
       title: 'Active Organizations',
       value: statsLoading || isError ? '—' : clubsTotal.toLocaleString(),
       icon: BusinessCenterIcon,
-      gradient: 'linear-gradient(90deg, #EC4899, #F97316)',
-      iconBg: 'linear-gradient(135deg, #EC4899, #F97316)',
+      iconColor: '#F97316',
+      iconBg: '#FFF7ED',
     },
     {
       title: 'Total Events',
       value: statsLoading || isError ? '—' : eventsTotal.toLocaleString(),
       icon: EventAvailableIcon,
-      gradient: 'linear-gradient(90deg, #14B8A6, #06B6D4)',
-      iconBg: 'linear-gradient(135deg, #14B8A6, #06B6D4)',
+      iconColor: '#2563EB',
+      iconBg: '#EFF6FF',
     },
     {
-      title: 'Pending Club Review',
+      title: 'Pending Review',
       value: statsLoading || isError ? '—' : clubsPending.toLocaleString(),
       icon: HourglassTopRoundedIcon,
-      gradient: 'linear-gradient(90deg, #F59E0B, #EF4444)',
-      iconBg: 'linear-gradient(135deg, #F59E0B, #EF4444)',
+      iconColor: '#D97706',
+      iconBg: '#FEF3C7',
     },
     {
       title: 'Inactive Organizations',
       value: statsLoading || isError ? '—' : inactiveClubs.toLocaleString(),
       icon: TrendingUpIcon,
-      gradient: 'linear-gradient(90deg, #64748B, #94A3B8)',
-      iconBg: 'linear-gradient(135deg, #64748B, #94A3B8)',
+      iconColor: '#7C3AED',
+      iconBg: '#F5F3FF',
     },
   ];
 
@@ -265,38 +269,44 @@ export function DashboardPage() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {usersData?.items?.slice(0, 5).map((user, idx) => (
+            {usersData?.items
+              ?.filter((u) => u.role !== 'admin')
+              .slice(0, 5)
+              .map((user) => (
               <TableRow
                 key={user.id}
                 hover
                 sx={{
                   '&:last-child td': { borderBottom: 'none' },
                   transition: 'background 0.15s',
-                  '&:hover': { bgcolor: 'rgba(255,90,95,0.025)' },
+                  '&:hover': { bgcolor: '#FAFBFC' },
                 }}
               >
-                <TableCell sx={{ pl: 3, py: 2 }}>
-                  <Stack direction="row" alignItems="center" spacing={2.5}>
+                <TableCell sx={{ pl: 3, py: 2.5 }}>
+                  <Stack direction="row" alignItems="center" spacing={1.5}>
                     <Avatar
                       src={user.avatarUrl}
+                      variant="rounded"
                       sx={{
-                        width: 44, height: 44,
-                        background: `linear-gradient(135deg, hsl(${(idx * 47) % 360},70%,55%), hsl(${(idx * 47 + 40) % 360},70%,50%))`,
-                        fontSize: '1.05rem', fontWeight: 700,
+                        width: 36, height: 36,
+                        borderRadius: '10px',
+                        bgcolor: '#F3F4F6',
+                        color: '#374151',
+                        fontSize: '0.92rem', fontWeight: 700,
                       }}
                     >
-                      {user.name?.[0]}
+                      {user.name?.[0]?.toUpperCase()}
                     </Avatar>
-                    <Typography variant="body1" fontWeight={700} sx={{ color: '#111827' }}>
+                    <Typography variant="body1" fontWeight={600} sx={{ color: '#000000', fontSize: '1rem' }}>
                       {user.name}
                     </Typography>
                   </Stack>
                 </TableCell>
-                <TableCell sx={{ color: '#6B7280', fontSize: '0.95rem' }}>{user.email}</TableCell>
-                <TableCell><RoleChip role={user.role} /></TableCell>
+                <TableCell sx={{ color: '#000000', fontSize: '0.95rem', py: 2.5 }}>{user.email}</TableCell>
+                <TableCell sx={{ py: 2.5 }}><RoleChip role={user.role} /></TableCell>
               </TableRow>
             ))}
-            {!usersData?.items?.length && (
+            {!usersData?.items?.filter((u) => u.role !== 'admin').length && (
               <TableRow>
                 <TableCell colSpan={3} sx={{ textAlign: 'center', py: 5, color: '#9CA3AF' }}>
                   No users found.
@@ -333,40 +343,42 @@ export function DashboardPage() {
                   '&:hover': { bgcolor: 'rgba(255,90,95,0.025)' },
                 }}
               >
-                <TableCell sx={{ pl: 3, py: 2 }}>
-                  <Stack direction="row" alignItems="center" spacing={2.5}>
+                <TableCell sx={{ pl: 3, py: 2.5 }}>
+                  <Stack direction="row" alignItems="center" spacing={1.5}>
                     <Avatar
                       variant="rounded"
                       src={club.logo}
                       sx={{
-                        width: 44, height: 44, borderRadius: '12px',
-                        background: `linear-gradient(135deg, hsl(${(idx * 73) % 360},60%,50%), hsl(${(idx * 73 + 40) % 360},60%,45%))`,
-                        fontSize: '1.05rem', fontWeight: 700,
+                        width: 36, height: 36,
+                        borderRadius: '10px',
+                        bgcolor: '#F3F4F6',
+                        color: '#374151',
+                        fontSize: '0.92rem', fontWeight: 700,
                       }}
                     >
-                      {club.name?.[0]}
+                      {club.name?.[0]?.toUpperCase()}
                     </Avatar>
-                    <Typography variant="body1" fontWeight={700} sx={{ color: '#111827' }}>
+                    <Typography variant="body1" fontWeight={600} sx={{ color: '#000000', fontSize: '1rem' }}>
                       {club.name}
                     </Typography>
                   </Stack>
                 </TableCell>
-                <TableCell sx={{ color: '#6B7280', fontSize: '0.95rem' }}>
+                <TableCell sx={{ color: '#000000', fontSize: '0.95rem', py: 2.5 }}>
                   {club.contact?.email ?? club.owner?.email ?? '—'}
                 </TableCell>
-                <TableCell sx={{ color: '#9CA3AF', fontSize: '0.92rem', maxWidth: 180, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <TableCell sx={{ color: '#000000', fontSize: '0.95rem', py: 2.5, maxWidth: 180, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {club.address || club.city || '—'}
                 </TableCell>
-                <TableCell><StatusChip status={club.status} /></TableCell>
-                <TableCell>
+                <TableCell sx={{ py: 2.5 }}><StatusChip status={club.status} /></TableCell>
+                <TableCell sx={{ py: 2.5 }}>
                   <Button
                     size="small"
                     variant="outlined"
                     sx={{
                       fontWeight: 700, textTransform: 'none', fontSize: '0.75rem',
-                      borderRadius: '8px', borderColor: 'rgba(0,0,0,0.12)',
+                      borderRadius: '8px', borderColor: '#E5E7EB',
                       color: '#374151', py: 0.5,
-                      '&:hover': { borderColor: '#FF5A5F', color: '#FF5A5F', bgcolor: 'rgba(255,90,95,0.05)' },
+                      '&:hover': { borderColor: '#F97316', color: '#F97316', bgcolor: 'rgba(249,115,22,0.05)' },
                     }}
                     onClick={() => navigate(`/clubs/${club.id}/edit`)}
                   >

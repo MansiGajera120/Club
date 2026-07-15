@@ -5,22 +5,14 @@ import { toast } from 'react-toastify';
 import {
   Box,
   Button,
-  Chip,
-  Divider,
-  List,
-  ListItem,
-  ListItemText,
   Stack,
   TextField,
-  Typography,
 } from '@mui/material';
-import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
 import LockResetIcon from '@mui/icons-material/LockReset';
 
 import { PageHeader, ContentCard, SectionHeading } from '@/components/ui';
 import PasswordField from '@/components/common/PasswordField';
 import { useAuth } from '@/hooks/useAuth';
-import { useAdminUsers, useCreateAdmin } from '@/hooks/useAdmin';
 import { authService } from '@/services/authService';
 import { getApiErrorMessage } from '@/services/apiClient';
 import { ROUTES } from '@/constants';
@@ -30,11 +22,10 @@ export function SettingsPage() {
     <Box>
       <PageHeader
         title="Settings"
-        subtitle="Manage your password and control who can access the admin panel."
+        subtitle="Manage your password."
       />
       <Stack spacing={2.5}>
         <ChangePasswordCard />
-        <AddAdminCard />
       </Stack>
     </Box>
   );
@@ -128,101 +119,6 @@ function ChangePasswordCard() {
           </Box>
         </Stack>
       </Box>
-    </ContentCard>
-  );
-}
-
-/** Invite a new admin by email + list existing admins. */
-function AddAdminCard() {
-  const createAdmin = useCreateAdmin();
-  const { data } = useAdminUsers({ role: 'admin', page: 1, limit: 100 });
-  const admins = data?.items ?? [];
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm({ defaultValues: { email: '' } });
-
-  const onSubmit = (values) => {
-    createAdmin.mutate(values.email, { onSuccess: () => reset() });
-  };
-
-  return (
-    <ContentCard sx={{ p: 3 }}>
-      <SectionHeading
-        title="Admin access"
-        subtitle="Add a new admin by email. They'll receive a link to set their own password, then can sign in."
-      />
-
-      <Box
-        component="form"
-        onSubmit={handleSubmit(onSubmit)}
-        sx={{ mt: 2.5 }}
-      >
-        <Stack
-          direction={{ xs: 'column', sm: 'row' }}
-          spacing={2}
-          alignItems={{ sm: 'flex-start' }}
-        >
-          <TextField
-            label="New admin email"
-            type="email"
-            fullWidth
-            sx={{ maxWidth: 420 }}
-            error={Boolean(errors.email)}
-            helperText={errors.email?.message}
-            {...register('email', {
-              required: 'Email is required',
-              pattern: {
-                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                message: 'Enter a valid email',
-              },
-            })}
-          />
-          <Button
-            type="submit"
-            variant="contained"
-            startIcon={<PersonAddAlt1Icon />}
-            disabled={createAdmin.isPending}
-            sx={{ height: 56, flexShrink: 0 }}
-          >
-            {createAdmin.isPending ? 'Adding…' : 'Add admin'}
-          </Button>
-        </Stack>
-      </Box>
-
-      <Divider sx={{ my: 3 }} />
-
-      <Typography variant="subtitle2" sx={{ mb: 1 }}>
-        Current admins ({admins.length})
-      </Typography>
-      <List disablePadding>
-        {admins.map((a) => (
-          <ListItem key={a.id} disableGutters
-            secondaryAction={
-              <Chip
-                size="small"
-                label={a.status === 'disabled' ? 'Disabled' : 'Active'}
-                color={a.status === 'disabled' ? 'default' : 'success'}
-                variant={a.status === 'disabled' ? 'outlined' : 'filled'}
-              />
-            }
-          >
-            <ListItemText
-              primary={a.name}
-              secondary={a.email}
-              primaryTypographyProps={{ fontWeight: 600 }}
-            />
-          </ListItem>
-        ))}
-        {admins.length === 0 && (
-          <Typography variant="body2" color="text.secondary">
-            No admins found.
-          </Typography>
-        )}
-      </List>
     </ContentCard>
   );
 }

@@ -58,6 +58,25 @@ function formatPrice(value, currency) {
   return symbol ? `${symbol}${grouped}` : `${code} ${grouped}`;
 }
 
+const TH = ({ children, ...props }) => (
+  <TableCell
+    {...props}
+    sx={{
+      bgcolor: '#F0F2F5',
+      color: '#475569',
+      fontWeight: 600,
+      fontSize: '0.9rem',
+      py: 2.5,
+      borderBottom: 'none',
+      '&:first-of-type': { borderTopLeftRadius: '12px', borderBottomLeftRadius: '12px' },
+      '&:last-of-type': { borderTopRightRadius: '12px', borderBottomRightRadius: '12px' },
+      ...props.sx,
+    }}
+  >
+    {children}
+  </TableCell>
+);
+
 export function ClubsPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -223,27 +242,29 @@ export function ClubsPage() {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Name</TableCell>
-              <TableCell>City</TableCell>
-              <TableCell>Price</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell align="center">Featured</TableCell>
-              <TableCell align="right">Favorites</TableCell>
-              <TableCell align="right">Actions</TableCell>
+              <TH>Name</TH>
+              <TH>City</TH>
+              <TH>Price</TH>
+              <TH>Status</TH>
+              <TH align="center">Featured</TH>
+              <TH align="right">Favorites</TH>
+              <TH align="right">Actions</TH>
             </TableRow>
           </TableHead>
           <TableBody>
             {clubs.map((club) => (
-              <TableRow key={club.id} hover>
-                <TableCell>{club.name}</TableCell>
-                <TableCell>{club.city ?? '—'}</TableCell>
-                <TableCell>
+              <TableRow key={club.id} hover sx={{ transition: 'background 0.12s', '&:hover': { bgcolor: '#FAFBFC' } }}>
+                <TableCell sx={{ pl: 3, py: 2.5 }}>
+                  <span style={{ fontWeight: 600, fontSize: '1rem', color: '#000000' }}>{club.name}</span>
+                </TableCell>
+                <TableCell sx={{ color: '#000000', fontSize: '0.95rem', py: 2.5 }}>{club.city ?? '—'}</TableCell>
+                <TableCell sx={{ color: '#000000', fontSize: '0.95rem', py: 2.5 }}>
                   {formatPrice(club.price, club.priceCurrency)}
                 </TableCell>
-                <TableCell>
+                <TableCell sx={{ py: 2.5 }}>
                   <StatusChip status={club.status} />
                 </TableCell>
-                <TableCell align="center">
+                <TableCell align="center" sx={{ py: 2.5 }}>
                   <Chip
                     size="small"
                     clickable
@@ -259,8 +280,8 @@ export function ClubsPage() {
                     }
                   />
                 </TableCell>
-                <TableCell align="right">{club.favoritesCount ?? 0}</TableCell>
-                <TableCell align="right">
+                <TableCell align="right" sx={{ color: '#000000', fontSize: '0.95rem', py: 2.5 }}>{club.favoritesCount ?? 0}</TableCell>
+                <TableCell align="right" sx={{ py: 2.5, pr: 3 }}>
                   <IconButton onClick={(e) => openMenu(e, club)}>
                     <MoreVertIcon />
                   </IconButton>

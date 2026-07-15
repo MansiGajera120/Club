@@ -107,7 +107,7 @@ export function LoginPage() {
               sx: {
                 borderRadius: '16px',
                 height: 64,
-                fontSize: '1.05rem',
+                fontSize: '1.2rem',
                 border: '1px solid rgba(229, 231, 235, 0.9)',
                 '& fieldset': { border: 'none' },
                 bgcolor: '#FFFFFF',
@@ -139,7 +139,7 @@ export function LoginPage() {
                 sx: {
                   borderRadius: '16px',
                   height: 64,
-                  fontSize: '1.05rem',
+                  fontSize: '1.2rem',
                   border: '1px solid rgba(229, 231, 235, 0.9)',
                   '& fieldset': { border: 'none' },
                   bgcolor: '#FFFFFF',
