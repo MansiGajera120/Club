@@ -8,6 +8,10 @@ import 'app.dart';
 /// widget tree. Async bootstrap (Firebase, config) is added as needed.
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  // Lock the app to portrait — it must not rotate with the device.
+  SystemChrome.setPreferredOrientations(const [
+    DeviceOrientation.portraitUp,
+  ]);
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(

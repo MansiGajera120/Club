@@ -25,16 +25,24 @@ class ClubApp extends ConsumerWidget {
       theme: AppTheme.light,
       themeMode: ThemeMode.light,
       routerConfig: router,
-      builder: (context, child) => AnnotatedRegion<SystemUiOverlayStyle>(
-        value: const SystemUiOverlayStyle(
-          statusBarColor: Colors.transparent,
-          statusBarIconBrightness: Brightness.dark,
-          statusBarBrightness: Brightness.light,
-          systemNavigationBarColor: Colors.white,
-          systemNavigationBarIconBrightness: Brightness.dark,
-        ),
-        child: AppBackground(child: child ?? const SizedBox.shrink()),
-      ),
+      builder: (context, child) {
+        // Ignore the device's font-size / display-size setting so the app's
+        // layout stays consistent regardless of system text scaling.
+        final mediaQuery = MediaQuery.of(context);
+        return MediaQuery(
+          data: mediaQuery.copyWith(textScaler: TextScaler.noScaling),
+          child: AnnotatedRegion<SystemUiOverlayStyle>(
+            value: const SystemUiOverlayStyle(
+              statusBarColor: Colors.transparent,
+              statusBarIconBrightness: Brightness.dark,
+              statusBarBrightness: Brightness.light,
+              systemNavigationBarColor: Colors.white,
+              systemNavigationBarIconBrightness: Brightness.dark,
+            ),
+            child: AppBackground(child: child ?? const SizedBox.shrink()),
+          ),
+        );
+      },
     );
   }
 }

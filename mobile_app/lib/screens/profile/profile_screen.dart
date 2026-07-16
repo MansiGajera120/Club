@@ -175,36 +175,11 @@ class ProfileScreen extends ConsumerWidget {
                   ),
 
                   const SizedBox(height: AppSpacing.xxl),
-                  
-                  // Logout Button
-                  Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: user == null ? null : () => _confirmLogout(context, ref),
-                      borderRadius: AppRadius.xlAll,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 18),
-                        decoration: BoxDecoration(
-                          color: AppColors.danger.withValues(alpha: 0.1),
-                          borderRadius: AppRadius.xlAll,
-                          border: Border.all(color: AppColors.danger.withValues(alpha: 0.3)),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.logout_rounded, color: AppColors.danger, size: 22),
-                            const SizedBox(width: AppSpacing.sm),
-                            Text(
-                              'Sign Out',
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                color: AppColors.danger,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+
+                  // Sign out — styled as a section card row for consistency.
+                  _SignOutButton(
+                    onTap:
+                        user == null ? null : () => _confirmLogout(context, ref),
                   ),
 
                   const SizedBox(height: AppSpacing.xl),
@@ -294,6 +269,90 @@ class _MenuDivider extends StatelessWidget {
       indent: 68,
       endIndent: AppSpacing.lg,
       color: AppColors.border,
+    );
+  }
+}
+
+/// Sign-out action styled like a section-card row, with a red accent.
+class _SignOutButton extends StatelessWidget {
+  final VoidCallback? onTap;
+  const _SignOutButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: AppRadius.xlAll,
+        border: Border.all(color: AppColors.danger.withValues(alpha: 0.22)),
+        boxShadow: AppShadows.sm,
+      ),
+      child: ClipRRect(
+        borderRadius: AppRadius.xlAll,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            splashColor: AppColors.danger.withValues(alpha: 0.08),
+            highlightColor: AppColors.danger.withValues(alpha: 0.05),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.lg,
+                vertical: 16,
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: AppColors.danger.withValues(alpha: 0.12),
+                      borderRadius: AppRadius.mdAll,
+                      border: Border.all(
+                        color: AppColors.danger.withValues(alpha: 0.16),
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.logout_rounded,
+                      color: AppColors.danger,
+                      size: 21,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Sign Out',
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15,
+                            color: AppColors.danger,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Sign out of your account',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    color: AppColors.danger.withValues(alpha: 0.5),
+                    size: 22,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

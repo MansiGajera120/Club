@@ -28,9 +28,12 @@ import '../screens/profile/profile_screen.dart';
 import '../screens/search/search_screen.dart';
 import '../screens/shell/main_shell.dart';
 import '../screens/splash/splash_screen.dart';
+import '../utils/app_toast.dart';
 import 'route_names.dart';
 
-final _rootNavigatorKey = GlobalKey<NavigatorState>();
+// The root navigator key lives in app_toast so the toast overlay can reach the
+// app's top-level overlay from anywhere.
+final _rootNavigatorKey = rootNavigatorKey;
 
 class _RoleAwareHome extends ConsumerWidget {
   const _RoleAwareHome();

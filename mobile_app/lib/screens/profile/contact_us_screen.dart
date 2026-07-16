@@ -90,11 +90,13 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
         centerTitle: false,
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(
+        // Include the system bottom inset so the send button clears the
+        // on-screen navigation buttons on gesture/3-button devices.
+        padding: EdgeInsets.fromLTRB(
           AppSpacing.lg,
           AppSpacing.sm,
           AppSpacing.lg,
-          AppSpacing.xl,
+          AppSpacing.xl + MediaQuery.viewPaddingOf(context).bottom,
         ),
         children: [
           // ── Support team info ──────────────────────────────────────
