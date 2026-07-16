@@ -136,7 +136,7 @@ class _EventsBody extends StatelessWidget {
                 AppSpacing.lg,
                 AppSpacing.md,
                 AppSpacing.lg,
-                AppSpacing.sm,
+                AppSpacing.xl,
               ),
               children: [
                 if (events.isNotEmpty)

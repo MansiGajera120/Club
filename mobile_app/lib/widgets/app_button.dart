@@ -6,6 +6,7 @@ import '../theme/app_gradients.dart';
 import '../theme/app_radius.dart';
 import '../theme/app_shadows.dart';
 import '../theme/app_typography.dart';
+import 'pressable.dart';
 
 /// Visual variants for [AppButton].
 enum AppButtonVariant { filled, tonal, outline, text }
@@ -132,23 +133,33 @@ class _PrimaryButton extends StatelessWidget {
     return AnimatedOpacity(
       duration: const Duration(milliseconds: 150),
       opacity: enabled ? 1 : 0.55,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: AppGradients.brandHorizontal,
-          borderRadius: AppRadius.lgAll,
-          boxShadow: enabled ? AppShadows.brand : null,
-        ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: onPressed,
+      child: PressableScale(
+        pressedScale: 0.98,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: AppGradients.brandHorizontal,
             borderRadius: AppRadius.lgAll,
-            child: Container(
-              width: fullWidth ? double.infinity : null,
-              height: 52,
-              alignment: Alignment.center,
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: content,
+            boxShadow: enabled ? AppShadows.brand : null,
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onPressed,
+              borderRadius: AppRadius.lgAll,
+              // Faint highlight sweep across the top edge for a glossy lift.
+              child: Ink(
+                decoration: BoxDecoration(
+                  gradient: AppGradients.cardSheen,
+                  borderRadius: AppRadius.lgAll,
+                ),
+                child: Container(
+                  width: fullWidth ? double.infinity : null,
+                  height: 52,
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: content,
+                ),
+              ),
             ),
           ),
         ),

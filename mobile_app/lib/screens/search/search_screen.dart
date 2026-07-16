@@ -205,7 +205,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         controller: _scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(
-            AppSpacing.lg, 0, AppSpacing.lg, 100),
+            AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.xl),
         itemCount: state.clubs.length + (state.hasMore ? 1 : 0),
         separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
         itemBuilder: (_, i) {

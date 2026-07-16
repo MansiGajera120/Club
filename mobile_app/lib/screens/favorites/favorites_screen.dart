@@ -47,7 +47,7 @@ class FavoritesScreen extends ConsumerWidget {
                 ref.read(favoritesControllerProvider.notifier).refresh(),
             child: ListView.separated(
               padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, 100),
+                  AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xl),
               itemCount: clubs.length,
               separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
               itemBuilder: (_, i) {

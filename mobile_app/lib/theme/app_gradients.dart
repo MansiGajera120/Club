@@ -18,12 +18,34 @@ class AppGradients {
     end: Alignment.centerRight,
   );
 
-  /// Soft fade over featured card images.
+  /// Soft, three-stop fade over featured card images — keeps mid-tones clear
+  /// while grounding text with a deeper, slightly warm base.
   static const LinearGradient imageOverlay = LinearGradient(
-    colors: [Colors.transparent, Color(0xCC2A2A35)],
+    colors: [
+      Colors.transparent,
+      Color(0x332A2A35),
+      Color(0xE01E1622),
+    ],
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
-    stops: [0.45, 1.0],
+    stops: [0.35, 0.68, 1.0],
+  );
+
+  /// Faint top-left sheen laid over surfaces to suggest a light source and add
+  /// depth to otherwise flat cards.
+  static const LinearGradient cardSheen = LinearGradient(
+    colors: [Color(0x14FFFFFF), Colors.transparent],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    stops: [0.0, 0.55],
+  );
+
+  /// Warm ambient wash for editorial hero areas.
+  static const LinearGradient heroWash = LinearGradient(
+    colors: [Color(0x14FF5A5F), Color(0x0AFFB347), Colors.transparent],
+    begin: Alignment.topRight,
+    end: Alignment.bottomLeft,
+    stops: [0.0, 0.4, 1.0],
   );
 
   /// Ambient warm mesh for the app background.

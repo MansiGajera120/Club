@@ -36,6 +36,8 @@ class AppColors {
 
   // ---- Shadow ----
   static const Color shadow = Color(0xFF1C1C28);
+  // Warm-tinted shadow tone for layered card depth on the cream palette.
+  static const Color shadowWarm = Color(0xFF7A4A45);
 
   // ---- Mesh glow ----
   static const Color meshRose = Color(0x12FF5A5F);

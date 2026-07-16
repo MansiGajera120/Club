@@ -94,7 +94,7 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
           AppSpacing.lg,
           AppSpacing.sm,
           AppSpacing.lg,
-          100,
+          AppSpacing.xl,
         ),
         children: [
           // ── Support team info ──────────────────────────────────────

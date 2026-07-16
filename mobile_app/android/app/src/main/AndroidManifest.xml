@@ -1,4 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Required for all network requests. Must live in the main manifest so it
+         is present in release builds — the debug manifest only adds it for
+         hot-reload during development. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="club_app"
         android:name="${applicationName}"

@@ -130,7 +130,7 @@ class OwnerDashboardScreen extends ConsumerWidget {
                         AppSpacing.lg,
                         0,
                         AppSpacing.lg,
-                        100,
+                        AppSpacing.xl,
                       ),
                       child: _ScheduleEmptyState(
                         clubApproved: club?.status == 'approved',
@@ -149,7 +149,7 @@ class OwnerDashboardScreen extends ConsumerWidget {
                       AppSpacing.lg,
                       0,
                       AppSpacing.lg,
-                      100,
+                      AppSpacing.xl,
                     ),
                     sliver: SliverList(
                       delegate: SliverChildBuilderDelegate(

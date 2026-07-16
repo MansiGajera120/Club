@@ -8,6 +8,7 @@ import '../../models/club_model.dart';
 import '../../providers/club_providers.dart';
 import '../../providers/event_providers.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_gradients.dart';
 import '../../theme/app_radius.dart';
 import '../../theme/app_spacing.dart';
 import '../../utils/app_toast.dart';
@@ -63,21 +64,28 @@ class _ClubDetailView extends ConsumerWidget {
     return CustomScrollView(
       slivers: [
         SliverAppBar(
-          expandedHeight: 260,
+          expandedHeight: 280,
           pinned: true,
+          foregroundColor: Colors.white,
+          leading: const _GlassAppBarButton(child: BackButton(color: Colors.white)),
           actions: [
-            ClubFavoriteButton(
-              club: club,
-              inactiveColor: theme.colorScheme.onSurface,
+            _GlassAppBarButton(
+              child: ClubFavoriteButton(
+                club: club,
+                inactiveColor: Colors.white,
+              ),
             ),
-            IconButton(
-              icon: const Icon(Icons.share),
-              onPressed: () => SharePlus.instance.share(
-                ShareParams(
-                  text: 'Check out ${club.name} on Sports Club',
+            _GlassAppBarButton(
+              child: IconButton(
+                icon: const Icon(Icons.ios_share_rounded, color: Colors.white),
+                onPressed: () => SharePlus.instance.share(
+                  ShareParams(
+                    text: 'Check out ${club.name} on Sports Club',
+                  ),
                 ),
               ),
             ),
+            const SizedBox(width: AppSpacing.sm),
           ],
           flexibleSpace: FlexibleSpaceBar(
             background: _Gallery(images: images),
@@ -114,12 +122,12 @@ class _ClubDetailView extends ConsumerWidget {
                 ),
                 if (club.description != null && club.description!.isNotEmpty) ...[
                   const SizedBox(height: AppSpacing.lg),
-                  Text('About', style: theme.textTheme.titleLarge),
+                  const _SectionLabel('About'),
                   const SizedBox(height: AppSpacing.sm),
                   Text(club.description!, style: theme.textTheme.bodyLarge),
                 ],
                 const SizedBox(height: AppSpacing.lg),
-                Text('Contact', style: theme.textTheme.titleLarge),
+                const _SectionLabel('Contact'),
                 const SizedBox(height: AppSpacing.sm),
                 _ContactActions(
                   contact: club.contact,
@@ -128,7 +136,7 @@ class _ClubDetailView extends ConsumerWidget {
                   onWeb: (v) => _launch(context, v),
                 ),
                 const SizedBox(height: AppSpacing.lg),
-                Text('Events', style: theme.textTheme.titleLarge),
+                const _SectionLabel('Events'),
                 const SizedBox(height: AppSpacing.sm),
                 events.when(
                   loading: () => const AppSkeleton(height: 100),
@@ -156,18 +164,136 @@ class _ClubDetailView extends ConsumerWidget {
   }
 }
 
-class _Gallery extends StatelessWidget {
+/// Frosted circular container for SliverAppBar actions so icons stay legible
+/// over any gallery photo.
+class _GlassAppBarButton extends StatelessWidget {
+  final Widget child;
+  const _GlassAppBarButton({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.xs, vertical: AppSpacing.sm),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.28),
+        shape: BoxShape.circle,
+      ),
+      child: child,
+    );
+  }
+}
+
+class _Gallery extends StatefulWidget {
   final List<String> images;
   const _Gallery({required this.images});
 
   @override
+  State<_Gallery> createState() => _GalleryState();
+}
+
+class _GalleryState extends State<_Gallery> {
+  final PageController _controller = PageController();
+  int _index = 0;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final images = widget.images;
     if (images.isEmpty) {
       return const CachedImage(url: null, fit: BoxFit.cover);
     }
-    return PageView.builder(
-      itemCount: images.length,
-      itemBuilder: (_, i) => CachedImage(url: images[i], fit: BoxFit.cover),
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        PageView.builder(
+          controller: _controller,
+          itemCount: images.length,
+          onPageChanged: (i) => setState(() => _index = i),
+          itemBuilder: (_, i) => CachedImage(url: images[i], fit: BoxFit.cover),
+        ),
+        // Top scrim keeps the status bar and app-bar buttons readable.
+        const IgnorePointer(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0x66000000), Colors.transparent],
+                stops: [0.0, 0.35],
+              ),
+            ),
+          ),
+        ),
+        // Bottom scrim eases the image into the content below.
+        const IgnorePointer(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.bottomCenter,
+                end: Alignment.topCenter,
+                colors: [Color(0x4D000000), Colors.transparent],
+                stops: [0.0, 0.3],
+              ),
+            ),
+          ),
+        ),
+        if (images.length > 1)
+          Positioned(
+            bottom: AppSpacing.md,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                for (var i = 0; i < images.length; i++)
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.easeOut,
+                    margin: const EdgeInsets.symmetric(horizontal: 3),
+                    width: i == _index ? 20 : 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: i == _index
+                          ? Colors.white
+                          : Colors.white.withValues(alpha: 0.5),
+                      borderRadius: AppRadius.pillAll,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+/// Section heading with a leading brand accent bar for a stronger rhythm.
+class _SectionLabel extends StatelessWidget {
+  final String title;
+  const _SectionLabel(this.title);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      children: [
+        Container(
+          width: 4,
+          height: 20,
+          decoration: BoxDecoration(
+            gradient: AppGradients.brand,
+            borderRadius: AppRadius.pillAll,
+          ),
+        ),
+        const SizedBox(width: AppSpacing.sm + 2),
+        Text(title, style: theme.textTheme.titleLarge),
+      ],
     );
   }
 }
@@ -185,6 +311,10 @@ class _Tag extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.colorScheme.primary.withValues(alpha: 0.08),
         borderRadius: AppRadius.pillAll,
+        border: Border.all(
+          color: AppColors.primary.withValues(alpha: 0.14),
+          width: 0.8,
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

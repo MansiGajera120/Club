@@ -6,6 +6,7 @@ import '../../models/event_model.dart';
 import '../../providers/event_providers.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_radius.dart';
+import '../../theme/app_shadows.dart';
 import '../../theme/app_spacing.dart';
 import '../../utils/app_toast.dart';
 import '../../utils/formatters.dart';
@@ -49,7 +50,7 @@ class EventsScreen extends ConsumerWidget {
             child: ListView.separated(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, 100),
+                  AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xl),
               itemCount: events.length,
               separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
               itemBuilder: (_, i) => EventCard(event: events[i]),
@@ -78,7 +79,12 @@ class EventCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Material(
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: AppRadius.lgAll,
+        boxShadow: AppShadows.sm,
+      ),
+      child: Material(
       color: theme.cardTheme.color ?? theme.colorScheme.surface,
       shape: RoundedRectangleBorder(
         borderRadius: AppRadius.lgAll,
@@ -168,6 +174,7 @@ class EventCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
       ),
     );
   }

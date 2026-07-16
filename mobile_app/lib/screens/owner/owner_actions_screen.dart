@@ -44,7 +44,7 @@ class OwnerActionsScreen extends ConsumerWidget {
               AppSpacing.lg,
               AppSpacing.lg,
               AppSpacing.lg,
-              100,
+              AppSpacing.xl,
             ),
             children: [
               AppCard(

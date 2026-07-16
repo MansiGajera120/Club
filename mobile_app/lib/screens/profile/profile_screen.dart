@@ -98,8 +98,7 @@ class ProfileScreen extends ConsumerWidget {
                 AppSpacing.lg,
                 AppSpacing.xl,
                 AppSpacing.lg,
-                // Add bottom padding for scroll space
-                120,
+                AppSpacing.xxl,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

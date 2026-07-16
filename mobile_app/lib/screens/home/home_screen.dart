@@ -82,7 +82,7 @@ class HomeScreen extends ConsumerWidget {
                         AppSpacing.lg,
                         0,
                         AppSpacing.lg,
-                        100,
+                        AppSpacing.xl,
                       ),
                       sliver: SliverGrid(
                         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -116,7 +116,8 @@ class _HeroHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     // Push the header below the status bar/notch, plus a little breathing room.
     final topInset = MediaQuery.paddingOf(context).top;
-    return Padding(
+    return Container(
+      decoration: const BoxDecoration(gradient: AppGradients.heroWash),
       padding: EdgeInsets.fromLTRB(
         AppSpacing.lg,
         topInset + AppSpacing.xl,
@@ -126,11 +127,24 @@ class _HeroHeader extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'DISCOVER',
-            style: theme.textTheme.labelSmall,
+          Row(
+            children: [
+              Container(
+                width: 22,
+                height: 3,
+                decoration: BoxDecoration(
+                  gradient: AppGradients.brandHorizontal,
+                  borderRadius: AppRadius.pillAll,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Text(
+                'DISCOVER',
+                style: theme.textTheme.labelSmall,
+              ),
+            ],
           ),
-          const SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: AppSpacing.md),
           Text(
             'Find your next club',
             style: theme.textTheme.headlineLarge,
@@ -158,6 +172,15 @@ class _SectionHeader extends StatelessWidget {
           AppSpacing.lg, AppSpacing.xl, AppSpacing.lg, AppSpacing.md),
       child: Row(
         children: [
+          Container(
+            width: 4,
+            height: 20,
+            decoration: BoxDecoration(
+              gradient: AppGradients.brand,
+              borderRadius: AppRadius.pillAll,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm + 2),
           Text(
             title,
             style: theme.textTheme.titleLarge,
@@ -291,92 +314,116 @@ class _FeaturedCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 260,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          borderRadius: AppRadius.xlAll,
-          boxShadow: AppShadows.md,
-        ),
-        child: Material(
-          color: Colors.transparent,
-          borderRadius: AppRadius.xlAll,
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: onTap,
-            child: Stack(
-              children: [
-                CachedImage(
-                  url: club.logo,
-                  height: 220,
-                  width: double.infinity,
-                ),
-                const Positioned.fill(
-                  child: DecoratedBox(decoration: BoxDecoration(gradient: AppGradients.imageOverlay)),
-                ),
-                Positioned(
-                  top: 12,
-                  left: 12,
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: AppRadius.pillAll,
-                    ),
-                    child: const Text(
-                      'Featured',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
+    return PressableScale(
+      child: SizedBox(
+        width: 260,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: AppRadius.xlAll,
+            boxShadow: AppShadows.md,
+          ),
+          child: Material(
+            color: Colors.transparent,
+            borderRadius: AppRadius.xlAll,
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: onTap,
+              child: Stack(
+                children: [
+                  CachedImage(
+                    url: club.logo,
+                    height: 220,
+                    width: double.infinity,
+                  ),
+                  const Positioned.fill(
+                    child: DecoratedBox(decoration: BoxDecoration(gradient: AppGradients.imageOverlay)),
+                  ),
+                  Positioned(
+                    top: 12,
+                    left: 12,
+                    child: Container(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: AppRadius.pillAll,
+                        boxShadow: AppShadows.brand,
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.star_rounded, size: 13, color: Colors.white),
+                          SizedBox(width: 4),
+                          Text(
+                            'Featured',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                ),
-                Positioned(
-                  left: 16,
-                  right: 16,
-                  bottom: 16,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        club.name,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 17,
-                          fontWeight: FontWeight.w700,
-                          height: 1.25,
+                  Positioned(
+                    left: 16,
+                    right: 16,
+                    bottom: 16,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          club.name,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 17,
+                            fontWeight: FontWeight.w700,
+                            height: 1.25,
+                          ),
                         ),
-                      ),
-                      if (club.city != null && club.city!.isNotEmpty) ...[
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            const Icon(Icons.location_on_outlined,
-                                size: 14, color: Colors.white70),
-                            const SizedBox(width: 4),
-                            Expanded(
-                              child: Text(
-                                club.city!,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 13,
-                                ),
+                        if (club.city != null && club.city!.isNotEmpty) ...[
+                          const SizedBox(height: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 9, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.20),
+                              borderRadius: AppRadius.pillAll,
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.28),
+                                width: 0.5,
                               ),
                             ),
-                          ],
-                        ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.location_on_rounded,
+                                    size: 13, color: Colors.white),
+                                const SizedBox(width: 4),
+                                Flexible(
+                                  child: Text(
+                                    club.city!,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -444,12 +491,13 @@ class _ExploreClubGridCard extends StatelessWidget {
     final theme = Theme.of(context);
     final String? imageUrl = club.gallery.isNotEmpty ? club.gallery.first : club.logo;
 
-    return DecoratedBox(
+    return PressableScale(
+      child: DecoratedBox(
       decoration: BoxDecoration(
         color: theme.cardTheme.color ?? theme.colorScheme.surface,
         borderRadius: AppRadius.lgAll,
         border: Border.all(color: theme.dividerColor),
-        boxShadow: AppShadows.sm,
+        boxShadow: AppShadows.md,
       ),
       child: Material(
         color: Colors.transparent,
@@ -472,11 +520,7 @@ class _ExploreClubGridCard extends StatelessWidget {
                     const Positioned.fill(
                       child: DecoratedBox(
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [Colors.transparent, Colors.black45],
-                          ),
+                          gradient: AppGradients.imageOverlay,
                         ),
                       ),
                     ),
@@ -610,6 +654,7 @@ class _ExploreClubGridCard extends StatelessWidget {
           ),
         ),
       ),
+    ),
     );
   }
 }

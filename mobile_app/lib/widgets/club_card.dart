@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 
 import '../models/club_model.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_gradients.dart';
 import '../theme/app_radius.dart';
 import '../theme/app_shadows.dart';
 import '../theme/app_spacing.dart';
 import '../utils/formatters.dart';
 import 'cached_image.dart';
 import 'club_favorite_button.dart';
+import 'pressable.dart';
 
 /// Club summary card used in lists and search results.
 class ClubCard extends StatelessWidget {
@@ -26,7 +28,8 @@ class ClubCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return DecoratedBox(
+    return PressableScale(
+      child: DecoratedBox(
       decoration: BoxDecoration(
         color: theme.cardTheme.color ?? theme.colorScheme.surface,
         borderRadius: AppRadius.lgAll,
@@ -39,15 +42,23 @@ class ClubCard extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onTap,
-          child: Padding(
+          child: Ink(
+            decoration: const BoxDecoration(gradient: AppGradients.cardSheen),
+            child: Padding(
             padding: const EdgeInsets.all(AppSpacing.md),
             child: Row(
               children: [
-                CachedImage(
-                  url: club.logo,
-                  width: 72,
-                  height: 72,
-                  borderRadius: AppRadius.mdAll,
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: AppRadius.mdAll,
+                    boxShadow: AppShadows.sm,
+                  ),
+                  child: CachedImage(
+                    url: club.logo,
+                    width: 72,
+                    height: 72,
+                    borderRadius: AppRadius.mdAll,
+                  ),
                 ),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
@@ -121,8 +132,10 @@ class ClubCard extends StatelessWidget {
               ],
             ),
           ),
+          ),
         ),
       ),
+    ),
     );
   }
 }
