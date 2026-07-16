@@ -31,16 +31,25 @@ export const updateAvatar = async (user, file) => {
 };
 
 export const changePassword = async (user, { currentPassword, newPassword }) => {
-  await verifyPassword(user, { currentPassword });
+  const account = await userRepository.findByEmailWithPassword(user.email);
+  if (!account) throw ApiError.unauthorized();
 
-  const account = await userRepository.findByEmail(user.email);
+  // Accounts that already have a password must confirm the current one. Social
+  // / passwordless accounts are allowed to set a password for the first time.
+  if (account.password) {
+    const matches = await account.comparePassword(currentPassword);
+    if (!matches) {
+      throw ApiError.unauthorized('Current password is incorrect');
+    }
+  }
+
   account.password = newPassword;
   await account.save();
   await revokeAllUserTokens(account.id);
 };
 
 export const verifyPassword = async (user, { currentPassword }) => {
-  const account = await userRepository.findByEmail(user.email);
+  const account = await userRepository.findByEmailWithPassword(user.email);
   if (!account?.password) {
     throw ApiError.badRequest(
       'Password change is not available for social sign-in accounts'

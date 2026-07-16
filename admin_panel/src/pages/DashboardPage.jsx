@@ -1,18 +1,14 @@
-import React from 'react';
-import {
-  Box, Card, Typography, Avatar, Table, TableBody, TableCell,
-  TableHead, TableRow, Button, Grid, Stack, CircularProgress
-} from '@mui/material';
+import { Box, Typography, Grid } from '@mui/material';
 import GroupsIcon from '@mui/icons-material/Groups';
 import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import HourglassTopRoundedIcon from '@mui/icons-material/HourglassTopRounded';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import OpenInNewIcon from '@mui/icons-material/OpenInNew';
-import { useNavigate } from 'react-router-dom';
 
-import { useDashboardStats, useAdminUsers, useAdminClubs } from '@/hooks/useAdmin';
-import { ROUTES } from '@/constants';
+import { useDashboardStats } from '@/hooks/useAdmin';
+import { BreakdownDonutChart, UserGrowthChart } from '@/components/ui';
+
+const GAP = 3;
 
 /* ---------- Stat Card (minimal, reference-style) ---------- */
 function StatCard({ title, value, icon: Icon, iconColor, iconBg }) {
@@ -81,121 +77,9 @@ function StatCard({ title, value, icon: Icon, iconColor, iconBg }) {
   );
 }
 
-/* ---------- Table Section Wrapper ---------- */
-function TableSection({ title, onViewAll, loading, children }) {
-  return (
-    <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Box>
-          <Typography variant="h5" fontWeight={800} sx={{ color: '#111827', letterSpacing: '-0.01em' }}>
-            {title}
-          </Typography>
-          <Typography variant="caption" sx={{ color: '#9CA3AF', fontWeight: 500, fontSize: '0.92rem' }}>
-            Latest entries from the platform
-          </Typography>
-        </Box>
-        <Button
-          onClick={onViewAll}
-          size="small"
-          endIcon={<OpenInNewIcon sx={{ fontSize: '14px !important' }} />}
-          sx={{
-            textTransform: 'none', fontWeight: 700, fontSize: '0.8rem',
-            color: '#FF5A5F', borderRadius: '8px',
-            px: 1.5, py: 0.75,
-            '&:hover': { bgcolor: 'rgba(255,90,95,0.08)' },
-          }}
-        >
-          View All
-        </Button>
-      </Box>
-      <Card sx={{
-        borderRadius: '18px',
-        overflow: 'hidden',
-        boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
-        border: '1px solid rgba(0,0,0,0.05)',
-      }}>
-        {loading ? (
-          <Box sx={{ p: 5, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 2 }}>
-            <CircularProgress size={22} sx={{ color: '#FF5A5F' }} />
-            <Typography variant="body2" color="text.secondary">Loading...</Typography>
-          </Box>
-        ) : children}
-      </Card>
-    </Box>
-  );
-}
-
-/* ---------- Role Chip ---------- */
-function RoleChip({ role }) {
-  const map = {
-    admin: { label: 'Admin', color: '#7C3AED', bg: 'rgba(124,58,237,0.1)' },
-    club_owner: { label: 'Club Owner', color: '#0284C7', bg: 'rgba(2,132,199,0.1)' },
-    parent: { label: 'Parent', color: '#059669', bg: 'rgba(5,150,105,0.1)' },
-  };
-  const s = map[role] ?? { label: role, color: '#6B7280', bg: 'rgba(107,114,128,0.1)' };
-  return (
-    <Box sx={{
-      display: 'inline-flex', justifyContent: 'center', alignItems: 'center',
-      px: 3, py: 1, minWidth: 90,
-      borderRadius: '12px',
-      bgcolor: s.bg, color: s.color,
-      fontSize: '1rem', fontWeight: 600, lineHeight: 1.2,
-    }}>
-      {s.label}
-    </Box>
-  );
-}
-
-/* ---------- Status Chip ---------- */
-function StatusChip({ status }) {
-  const map = {
-    approved: { label: 'Active', color: '#15803D', bg: '#F0FDF4' },
-    active: { label: 'Active', color: '#15803D', bg: '#F0FDF4' },
-    pending: { label: 'Pending', color: '#D97706', bg: '#FEF3C7' },
-    rejected: { label: 'Rejected', color: '#DC2626', bg: '#FEE2E2' },
-    suspended: { label: 'Suspended', color: '#DC2626', bg: '#FEE2E2' },
-    inactive: { label: 'Inactive', color: '#8B98A5', bg: '#F6F8FA' },
-  };
-  const s = map[status] ?? { label: 'Inactive', color: '#8B98A5', bg: '#F6F8FA' };
-  return (
-    <Box sx={{
-      display: 'inline-flex', justifyContent: 'center', alignItems: 'center',
-      px: 3, py: 1, minWidth: 90,
-      borderRadius: '12px',
-      bgcolor: s.bg, color: s.color,
-      fontSize: '1rem', fontWeight: 600, lineHeight: 1.2,
-    }}>
-      {s.label}
-    </Box>
-  );
-}
-
-/* ---------- Enhanced Table Head ---------- */
-const TH = ({ children, ...props }) => (
-  <TableCell
-    {...props}
-    sx={{
-      bgcolor: '#F0F2F5',
-      color: '#475569',
-      fontWeight: 600,
-      fontSize: '0.9rem',
-      py: 2.5,
-      borderBottom: 'none',
-      '&:first-of-type': { borderTopLeftRadius: '12px', borderBottomLeftRadius: '12px' },
-      '&:last-of-type': { borderTopRightRadius: '12px', borderBottomRightRadius: '12px' },
-      ...props.sx,
-    }}
-  >
-    {children}
-  </TableCell>
-);
-
-/* ---------- Main Dashboard Page ---------- */
+/* ---------- Main Dashboard Page (Overview + Analytics combined) ---------- */
 export function DashboardPage() {
-  const navigate = useNavigate();
-  const { data: stats, isLoading: statsLoading, isError } = useDashboardStats();
-  const { data: usersData, isLoading: usersLoading } = useAdminUsers({ page: 1, limit: 5 });
-  const { data: clubsData, isLoading: clubsLoading } = useAdminClubs({ page: 1, limit: 5 });
+  const { data: stats, isLoading, isError } = useDashboardStats();
 
   const clubsTotal    = stats?.clubs.total   ?? 0;
   const clubsPending  = stats?.clubs.pending ?? 0;
@@ -206,45 +90,49 @@ export function DashboardPage() {
   const KPI_CARDS = [
     {
       title: 'Total Users',
-      value: statsLoading || isError ? '—' : usersTotal.toLocaleString(),
+      value: isLoading || isError ? '—' : usersTotal.toLocaleString(),
       icon: GroupsIcon,
       iconColor: '#16A34A',
       iconBg: '#DCFCE7',
     },
     {
       title: 'Active Organizations',
-      value: statsLoading || isError ? '—' : clubsTotal.toLocaleString(),
+      value: isLoading || isError ? '—' : clubsTotal.toLocaleString(),
       icon: BusinessCenterIcon,
       iconColor: '#F97316',
       iconBg: '#FFF7ED',
     },
     {
       title: 'Total Events',
-      value: statsLoading || isError ? '—' : eventsTotal.toLocaleString(),
+      value: isLoading || isError ? '—' : eventsTotal.toLocaleString(),
       icon: EventAvailableIcon,
       iconColor: '#2563EB',
       iconBg: '#EFF6FF',
     },
     {
-      title: 'Pending Review',
-      value: statsLoading || isError ? '—' : clubsPending.toLocaleString(),
+      title: 'Pending Club Review',
+      value: isLoading || isError ? '—' : clubsPending.toLocaleString(),
       icon: HourglassTopRoundedIcon,
       iconColor: '#D97706',
       iconBg: '#FEF3C7',
     },
     {
       title: 'Inactive Organizations',
-      value: statsLoading || isError ? '—' : inactiveClubs.toLocaleString(),
+      value: isLoading || isError ? '—' : inactiveClubs.toLocaleString(),
       icon: TrendingUpIcon,
       iconColor: '#7C3AED',
       iconBg: '#F5F3FF',
     },
   ];
 
+  const userChartData = [
+    { name: 'Parents', value: stats?.users.parents ?? 0, color: 'info' },
+    { name: 'Club Owners', value: stats?.users.clubOwners ?? 0, color: 'secondary' },
+    { name: 'Admins', value: stats?.users.admins ?? 0, color: 'primary' },
+  ].filter((item) => item.value > 0);
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-
-
       {/* KPI Cards */}
       <Grid container spacing={2.5}>
         {KPI_CARDS.map((card) => (
@@ -254,150 +142,30 @@ export function DashboardPage() {
         ))}
       </Grid>
 
-      {/* Recently Added Users */}
-      <TableSection
-        title="Recently Added Users"
-        onViewAll={() => navigate(ROUTES.users)}
-        loading={usersLoading}
-      >
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TH sx={{ pl: 3 }}>User</TH>
-              <TH>Email</TH>
-              <TH>Role</TH>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {usersData?.items
-              ?.filter((u) => u.role !== 'admin')
-              .slice(0, 5)
-              .map((user) => (
-              <TableRow
-                key={user.id}
-                hover
-                sx={{
-                  '&:last-child td': { borderBottom: 'none' },
-                  transition: 'background 0.15s',
-                  '&:hover': { bgcolor: '#FAFBFC' },
-                }}
-              >
-                <TableCell sx={{ pl: 3, py: 2.5 }}>
-                  <Stack direction="row" alignItems="center" spacing={1.5}>
-                    <Avatar
-                      src={user.avatarUrl}
-                      variant="rounded"
-                      sx={{
-                        width: 36, height: 36,
-                        borderRadius: '10px',
-                        bgcolor: '#F3F4F6',
-                        color: '#374151',
-                        fontSize: '0.92rem', fontWeight: 700,
-                      }}
-                    >
-                      {user.name?.[0]?.toUpperCase()}
-                    </Avatar>
-                    <Typography variant="body1" fontWeight={600} sx={{ color: '#000000', fontSize: '1rem' }}>
-                      {user.name}
-                    </Typography>
-                  </Stack>
-                </TableCell>
-                <TableCell sx={{ color: '#000000', fontSize: '0.95rem', py: 2.5 }}>{user.email}</TableCell>
-                <TableCell sx={{ py: 2.5 }}><RoleChip role={user.role} /></TableCell>
-              </TableRow>
-            ))}
-            {!usersData?.items?.filter((u) => u.role !== 'admin').length && (
-              <TableRow>
-                <TableCell colSpan={3} sx={{ textAlign: 'center', py: 5, color: '#9CA3AF' }}>
-                  No users found.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </TableSection>
+      {/* Platform Insights — independent section heading */}
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Typography variant="h6" fontWeight={800} sx={{ color: '#111827', letterSpacing: '-0.01em' }}>
+          Platform Insights
+        </Typography>
 
-      {/* Recently Added Organizations */}
-      <TableSection
-        title="Recently Added Organizations"
-        onViewAll={() => navigate(ROUTES.clubs)}
-        loading={clubsLoading}
-      >
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TH sx={{ pl: 3 }}>Organization</TH>
-              <TH>Email</TH>
-              <TH>Address</TH>
-              <TH>Status</TH>
-              <TH>Action</TH>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {clubsData?.items?.slice(0, 5).map((club, idx) => (
-              <TableRow
-                key={club.id}
-                hover
-                sx={{
-                  '&:last-child td': { borderBottom: 'none' },
-                  '&:hover': { bgcolor: 'rgba(255,90,95,0.025)' },
-                }}
-              >
-                <TableCell sx={{ pl: 3, py: 2.5 }}>
-                  <Stack direction="row" alignItems="center" spacing={1.5}>
-                    <Avatar
-                      variant="rounded"
-                      src={club.logo}
-                      sx={{
-                        width: 36, height: 36,
-                        borderRadius: '10px',
-                        bgcolor: '#F3F4F6',
-                        color: '#374151',
-                        fontSize: '0.92rem', fontWeight: 700,
-                      }}
-                    >
-                      {club.name?.[0]?.toUpperCase()}
-                    </Avatar>
-                    <Typography variant="body1" fontWeight={600} sx={{ color: '#000000', fontSize: '1rem' }}>
-                      {club.name}
-                    </Typography>
-                  </Stack>
-                </TableCell>
-                <TableCell sx={{ color: '#000000', fontSize: '0.95rem', py: 2.5 }}>
-                  {club.contact?.email ?? club.owner?.email ?? '—'}
-                </TableCell>
-                <TableCell sx={{ color: '#000000', fontSize: '0.95rem', py: 2.5, maxWidth: 180, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {club.address || club.city || '—'}
-                </TableCell>
-                <TableCell sx={{ py: 2.5 }}><StatusChip status={club.status} /></TableCell>
-                <TableCell sx={{ py: 2.5 }}>
-                  <Button
-                    size="small"
-                    variant="outlined"
-                    sx={{
-                      fontWeight: 700, textTransform: 'none', fontSize: '0.75rem',
-                      borderRadius: '8px', borderColor: '#E5E7EB',
-                      color: '#374151', py: 0.5,
-                      '&:hover': { borderColor: '#F97316', color: '#F97316', bgcolor: 'rgba(249,115,22,0.05)' },
-                    }}
-                    onClick={() => navigate(`/clubs/${club.id}/edit`)}
-                  >
-                    View
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-            {!clubsData?.items?.length && (
-              <TableRow>
-                <TableCell colSpan={5} sx={{ textAlign: 'center', py: 5, color: '#9CA3AF' }}>
-                  No organizations found.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </TableSection>
-
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', md: 'repeat(2, minmax(0, 1fr))' },
+            gap: GAP,
+          }}
+        >
+          <UserGrowthChart data={stats?.growth ?? []} />
+          <BreakdownDonutChart
+            title="User Roles"
+            data={userChartData}
+            loading={isLoading}
+            emptyMessage="No user data available"
+            showLegend
+            showBreakdown={false}
+          />
+        </Box>
+      </Box>
     </Box>
   );
 }

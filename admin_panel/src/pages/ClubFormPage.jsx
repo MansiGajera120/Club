@@ -316,11 +316,6 @@ export function ClubFormPage() {
       <PageHeader
         eyebrow="Organizations"
         title={title}
-        subtitle={
-          isEdit
-            ? 'Update details, media and visibility for this organization.'
-            : 'All fields are required. Add the logo and photos here — they upload as soon as you create.'
-        }
         actions={
           <Button
             startIcon={<ArrowBackIcon />}

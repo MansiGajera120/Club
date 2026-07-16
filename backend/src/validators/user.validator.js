@@ -15,7 +15,9 @@ const password = Joi.string()
   });
 
 export const changePasswordSchema = Joi.object({
-  currentPassword: Joi.string().required(),
+  // Optional so passwordless (social) accounts can set a password for the first
+  // time. The service still requires it when the account already has a password.
+  currentPassword: Joi.string().allow('').optional(),
   newPassword: password,
 });
 

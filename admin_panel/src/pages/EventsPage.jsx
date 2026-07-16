@@ -4,6 +4,10 @@ import {
   Box,
   Button,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   IconButton,
   Stack,
   Table,
@@ -18,11 +22,12 @@ import {
 } from '@mui/material';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import RemoveRedEyeOutlinedIcon from '@mui/icons-material/RemoveRedEyeOutlined';
 import AddIcon from '@mui/icons-material/Add';
 import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 
-import { PageHeader } from '@/components/ui';
+import { PageHeader, ContentCard } from '@/components/ui';
 import { StatusChip } from '@/components/common/StatusChip';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { useAdminEvents, useDeleteEvent, useAdminClubs } from '@/hooks/useAdmin';
@@ -41,15 +46,16 @@ function TH({ children, ...props }) {
     <TableCell
       {...props}
       sx={{
-        bgcolor: '#F0F2F5',
+        bgcolor: '#F0F2F5 !important',
         color: '#475569',
         fontWeight: 600,
         fontSize: '0.9rem',
-        borderBottom: 'none',
-      '&:first-of-type': { borderTopLeftRadius: '12px', borderBottomLeftRadius: '12px' },
-      '&:last-of-type': { borderTopRightRadius: '12px', borderBottomRightRadius: '12px' },
+        borderBottom: '1px solid #E5E7EB !important',
+        '&:first-of-type': { borderTopLeftRadius: '12px' },
+        '&:last-of-type': { borderTopRightRadius: '12px' },
         py: 2.5,
         whiteSpace: 'nowrap',
+        zIndex: '100 !important',
         ...props.sx,
       }}
     >
@@ -135,11 +141,11 @@ export function EventsPage() {
 
   const deleteEvent = useDeleteEvent();
   const [target, setTarget] = useState(null);
+  const [selectedEvent, setSelectedEvent] = useState(null);
 
   return (
-    <Box>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <PageHeader
-        subtitle="Create, edit and manage events for organizations across the platform."
         actions={
           <Button
             id="add-event-btn"
@@ -162,18 +168,10 @@ export function EventsPage() {
         }
       />
 
-      {/* Table card */}
-      <Box
-        sx={{
-          bgcolor: '#FFFFFF',
-          borderRadius: '16px',
-          border: '1px solid #EEEFF2',
-          overflow: 'hidden',
-          boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
-        }}
-      >
-        <TableContainer>
-          <Table>
+      {/* Fixed-height table card — only rows scroll */}
+      <ContentCard sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, minHeight: 0 }}>
+        <TableContainer sx={{ flexGrow: 1, overflow: 'auto' }}>
+          <Table stickyHeader>
             <TableHead>
               <TableRow>
                 <TH sx={{ pl: 3 }}>Event</TH>
@@ -251,6 +249,24 @@ export function EventsPage() {
                   {/* Actions */}
                   <TableCell align="right" sx={{ py: 2.5, pr: 3 }}>
                     <Stack direction="row" justifyContent="flex-end" spacing={0.5}>
+                      <Tooltip title="View event">
+                        <IconButton
+                          size="small"
+                          onClick={() => setSelectedEvent(event)}
+                          sx={{
+                            width: 34, height: 34, borderRadius: '50%',
+                            border: '1px solid #E5E7EB',
+                            color: '#9CA3AF',
+                            transition: 'all 0.15s',
+                            '&:hover': {
+                              borderColor: '#F97316', color: '#F97316',
+                              bgcolor: 'rgba(249,115,22,0.06)',
+                            },
+                          }}
+                        >
+                          <RemoveRedEyeOutlinedIcon sx={{ fontSize: 16 }} />
+                        </IconButton>
+                      </Tooltip>
                       <Tooltip title="Edit event">
                         <IconButton
                           size="small"
@@ -303,7 +319,7 @@ export function EventsPage() {
           </Table>
         </TableContainer>
 
-        {/* Footer pagination */}
+        {/* Footer: showing x of y + pagination */}
         <Box
           sx={{
             display: 'flex',
@@ -325,7 +341,7 @@ export function EventsPage() {
           </Typography>
           <SimplePagination page={page} count={total} limit={limit} onChange={(p) => setPage(p)} />
         </Box>
-      </Box>
+      </ContentCard>
 
       <ConfirmDialog
         open={Boolean(target)}
@@ -337,6 +353,95 @@ export function EventsPage() {
         onClose={() => setTarget(null)}
         onConfirm={() => deleteEvent.mutate(target.id, { onSuccess: () => setTarget(null) })}
       />
+
+      {/* Event details dialog */}
+      <Dialog
+        open={Boolean(selectedEvent)}
+        onClose={() => setSelectedEvent(null)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: '24px', p: 1 } }}
+      >
+        <DialogTitle sx={{ fontWeight: 800, fontSize: '1.4rem', color: '#111827' }}>
+          Event Details
+        </DialogTitle>
+        <DialogContent>
+          {selectedEvent && (
+            <Stack spacing={3} sx={{ mt: 1 }}>
+              <Stack direction="row" alignItems="center" spacing={2.5}>
+                <Avatar
+                  variant="rounded"
+                  sx={{ width: 64, height: 64, borderRadius: '16px', bgcolor: '#F3F4F6', color: '#374151', fontWeight: 700, fontSize: '1.5rem' }}
+                >
+                  {selectedEvent.title?.[0]?.toUpperCase()}
+                </Avatar>
+                <Box>
+                  <Typography variant="h6" fontWeight={700} sx={{ color: '#111827' }}>
+                    {selectedEvent.title}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: '#6B7280' }}>
+                    {clubNameById[selectedEvent.club] || 'Organization unknown'}
+                  </Typography>
+                </Box>
+              </Stack>
+
+              {selectedEvent.description && (
+                <Box sx={{ p: 2, bgcolor: '#F9FAFB', borderRadius: '12px', border: '1px solid #EEEFF2' }}>
+                  <Typography variant="body2" sx={{ color: '#4B5563', lineHeight: 1.6 }}>
+                    {selectedEvent.description}
+                  </Typography>
+                </Box>
+              )}
+
+              <Box sx={{ p: 3, bgcolor: '#F9FAFB', borderRadius: '16px', border: '1px solid #EEEFF2' }}>
+                <Stack spacing={2.5}>
+                  <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 200px', alignItems: 'center', gap: 2 }}>
+                    <Typography sx={{ color: '#6B7280', fontWeight: 500 }}>Organization</Typography>
+                    <Typography sx={{ fontWeight: 600, color: '#111827' }}>
+                      {clubNameById[selectedEvent.club] || '—'}
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 200px', alignItems: 'center', gap: 2 }}>
+                    <Typography sx={{ color: '#6B7280', fontWeight: 500 }}>Date</Typography>
+                    <Typography sx={{ fontWeight: 600, color: '#111827' }}>
+                      {selectedEvent.startDate ? formatDate(selectedEvent.startDate) : '—'}
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 200px', alignItems: 'flex-start', gap: 2 }}>
+                    <Typography sx={{ color: '#6B7280', fontWeight: 500 }}>Location</Typography>
+                    <Typography sx={{ fontWeight: 600, color: '#111827', wordBreak: 'break-word' }}>
+                      {selectedEvent.location || '—'}
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 200px', alignItems: 'center', gap: 2 }}>
+                    <Typography sx={{ color: '#6B7280', fontWeight: 500 }}>Status</Typography>
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
+                      <StatusChip status={selectedEvent.isActive ? 'active' : 'inactive'} />
+                    </Box>
+                  </Box>
+                </Stack>
+              </Box>
+            </Stack>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            onClick={() => setSelectedEvent(null)}
+            variant="contained"
+            disableElevation
+            sx={{
+              borderRadius: '12px', textTransform: 'none', fontWeight: 700,
+              bgcolor: '#F3F4F6', color: '#374151', px: 3,
+              '&:hover': { bgcolor: '#E5E7EB' },
+            }}
+          >
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

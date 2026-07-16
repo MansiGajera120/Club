@@ -174,11 +174,6 @@ export function EventFormPage() {
       <PageHeader
         eyebrow="Events"
         title={title}
-        subtitle={
-          isEdit
-            ? "Update this event's details, schedule and registration."
-            : 'Create an event for an organization. All fields are required.'
-        }
         actions={
           <Button
             startIcon={<ArrowBackIcon />}

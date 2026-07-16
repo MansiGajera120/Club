@@ -53,9 +53,8 @@ export const shadows = {
 };
 
 export const fontFamily = [
+  '"Plus Jakarta Sans"',
   'Inter',
-  'DM Sans',
-  'Outfit',
   '-apple-system',
   'BlinkMacSystemFont',
   'Segoe UI',

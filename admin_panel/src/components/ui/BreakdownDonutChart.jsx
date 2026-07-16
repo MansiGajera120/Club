@@ -46,6 +46,8 @@ export function BreakdownDonutChart({
   data = [],
   loading = false,
   emptyMessage = 'No data yet',
+  showLegend = false,
+  showBreakdown = true,
 }) {
   const total = data.reduce((sum, item) => sum + (item.value ?? 0), 0);
   const hasData = total > 0;
@@ -117,44 +119,73 @@ export function BreakdownDonutChart({
             </ResponsiveContainer>
           </Box>
 
-          <Stack spacing={1.25} sx={{ mt: 1 }}>
-            {data.map((item) => {
-              const pct = total > 0 ? Math.round((item.value / total) * 100) : 0;
-              const fill = CHART_COLORS[item.color] ?? brand.primary;
-              return (
-                <Stack
-                  key={item.name}
-                  direction="row"
-                  alignItems="center"
-                  justifyContent="space-between"
-                  spacing={1.5}
-                >
-                  <Stack direction="row" alignItems="center" spacing={1.25} sx={{ minWidth: 0 }}>
-                    <Box
-                      sx={{
-                        width: 10,
-                        height: 10,
-                        borderRadius: '50%',
-                        bgcolor: fill,
-                        flexShrink: 0,
-                      }}
-                    />
-                    <Typography variant="body2" fontWeight={600} noWrap>
-                      {item.name}
-                    </Typography>
+          {showBreakdown && (
+            <Stack spacing={1.25} sx={{ mt: 1 }}>
+              {data.map((item) => {
+                const pct = total > 0 ? Math.round((item.value / total) * 100) : 0;
+                const fill = CHART_COLORS[item.color] ?? brand.primary;
+                return (
+                  <Stack
+                    key={item.name}
+                    direction="row"
+                    alignItems="center"
+                    justifyContent="space-between"
+                    spacing={1.5}
+                  >
+                    <Stack direction="row" alignItems="center" spacing={1.25} sx={{ minWidth: 0 }}>
+                      <Box
+                        sx={{
+                          width: 10,
+                          height: 10,
+                          borderRadius: '50%',
+                          bgcolor: fill,
+                          flexShrink: 0,
+                        }}
+                      />
+                      <Typography variant="body2" fontWeight={600} noWrap>
+                        {item.name}
+                      </Typography>
+                    </Stack>
+                    <Stack direction="row" alignItems="baseline" spacing={1} sx={{ flexShrink: 0 }}>
+                      <Typography variant="body2" fontWeight={800}>
+                        {item.value}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {pct}%
+                      </Typography>
+                    </Stack>
                   </Stack>
-                  <Stack direction="row" alignItems="baseline" spacing={1} sx={{ flexShrink: 0 }}>
-                    <Typography variant="body2" fontWeight={800}>
-                      {item.value}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {pct}%
-                    </Typography>
-                  </Stack>
+                );
+              })}
+            </Stack>
+          )}
+
+          {showLegend && (
+            <Stack
+              direction="row"
+              spacing={4}
+              justifyContent="center"
+              flexWrap="wrap"
+              useFlexGap
+              sx={{ mt: 'auto', pt: 3, mb: 1 }}
+            >
+              {data.map((item) => (
+                <Stack key={item.name} direction="row" alignItems="center" spacing={1.5}>
+                  <Box
+                    sx={{
+                      width: 12,
+                      height: 12,
+                      borderRadius: '50%',
+                      bgcolor: CHART_COLORS[item.color] ?? brand.primary,
+                    }}
+                  />
+                  <Typography variant="caption" sx={{ color: '#6B7280', fontWeight: 600 }}>
+                    {item.name}
+                  </Typography>
                 </Stack>
-              );
-            })}
-          </Stack>
+              ))}
+            </Stack>
+          )}
         </>
       )}
 

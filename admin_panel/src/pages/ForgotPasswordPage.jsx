@@ -1,9 +1,10 @@
 import { useForm } from 'react-hook-form';
 import { Link as RouterLink } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
-import { Box, Button, Link, Stack, TextField, Typography } from '@mui/material';
+import { Box, Button, Link, Stack, TextField, Typography, InputAdornment } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import MarkEmailReadOutlinedIcon from '@mui/icons-material/MarkEmailReadOutlined';
+import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
 
 import { ROUTES } from '@/constants';
 import { authService } from '@/services/authService';
@@ -55,23 +56,40 @@ export function ForgotPasswordPage() {
       component="form"
       onSubmit={handleSubmit((values) => mutation.mutate(values.email))}
     >
-      <Stack spacing={1} sx={{ mb: 3, textAlign: 'center' }}>
-        <Typography variant="h5" fontWeight={800} color="primary">
+      <Stack spacing={1} sx={{ mb: 6, textAlign: 'center' }}>
+        <Typography variant="h3" fontWeight={850} sx={{ color: '#111827', fontSize: '2.5rem', letterSpacing: '-0.02em' }}>
           Forgot password?
         </Typography>
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="h6" sx={{ color: '#6B7280', fontWeight: 500 }}>
           Enter your admin email and we&apos;ll send you a reset link.
         </Typography>
       </Stack>
 
       <Stack spacing={2}>
         <TextField
-          label="Email"
+          placeholder="Enter email"
           type="email"
           autoComplete="email"
           autoFocus
           error={Boolean(errors.email)}
           helperText={errors.email?.message}
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start" sx={{ mr: 2 }}>
+                  <EmailOutlinedIcon sx={{ color: '#9CA3AF', fontSize: 26 }} />
+                </InputAdornment>
+              ),
+              sx: {
+                borderRadius: '16px',
+                height: 64,
+                fontSize: '1.2rem',
+                border: '1px solid rgba(229, 231, 235, 0.9)',
+                '& fieldset': { border: 'none' },
+                bgcolor: '#FFFFFF',
+              },
+            },
+          }}
           {...register('email', {
             required: 'Email is required',
             pattern: {
@@ -85,11 +103,36 @@ export function ForgotPasswordPage() {
           variant="contained"
           size="large"
           disabled={mutation.isPending}
+          sx={{
+            height: 64,
+            borderRadius: '16px',
+            textTransform: 'none',
+            fontSize: '1.15rem',
+            fontWeight: 800,
+            background: 'linear-gradient(135deg, #FF5A5F 0%, #FF8469 100%)',
+            boxShadow: '0 6px 20px rgba(255, 90, 95, 0.3)',
+            '&:hover': {
+              background: 'linear-gradient(135deg, #E04E53 0%, #E8745E 100%)',
+              boxShadow: '0 8px 24px rgba(255, 90, 95, 0.4)',
+            },
+            mt: 3,
+          }}
         >
           {mutation.isPending ? 'Sending…' : 'Send reset link'}
         </Button>
-        <Box sx={{ textAlign: 'center' }}>
-          <Link component={RouterLink} to={ROUTES.login} variant="body2" underline="hover">
+        <Box sx={{ textAlign: 'center', mt: 2 }}>
+          <Link
+            component={RouterLink}
+            to={ROUTES.login}
+            variant="body2"
+            underline="none"
+            sx={{
+              fontWeight: 600,
+              color: '#9CA3AF',
+              '&:hover': { color: '#FF5A5F' },
+              transition: 'color 0.2s',
+            }}
+          >
             Back to sign in
           </Link>
         </Box>

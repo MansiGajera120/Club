@@ -2,7 +2,12 @@ import { useState, useEffect } from 'react';
 import {
   Box,
   Avatar,
+  Button,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   IconButton,
   InputAdornment,
   MenuItem,
@@ -27,6 +32,7 @@ import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import VerifiedIcon from '@mui/icons-material/Verified';
 
+import { ContentCard } from '@/components/ui';
 import { StatusChip } from '@/components/common/StatusChip';
 import { useAdminUsers, useSetUserStatus } from '@/hooks/useAdmin';
 
@@ -38,15 +44,16 @@ function TH({ children, ...props }) {
     <TableCell
       {...props}
       sx={{
-        bgcolor: '#F0F2F5',
+        bgcolor: '#F0F2F5 !important',
         color: '#475569',
         fontWeight: 600,
         fontSize: '0.9rem',
-        borderBottom: 'none',
-      '&:first-of-type': { borderTopLeftRadius: '12px', borderBottomLeftRadius: '12px' },
-      '&:last-of-type': { borderTopRightRadius: '12px', borderBottomRightRadius: '12px' },
+        borderBottom: '1px solid #E5E7EB !important',
+        '&:first-of-type': { borderTopLeftRadius: '12px' },
+        '&:last-of-type': { borderTopRightRadius: '12px' },
         py: 2.5,
         whiteSpace: 'nowrap',
+        zIndex: '100 !important',
         ...props.sx,
       }}
     >
@@ -142,6 +149,7 @@ export function UsersPage() {
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [page, setPage] = useState(0);
+  const [selectedUser, setSelectedUser] = useState(null);
   const limit = 10;
 
   const params = {
@@ -166,140 +174,134 @@ export function UsersPage() {
   }, [searchInput]);
 
   return (
-    <Box>
-      {/* Filter bar */}
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 2,
-          mb: 2.5,
-          flexWrap: 'wrap',
-        }}
-      >
-        {/* Search */}
-        <TextField
-          id="users-search"
-          size="small"
-          placeholder="Search"
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <ContentCard sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, minHeight: 0 }}>
+        {/* Filter bar */}
+        <Box
           sx={{
-            flex: 1,
-            minWidth: 200,
-            maxWidth: 340,
-            '& .MuiOutlinedInput-root': {
-              bgcolor: '#fff',
-              borderRadius: '24px',
-              '& fieldset': { borderColor: '#E5E7EB' },
-              '&:hover fieldset': { borderColor: '#F97316' },
-              '&.Mui-focused fieldset': { borderColor: '#F97316', borderWidth: 1.5 },
-            },
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+            px: 3,
+            py: 2.5,
+            borderBottom: '1px solid #EEEFF2',
+            flexWrap: 'wrap',
           }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon sx={{ fontSize: 18, color: '#9CA3AF' }} />
-              </InputAdornment>
-            ),
-            endAdornment: searchInput ? (
-              <InputAdornment position="end">
-                <IconButton size="small" edge="end" onClick={() => setSearchInput('')}>
-                  <ClearIcon sx={{ fontSize: 16 }} />
-                </IconButton>
-              </InputAdornment>
-            ) : null,
-          }}
-        />
-
-        {/* Status select */}
-        <FormControl size="small" sx={{ minWidth: 160 }}>
-          <Select
-            id="users-status-select"
-            value={status}
-            displayEmpty
-            onChange={(e) => {
-              setPage(0);
-              setStatusFilter(e.target.value);
-            }}
+        >
+          {/* Search */}
+          <TextField
+            id="users-search"
+            size="small"
+            placeholder="Search"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
             sx={{
-              bgcolor: '#fff',
-              borderRadius: '10px',
-              '& .MuiOutlinedInput-notchedOutline': { borderColor: '#E5E7EB' },
-              '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#F97316' },
-              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                borderColor: '#F97316',
-                borderWidth: 1.5,
+              flex: 1,
+              minWidth: 200,
+              maxWidth: 340,
+              '& .MuiOutlinedInput-root': {
+                bgcolor: '#fff',
+                borderRadius: '24px',
+                '& fieldset': { borderColor: '#E5E7EB' },
+                '&:hover fieldset': { borderColor: '#F97316' },
+                '&.Mui-focused fieldset': { borderColor: '#F97316', borderWidth: 1.5 },
               },
             }}
-            renderValue={(val) => (
-              <Typography sx={{ fontSize: '0.95rem', color: val ? '#262525' : '#9CA3AF' }}>
-                {val === 'active'
-                  ? 'Active'
-                  : val === 'disabled'
-                  ? 'Disabled'
-                  : 'Select Status'}
-              </Typography>
-            )}
-          >
-            <MenuItem value="">All statuses</MenuItem>
-            <MenuItem value="active">Active</MenuItem>
-            <MenuItem value="disabled">Disabled</MenuItem>
-          </Select>
-        </FormControl>
-
-        {/* Role select */}
-        <FormControl size="small" sx={{ minWidth: 160 }}>
-          <Select
-            id="users-role-select"
-            value={role}
-            displayEmpty
-            onChange={(e) => {
-              setPage(0);
-              setRole(e.target.value);
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon sx={{ fontSize: 18, color: '#9CA3AF' }} />
+                </InputAdornment>
+              ),
+              endAdornment: searchInput ? (
+                <InputAdornment position="end">
+                  <IconButton size="small" edge="end" onClick={() => setSearchInput('')}>
+                    <ClearIcon sx={{ fontSize: 16 }} />
+                  </IconButton>
+                </InputAdornment>
+              ) : null,
             }}
-            sx={{
-              bgcolor: '#fff',
-              borderRadius: '10px',
-              '& .MuiOutlinedInput-notchedOutline': { borderColor: '#E5E7EB' },
-              '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#F97316' },
-              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                borderColor: '#F97316',
-                borderWidth: 1.5,
-              },
-            }}
-            renderValue={(val) => (
-              <Typography sx={{ fontSize: '0.95rem', color: val ? '#262525' : '#9CA3AF' }}>
-                {val === 'parent'
-                  ? 'User'
-                  : val === 'club_owner'
-                  ? 'Club Owner'
-                  : val === 'admin'
-                  ? 'Admin'
-                  : 'Select Role'}
-              </Typography>
-            )}
-          >
-            <MenuItem value="">All roles</MenuItem>
-            <MenuItem value="parent">User</MenuItem>
-            <MenuItem value="club_owner">Club Owner</MenuItem>
-            <MenuItem value="admin">Admin</MenuItem>
-          </Select>
-        </FormControl>
-      </Box>
+          />
 
-      {/* Table card */}
-      <Box
-        sx={{
-          bgcolor: '#FFFFFF',
-          borderRadius: '16px',
-          border: '1px solid #EEEFF2',
-          overflow: 'hidden',
-          boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
-        }}
-      >
-        <TableContainer>
-          <Table>
+          {/* Status select */}
+          <FormControl size="small" sx={{ minWidth: 160 }}>
+            <Select
+              id="users-status-select"
+              value={status}
+              displayEmpty
+              onChange={(e) => {
+                setPage(0);
+                setStatusFilter(e.target.value);
+              }}
+              sx={{
+                bgcolor: '#fff',
+                borderRadius: '10px',
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#E5E7EB' },
+                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#F97316' },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#F97316',
+                  borderWidth: 1.5,
+                },
+              }}
+              renderValue={(val) => (
+                <Typography sx={{ fontSize: '0.95rem', color: val ? '#262525' : '#9CA3AF' }}>
+                  {val === 'active'
+                    ? 'Active'
+                    : val === 'disabled'
+                    ? 'Disabled'
+                    : 'Select Status'}
+                </Typography>
+              )}
+            >
+              <MenuItem value="">All statuses</MenuItem>
+              <MenuItem value="active">Active</MenuItem>
+              <MenuItem value="disabled">Disabled</MenuItem>
+            </Select>
+          </FormControl>
+
+          {/* Role select */}
+          <FormControl size="small" sx={{ minWidth: 160 }}>
+            <Select
+              id="users-role-select"
+              value={role}
+              displayEmpty
+              onChange={(e) => {
+                setPage(0);
+                setRole(e.target.value);
+              }}
+              sx={{
+                bgcolor: '#fff',
+                borderRadius: '10px',
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#E5E7EB' },
+                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#F97316' },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#F97316',
+                  borderWidth: 1.5,
+                },
+              }}
+              renderValue={(val) => (
+                <Typography sx={{ fontSize: '0.95rem', color: val ? '#262525' : '#9CA3AF' }}>
+                  {val === 'parent'
+                    ? 'User'
+                    : val === 'club_owner'
+                    ? 'Club Owner'
+                    : val === 'admin'
+                    ? 'Admin'
+                    : 'Select Role'}
+                </Typography>
+              )}
+            >
+              <MenuItem value="">All roles</MenuItem>
+              <MenuItem value="parent">User</MenuItem>
+              <MenuItem value="club_owner">Club Owner</MenuItem>
+              <MenuItem value="admin">Admin</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
+
+        {/* Scrollable table */}
+        <TableContainer sx={{ flexGrow: 1, overflow: 'auto' }}>
+          <Table stickyHeader>
             <TableHead>
               <TableRow>
                 <TH sx={{ pl: 3 }}>Name</TH>
@@ -445,6 +447,7 @@ export function UsersPage() {
                     <Tooltip title="View user">
                       <IconButton
                         size="small"
+                        onClick={() => setSelectedUser(user)}
                         sx={{
                           width: 34,
                           height: 34,
@@ -504,7 +507,109 @@ export function UsersPage() {
             onChange={(p) => setPage(p)}
           />
         </Box>
-      </Box>
+      </ContentCard>
+
+      {/* User details dialog */}
+      <Dialog
+        open={Boolean(selectedUser)}
+        onClose={() => setSelectedUser(null)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: '24px', p: 1 } }}
+      >
+        <DialogTitle sx={{ fontWeight: 800, fontSize: '1.4rem', color: '#111827' }}>
+          User Details
+        </DialogTitle>
+        <DialogContent>
+          {selectedUser && (
+            <Stack spacing={3} sx={{ mt: 1 }}>
+              <Stack direction="row" alignItems="center" spacing={2.5}>
+                <Avatar
+                  src={selectedUser.avatarUrl}
+                  variant="rounded"
+                  sx={{ width: 64, height: 64, borderRadius: '16px', bgcolor: '#F3F4F6', color: '#374151', fontWeight: 700, fontSize: '1.5rem' }}
+                >
+                  {selectedUser.name?.[0]?.toUpperCase()}
+                </Avatar>
+                <Box>
+                  <Stack direction="row" alignItems="center" spacing={0.5}>
+                    <Typography variant="h6" fontWeight={700} sx={{ color: '#111827' }}>
+                      {selectedUser.name}
+                    </Typography>
+                    {selectedUser.isEmailVerified && (
+                      <Tooltip title="Email verified">
+                        <VerifiedIcon sx={{ fontSize: 16, color: '#3B82F6' }} />
+                      </Tooltip>
+                    )}
+                  </Stack>
+                  <Typography variant="body2" sx={{ color: '#6B7280' }}>
+                    {ROLE_LABELS[selectedUser.role] ?? selectedUser.role}
+                  </Typography>
+                </Box>
+              </Stack>
+
+              <Box sx={{ p: 3, bgcolor: '#F9FAFB', borderRadius: '16px', border: '1px solid #EEEFF2' }}>
+                <Stack spacing={2.5}>
+                  <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 200px', alignItems: 'center', gap: 2 }}>
+                    <Typography sx={{ color: '#6B7280', fontWeight: 500 }}>Email</Typography>
+                    <Typography sx={{ fontWeight: 600, color: '#111827', wordBreak: 'break-all' }}>
+                      {selectedUser.email || '—'}
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 200px', alignItems: 'center', gap: 2 }}>
+                    <Typography sx={{ color: '#6B7280', fontWeight: 500 }}>Role</Typography>
+                    <Typography sx={{ fontWeight: 600, color: '#111827' }}>
+                      {ROLE_LABELS[selectedUser.role] ?? selectedUser.role}
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 200px', alignItems: 'center', gap: 2 }}>
+                    <Typography sx={{ color: '#6B7280', fontWeight: 500 }}>Join Date</Typography>
+                    <Typography sx={{ fontWeight: 600, color: '#111827' }}>
+                      {selectedUser.createdAt
+                        ? new Date(selectedUser.createdAt).toLocaleDateString('en-GB', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric',
+                          })
+                        : '—'}
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 200px', alignItems: 'center', gap: 2 }}>
+                    <Typography sx={{ color: '#6B7280', fontWeight: 500 }}>Email Verified</Typography>
+                    <Typography sx={{ fontWeight: 600, color: '#111827' }}>
+                      {selectedUser.isEmailVerified ? 'Yes' : 'No'}
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 200px', alignItems: 'center', gap: 2 }}>
+                    <Typography sx={{ color: '#6B7280', fontWeight: 500 }}>Status</Typography>
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
+                      <StatusChip status={selectedUser.status} />
+                    </Box>
+                  </Box>
+                </Stack>
+              </Box>
+            </Stack>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            onClick={() => setSelectedUser(null)}
+            variant="contained"
+            disableElevation
+            sx={{
+              borderRadius: '12px', textTransform: 'none', fontWeight: 700,
+              bgcolor: '#F3F4F6', color: '#374151', px: 3,
+              '&:hover': { bgcolor: '#E5E7EB' },
+            }}
+          >
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

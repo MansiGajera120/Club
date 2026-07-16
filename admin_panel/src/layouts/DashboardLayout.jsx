@@ -20,13 +20,15 @@ import {
   DialogActions,
   Button,
   Badge,
+  Menu,
+  MenuItem,
+  Divider,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import SpaceDashboardOutlinedIcon from '@mui/icons-material/SpaceDashboardOutlined';
 import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined';
 import PeopleOutlineIcon from '@mui/icons-material/PeopleOutline';
 import EventOutlinedIcon from '@mui/icons-material/EventOutlined';
-import TimelineOutlinedIcon from '@mui/icons-material/TimelineOutlined';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -41,7 +43,6 @@ const DRAWER_WIDTH = 265;
 
 const NAV_ITEMS = [
   { label: 'Overview', path: ROUTES.dashboard, icon: SpaceDashboardOutlinedIcon },
-  { label: 'Analytics', path: ROUTES.analytics, icon: TimelineOutlinedIcon },
   { label: 'Clubs', path: ROUTES.clubs, icon: GroupsOutlinedIcon },
   { label: 'Users', path: ROUTES.users, icon: PeopleOutlineIcon },
   { label: 'Events', path: ROUTES.events, icon: EventOutlinedIcon },
@@ -50,7 +51,6 @@ const NAV_ITEMS = [
 
 const PAGE_TITLES = {
   [ROUTES.dashboard]: 'Overview',
-  [ROUTES.analytics]: 'Analytics',
   [ROUTES.clubs]: 'Clubs',
   [ROUTES.users]: 'User Management',
   [ROUTES.events]: 'Events',
@@ -74,6 +74,8 @@ export function DashboardLayout() {
   const isDesktop = useMediaQuery(muiTheme.breakpoints.up('md'));
   const [mobileOpen, setMobileOpen] = useState(false);
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+  const [notifAnchor, setNotifAnchor] = useState(null);
+  const [profileAnchor, setProfileAnchor] = useState(null);
 
   const initials = user?.name
     ?.split(' ')
@@ -109,12 +111,12 @@ export function DashboardLayout() {
         bgcolor: '#FFFFFF',
       }}
     >
-      {/* Logo area */}
+      {/* Logo area — matches the top bar height so titles align on one line */}
       <Box
         sx={{
           px: 3,
-          pt: 3,
-          pb: 2.5,
+          py: 0,
+          minHeight: 68,
           display: 'flex',
           alignItems: 'center',
           gap: 2,
@@ -241,7 +243,8 @@ export function DashboardLayout() {
     <Box
       sx={{
         display: 'flex',
-        minHeight: '100vh',
+        height: '100vh',
+        overflow: 'hidden',
         bgcolor: '#F7F8FA',
       }}
     >
@@ -309,6 +312,7 @@ export function DashboardLayout() {
             <Tooltip title="Notifications">
               <IconButton
                 id="notification-btn"
+                onClick={(e) => setNotifAnchor(e.currentTarget)}
                 sx={{
                   width: 40,
                   height: 40,
@@ -335,6 +339,7 @@ export function DashboardLayout() {
             <Tooltip title="Admin profile">
               <IconButton
                 id="profile-icon-btn"
+                onClick={(e) => setProfileAnchor(e.currentTarget)}
                 sx={{
                   width: 40,
                   height: 40,
@@ -356,6 +361,7 @@ export function DashboardLayout() {
 
             {/* Name + role chip */}
             <Box
+              onClick={(e) => setProfileAnchor(e.currentTarget)}
               sx={{
                 display: { xs: 'none', sm: 'flex' },
                 alignItems: 'center',
@@ -366,7 +372,9 @@ export function DashboardLayout() {
                 borderRadius: '10px',
                 border: '1px solid #EEEFF2',
                 bgcolor: '#FFFFFF',
-                cursor: 'default',
+                cursor: 'pointer',
+                transition: 'border-color 0.2s',
+                '&:hover': { borderColor: '#F97316' },
                 ml: 0.5,
               }}
             >
@@ -405,6 +413,7 @@ export function DashboardLayout() {
           component="main"
           sx={{
             flexGrow: 1,
+            minHeight: 0,
             px: { xs: 2.5, sm: 3.5 },
             pb: { xs: 4, lg: 6 },
             pt: 3,
@@ -415,6 +424,92 @@ export function DashboardLayout() {
           <Outlet />
         </Box>
       </Box>
+
+      {/* Notifications dropdown */}
+      <Menu
+        anchorEl={notifAnchor}
+        open={Boolean(notifAnchor)}
+        onClose={() => setNotifAnchor(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        PaperProps={{
+          sx: { mt: 1.5, width: 340, borderRadius: '14px', boxShadow: '0 12px 40px rgba(0,0,0,0.12)' },
+        }}
+      >
+        <Box sx={{ px: 2.5, py: 1.75, borderBottom: '1px solid #EEEFF2' }}>
+          <Typography sx={{ fontWeight: 800, color: '#262525', fontSize: '1rem' }}>
+            Notifications
+          </Typography>
+        </Box>
+        <Box sx={{ px: 3, py: 5, textAlign: 'center' }}>
+          <NotificationsNoneOutlinedIcon sx={{ fontSize: 42, color: '#D1D5DB', mb: 1 }} />
+          <Typography sx={{ color: '#374151', fontWeight: 700 }}>
+            {"You're all caught up"}
+          </Typography>
+          <Typography variant="caption" sx={{ color: '#9CA3AF' }}>
+            No new notifications
+          </Typography>
+        </Box>
+      </Menu>
+
+      {/* Profile dropdown */}
+      <Menu
+        anchorEl={profileAnchor}
+        open={Boolean(profileAnchor)}
+        onClose={() => setProfileAnchor(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        PaperProps={{
+          sx: { mt: 1.5, width: 260, borderRadius: '14px', boxShadow: '0 12px 40px rgba(0,0,0,0.12)' },
+        }}
+      >
+        <Box sx={{ px: 2.5, py: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Avatar
+            sx={{
+              width: 40,
+              height: 40,
+              background: 'linear-gradient(135deg, #F97316, #FB923C)',
+              fontSize: '0.85rem',
+              fontWeight: 800,
+            }}
+          >
+            {initials}
+          </Avatar>
+          <Box sx={{ minWidth: 0 }}>
+            <Typography sx={{ fontWeight: 700, fontSize: '0.92rem', color: '#262525' }} noWrap>
+              {user?.name ?? 'Admin'}
+            </Typography>
+            <Typography variant="caption" sx={{ color: '#9CA3AF' }} noWrap>
+              {user?.email ?? ''}
+            </Typography>
+          </Box>
+        </Box>
+        <Divider />
+        <MenuItem
+          onClick={() => {
+            setProfileAnchor(null);
+            navigate(ROUTES.settings);
+          }}
+          sx={{ py: 1.25 }}
+        >
+          <ListItemIcon>
+            <SettingsOutlinedIcon fontSize="small" />
+          </ListItemIcon>
+          Change Password
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            setProfileAnchor(null);
+            handleLogout();
+          }}
+          sx={{ py: 1.25, color: 'error.main' }}
+        >
+          <ListItemIcon>
+            <LogoutOutlinedIcon fontSize="small" color="error" />
+          </ListItemIcon>
+          Sign Out
+        </MenuItem>
+      </Menu>
 
       {/* Logout Dialog */}
       <Dialog
