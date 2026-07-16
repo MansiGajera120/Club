@@ -60,9 +60,9 @@ class _SplashScreenState extends State<SplashScreen>
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFFFFF0EA), // warm peach cream
+              Color(0xFFEAF1FC), // cool sky tint
               AppColors.background,
-              Color(0xFFFFF6F0),
+              Color(0xFFF1F6FD),
             ],
             stops: [0.0, 0.55, 1.0],
           ),

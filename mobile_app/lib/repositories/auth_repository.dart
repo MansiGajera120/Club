@@ -102,14 +102,16 @@ class AuthRepository {
     });
   }
 
+  /// Complete a password reset with the 6-digit OTP emailed to [email].
   Future<void> resetPassword({
-    required String token,
+    required String email,
+    required String otp,
     required String password,
   }) {
     return _guard(() async {
       await _dio.post(
         ApiEndpoints.resetPassword,
-        data: {'token': token, 'password': password},
+        data: {'email': email, 'code': otp, 'password': password},
       );
     });
   }

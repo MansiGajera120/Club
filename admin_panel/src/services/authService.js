@@ -32,11 +32,11 @@ export const authService = {
   },
 
   /**
-   * Complete a password reset with the emailed token.
-   * @param {{ token: string, password: string }} payload
+   * Complete a password reset with the 6-digit code emailed to the user.
+   * @param {{ email: string, code: string, password: string }} payload
    */
-  async resetPassword({ token, password }) {
-    await apiClient.post('/auth/reset-password', { token, password });
+  async resetPassword({ email, code, password }) {
+    await apiClient.post('/auth/reset-password', { email, code, password });
   },
 
   /**

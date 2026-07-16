@@ -2,8 +2,8 @@ import config from '../../config/index.js';
 
 /**
  * Wrap email body content in a clean, responsive HTML layout that mirrors
- * the ClubHub design system — orange brand, rounded card, soft background.
- * All transactional emails render through this for visual consistency.
+ * the mobile app design system — Ocean Blue brand, rounded card, cool
+ * background. All transactional emails render through this for consistency.
  *
  * @param {{ title: string, bodyHtml: string, previewText?: string }} params
  * @returns {string}
@@ -15,24 +15,24 @@ export const renderLayout = ({ title, bodyHtml, previewText = '' }) => `<!doctyp
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>${title}</title>
   </head>
-  <body style="margin:0;padding:0;background:#F7F8FA;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Inter',sans-serif;color:#262525;">
+  <body style="margin:0;padding:0;background:#F7F9FC;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Inter',sans-serif;color:#111827;">
     <span style="display:none;max-height:0;overflow:hidden;opacity:0;">${previewText}</span>
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F7F8FA;padding:40px 16px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F7F9FC;padding:40px 16px;">
       <tr>
         <td align="center">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:500px;background:#FFFFFF;border:1px solid #EEEFF2;border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.06);">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:500px;background:#FFFFFF;border:1px solid #E4EAF2;border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(30,58,95,0.08);">
 
             <!-- Header -->
             <tr>
-              <td style="background:linear-gradient(135deg,#F97316 0%,#FB923C 100%);padding:28px 36px;">
+              <td style="background:linear-gradient(135deg,#2563EB 0%,#38BDF8 100%);padding:28px 36px;">
                 <table role="presentation" cellpadding="0" cellspacing="0">
                   <tr>
                     <td style="background:rgba(255,255,255,0.22);border-radius:12px;width:44px;height:44px;text-align:center;vertical-align:middle;">
-                      <span style="color:#FFFFFF;font-size:22px;line-height:44px;">🏆</span>
+                      <span style="color:#FFFFFF;font-size:22px;line-height:44px;">⚽</span>
                     </td>
                     <td style="padding-left:14px;">
                       <span style="color:#FFFFFF;font-size:20px;font-weight:800;letter-spacing:-0.3px;">${config.smtp.fromName}</span><br/>
-                      <span style="color:rgba(255,255,255,0.80);font-size:12px;font-weight:500;">Admin Portal</span>
+                      <span style="color:rgba(255,255,255,0.85);font-size:12px;font-weight:500;">Sports Clubs, Simplified</span>
                     </td>
                   </tr>
                 </table>
@@ -48,7 +48,7 @@ export const renderLayout = ({ title, bodyHtml, previewText = '' }) => `<!doctyp
 
             <!-- Footer -->
             <tr>
-              <td style="padding:20px 36px 24px;border-top:1px solid #EEEFF2;background:#FAFBFC;">
+              <td style="padding:20px 36px 24px;border-top:1px solid #E4EAF2;background:#F8FBFE;">
                 <p style="margin:0;color:#9CA3AF;font-size:12px;line-height:1.6;">
                   You received this email because an account action was requested for this address.
                   If this wasn't you, you can safely ignore it.
@@ -73,7 +73,7 @@ export const renderLayout = ({ title, bodyHtml, previewText = '' }) => `<!doctyp
 export const renderButton = ({ label, url }) => `
   <table role="presentation" cellpadding="0" cellspacing="0" style="margin:28px 0;">
     <tr>
-      <td style="border-radius:12px;background:linear-gradient(135deg,#F97316 0%,#FB923C 100%);box-shadow:0 4px 14px rgba(249,115,22,0.35);">
+      <td style="border-radius:12px;background:linear-gradient(135deg,#2563EB 0%,#3B82F6 100%);box-shadow:0 4px 14px rgba(37,99,235,0.35);">
         <a href="${url}" target="_blank"
            style="display:inline-block;padding:14px 32px;color:#FFFFFF;font-size:15px;font-weight:700;text-decoration:none;border-radius:12px;letter-spacing:0.2px;">
           ${label}

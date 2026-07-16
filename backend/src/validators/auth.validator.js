@@ -29,7 +29,12 @@ export const loginSchema = Joi.object({
 export const forgotPasswordSchema = Joi.object({ email });
 
 export const resetPasswordSchema = Joi.object({
-  token: Joi.string().required(),
+  email,
+  code: Joi.string()
+    .trim()
+    .pattern(/^\d{6}$/)
+    .required()
+    .messages({ 'string.pattern.base': 'Enter the 6-digit code from your email' }),
   password,
 });
 

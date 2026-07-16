@@ -2,7 +2,6 @@ import { ApiError } from '../errors/ApiError.js';
 import { userRepository } from '../repositories/user.repository.js';
 import { toUserResponse } from '../dto/user.dto.js';
 import {
-  generateRawToken,
   generateNumericOtp,
   hashToken,
   safeEqualHex,
@@ -43,6 +42,18 @@ const setVerificationOtp = (user) => {
   user.emailVerificationToken = hashToken(code);
   user.emailVerificationExpires = new Date(Date.now() + EMAIL_OTP_TTL_MS);
   user.emailVerificationAttempts = 0;
+  return code;
+};
+
+/**
+ * Attach a fresh password-reset OTP to a user doc (does not save). Only the hash
+ * is stored; the returned plaintext code is emailed once.
+ */
+const setPasswordResetOtp = (user) => {
+  const code = generateNumericOtp(EMAIL_OTP_LENGTH);
+  user.passwordResetToken = hashToken(code);
+  user.passwordResetExpires = new Date(Date.now() + PASSWORD_RESET_TTL_MS);
+  user.passwordResetAttempts = 0;
   return code;
 };
 
@@ -188,27 +199,49 @@ export const resendVerification = async (email) => {
 export const forgotPassword = async (email) => {
   const user = await userRepository.findByEmail(email);
   if (user && user.provider === AUTH_PROVIDER.LOCAL) {
-    const raw = generateRawToken();
-    user.passwordResetToken = hashToken(raw);
-    user.passwordResetExpires = new Date(Date.now() + PASSWORD_RESET_TTL_MS);
+    const code = setPasswordResetOtp(user);
     await user.save();
     dispatchEmail(
-      sendPasswordResetEmail(user, raw),
+      sendPasswordResetEmail(user, code),
       'Failed to send password reset email'
     );
   }
 };
 
-/** Complete a password reset and revoke all existing sessions. */
-export const resetPassword = async ({ token, password }) => {
-  const user = await userRepository.findByActiveToken('passwordReset', hashToken(token));
-  if (!user) {
-    throw ApiError.badRequest('Invalid or expired reset token');
+/**
+ * Complete a password reset with the emailed OTP and revoke all sessions.
+ * @param {{ email: string, code: string, password: string }} params
+ */
+export const resetPassword = async ({ email, code, password }) => {
+  const user = await userRepository.findByEmailWithReset(email);
+  if (!user || !user.passwordResetToken || !user.passwordResetExpires) {
+    throw ApiError.badRequest('Invalid or expired reset code');
+  }
+  if (user.passwordResetExpires.getTime() < Date.now()) {
+    throw ApiError.badRequest('Reset code has expired. Please request a new one.');
+  }
+
+  // Constant-time compare; throttle brute-force by invalidating the code after
+  // too many wrong guesses (same policy as the signup verification OTP).
+  if (!safeEqualHex(hashToken(code), user.passwordResetToken)) {
+    user.passwordResetAttempts = (user.passwordResetAttempts || 0) + 1;
+    if (user.passwordResetAttempts >= EMAIL_OTP_MAX_ATTEMPTS) {
+      user.passwordResetToken = undefined;
+      user.passwordResetExpires = undefined;
+      user.passwordResetAttempts = 0;
+      await user.save();
+      throw ApiError.badRequest(
+        'Too many incorrect attempts. Please request a new reset code.'
+      );
+    }
+    await user.save();
+    throw ApiError.badRequest('Invalid reset code');
   }
 
   user.password = password; // hashed by the pre-save hook
   user.passwordResetToken = undefined;
   user.passwordResetExpires = undefined;
+  user.passwordResetAttempts = 0;
   await user.save();
 
   // Force re-authentication everywhere after a password change.

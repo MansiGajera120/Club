@@ -93,7 +93,14 @@ class _ClubDetailView extends ConsumerWidget {
         ),
         SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.lg),
+            // Add the system bottom inset so the last section (events) clears
+            // the on-screen navigation buttons on gesture/3-button devices.
+            padding: EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              AppSpacing.lg,
+              AppSpacing.lg,
+              AppSpacing.lg + MediaQuery.viewPaddingOf(context).bottom,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

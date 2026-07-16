@@ -23,8 +23,8 @@ class AppGradients {
   static const LinearGradient imageOverlay = LinearGradient(
     colors: [
       Colors.transparent,
-      Color(0x332A2A35),
-      Color(0xE01E1622),
+      Color(0x33222B3A),
+      Color(0xE00B1220),
     ],
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
@@ -42,7 +42,7 @@ class AppGradients {
 
   /// Warm ambient wash for editorial hero areas.
   static const LinearGradient heroWash = LinearGradient(
-    colors: [Color(0x14FF5A5F), Color(0x0AFFB347), Colors.transparent],
+    colors: [Color(0x142563EB), Color(0x0A38BDF8), Colors.transparent],
     begin: Alignment.topRight,
     end: Alignment.bottomLeft,
     stops: [0.0, 0.4, 1.0],

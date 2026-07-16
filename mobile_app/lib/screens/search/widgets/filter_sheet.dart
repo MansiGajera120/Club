@@ -78,7 +78,7 @@ class _FilterSheetState extends State<FilterSheet> {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Color(0x1F1C1C28),
+                  color: Color(0x1F0F172A),
                   blurRadius: 28,
                   offset: Offset(0, -6),
                 ),

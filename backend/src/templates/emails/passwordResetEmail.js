@@ -1,45 +1,47 @@
-import { renderLayout, renderButton } from './baseLayout.js';
+import { renderLayout } from './baseLayout.js';
 
 /**
- * Password-reset email with a CTA button.
- * @param {{ name: string, resetUrl: string, expiresInMinutes: number }} params
+ * Password-reset one-time passcode (OTP) email. The user types this code into
+ * the app to choose a new password.
+ * @param {{ name: string, code: string, expiresInMinutes: number }} params
  * @returns {{ subject: string, html: string, text: string }}
  */
-export const passwordResetEmail = ({ name, resetUrl, expiresInMinutes }) => {
-  const subject = 'Reset your ClubHub password';
+export const passwordResetEmail = ({ name, code, expiresInMinutes }) => {
+  const subject = `${code} is your password reset code`;
+  const spacedCode = code.split('').join('  ');
 
   const bodyHtml = `
-    <h1 style="margin:0 0 12px;font-size:22px;font-weight:800;color:#262525;letter-spacing:-0.3px;">
+    <h1 style="margin:0 0 12px;font-size:22px;font-weight:800;color:#111827;letter-spacing:-0.3px;">
       Password Reset
     </h1>
-    <p style="margin:0 0 16px;color:#6B7280;font-size:15px;line-height:1.65;">
-      Hi <strong style="color:#262525;">${name}</strong>, we received a request to reset your
-      <strong style="color:#262525;">ClubHub</strong> password.
-      Click the button below to choose a new one.
+    <p style="margin:0 0 24px;color:#6B7280;font-size:15px;line-height:1.65;">
+      Hi <strong style="color:#111827;">${name}</strong>, we received a request to reset your
+      <strong style="color:#111827;">ClubHub</strong> password. Enter the code below in the app to
+      choose a new one.
     </p>
 
-    <!-- Warning banner -->
-    <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 4px;">
+    <!-- OTP Code Box -->
+    <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 24px;">
       <tr>
-        <td style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:10px;padding:12px 16px;">
-          <p style="margin:0;color:#92400E;font-size:13px;line-height:1.5;">
-            ⏱ This link expires in <strong>${expiresInMinutes} minutes</strong>.
-            If you didn't request a reset, you can safely ignore this email — your password will not change.
-          </p>
+        <td align="center">
+          <div style="display:inline-block;background:linear-gradient(135deg,#EFF6FF 0%,#DBEAFE 100%);border:2px solid #BFDBFE;border-radius:16px;padding:20px 36px;text-align:center;">
+            <p style="margin:0 0 6px;color:#9CA3AF;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;">Your Reset Code</p>
+            <span style="display:block;color:#2563EB;font-size:36px;font-weight:800;letter-spacing:10px;font-family:'Courier New',Courier,monospace;">
+              ${spacedCode}
+            </span>
+          </div>
         </td>
       </tr>
     </table>
 
-    ${renderButton({ label: 'Reset My Password →', url: resetUrl })}
-
-    <div style="background:#F7F8FA;border-radius:10px;padding:14px 16px;border:1px solid #EEEFF2;">
-      <p style="margin:0 0 4px;color:#9CA3AF;font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;">Or copy this link into your browser</p>
-      <a href="${resetUrl}" style="color:#F97316;font-size:12px;word-break:break-all;text-decoration:none;">${resetUrl}</a>
-    </div>`;
+    <p style="margin:0;color:#9CA3AF;font-size:13px;line-height:1.6;text-align:center;">
+      ⏱ This code expires in <strong style="color:#111827;">${expiresInMinutes} minutes</strong>.<br/>
+      If you didn't request a password reset, you can safely ignore this email — your password won't change.
+    </p>`;
 
   return {
     subject,
-    html: renderLayout({ title: subject, bodyHtml, previewText: 'Reset your ClubHub password' }),
-    text: `Reset your password: ${resetUrl} (expires in ${expiresInMinutes} minutes)`,
+    html: renderLayout({ title: subject, bodyHtml, previewText: `Your reset code is ${code}` }),
+    text: `Your ClubHub password reset code is ${code}. It expires in ${expiresInMinutes} minutes.`,
   };
 };

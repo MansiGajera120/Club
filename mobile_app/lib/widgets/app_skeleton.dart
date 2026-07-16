@@ -42,7 +42,7 @@ class _AppSkeletonState extends State<AppSkeleton>
 
   @override
   Widget build(BuildContext context) {
-    const base = Color(0xFFF2E8E5);
+    const base = Color(0xFFE4EAF2);
     const highlight = AppColors.surfaceMuted;
 
     return AnimatedBuilder(

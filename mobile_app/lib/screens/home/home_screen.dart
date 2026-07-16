@@ -68,38 +68,44 @@ class HomeScreen extends ConsumerWidget {
               error: (e, _) => const SliverToBoxAdapter(
                 child: _InlineEmpty(text: 'Could not load clubs'),
               ),
-              data: (clubs) => clubs.isEmpty
-                  ? const SliverFillRemaining(
-                      hasScrollBody: false,
-                      child: EmptyState(
-                        icon: Icons.sports_soccer_rounded,
-                        title: 'No clubs yet',
-                        message: 'Check back soon as new clubs join.',
-                      ),
-                    )
-                  : SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.lg,
-                        0,
-                        AppSpacing.lg,
-                        AppSpacing.xl,
-                      ),
-                      sliver: SliverGrid(
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 1,
-                          mainAxisSpacing: AppSpacing.md,
-                          crossAxisSpacing: AppSpacing.md,
-                          childAspectRatio: 1.35,
+              data: (clubs) {
+                // Show the first two clubs at the end of the explore list.
+                final ordered = clubs.length > 2
+                    ? [...clubs.sublist(2), ...clubs.sublist(0, 2)]
+                    : clubs;
+                return ordered.isEmpty
+                    ? const SliverFillRemaining(
+                        hasScrollBody: false,
+                        child: EmptyState(
+                          icon: Icons.sports_soccer_rounded,
+                          title: 'No clubs yet',
+                          message: 'Check back soon as new clubs join.',
                         ),
-                        delegate: SliverChildBuilderDelegate(
-                          (context, i) => _ExploreClubGridCard(
-                            club: clubs[i],
-                            onTap: () => _openClub(context, clubs[i].id),
+                      )
+                    : SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(
+                          AppSpacing.lg,
+                          0,
+                          AppSpacing.lg,
+                          AppSpacing.xl,
+                        ),
+                        sliver: SliverGrid(
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 1,
+                            mainAxisSpacing: AppSpacing.md,
+                            crossAxisSpacing: AppSpacing.md,
+                            childAspectRatio: 1.35,
                           ),
-                          childCount: clubs.length,
+                          delegate: SliverChildBuilderDelegate(
+                            (context, i) => _ExploreClubGridCard(
+                              club: ordered[i],
+                              onTap: () => _openClub(context, ordered[i].id),
+                            ),
+                            childCount: ordered.length,
+                          ),
                         ),
-                      ),
-                    ),
+                      );
+              },
             ),
           ],
         ),

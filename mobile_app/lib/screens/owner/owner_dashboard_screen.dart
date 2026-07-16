@@ -192,80 +192,69 @@ class _WelcomeHeader extends StatelessWidget {
     final theme = Theme.of(context);
     final topInset = MediaQuery.paddingOf(context).top;
     final firstName = ownerName.trim().split(' ').first;
-    final today = DateFormat('EEE, MMM d').format(DateTime.now());
+    final today = DateFormat('EEEE, MMM d').format(DateTime.now());
+    final initial = firstName.isNotEmpty ? firstName[0].toUpperCase() : '?';
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
         AppSpacing.lg,
-        topInset + AppSpacing.lg,
+        topInset + AppSpacing.xl,
         AppSpacing.lg,
-        AppSpacing.md,
+        AppSpacing.sm,
       ),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              AppColors.primary.withValues(alpha: 0.10),
-              AppColors.secondary.withValues(alpha: 0.06),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: AppRadius.xlAll,
-          border: Border.all(
-            color: AppColors.primary.withValues(alpha: 0.12),
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                _greeting,
-                style: theme.textTheme.labelLarge?.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                firstName,
-                style: theme.textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  height: 1.1,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                'Your club command center',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.card,
-                  borderRadius: AppRadius.pillAll,
-                  boxShadow: AppShadows.sm,
-                  border: Border.all(color: AppColors.border),
-                ),
-                child: Text(
-                  today,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  today.toUpperCase(),
                   style: theme.textTheme.labelSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
+                    color: AppColors.textTertiary,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.1,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  '$_greeting,',
+                  style: theme.textTheme.bodyMedium?.copyWith(
                     color: AppColors.textSecondary,
                   ),
                 ),
-              ),
-            ],
+                Text(
+                  firstName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    height: 1.1,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
+          const SizedBox(width: AppSpacing.md),
+          Container(
+            width: 54,
+            height: 54,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              gradient: AppGradients.brand,
+              shape: BoxShape.circle,
+              boxShadow: AppShadows.brand,
+            ),
+            child: Text(
+              initial,
+              style: theme.textTheme.titleLarge?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -295,7 +284,8 @@ class _ClubSpotlightCard extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         borderRadius: AppRadius.xlAll,
-        boxShadow: AppShadows.lg,
+        border: Border.all(color: AppColors.border),
+        boxShadow: AppShadows.md,
       ),
       child: ClipRRect(
         borderRadius: AppRadius.xlAll,
@@ -391,15 +381,36 @@ class _ClubSpotlightCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      status.hint,
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: status.color,
-                        fontWeight: FontWeight.w600,
-                        height: 1.4,
-                      ),
+                    // Status hint: a small status-coloured dot keeps the accent
+                    // while the sentence stays neutral (no full-green text).
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(top: 5),
+                          child: Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: status.color,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.sm),
+                        Expanded(
+                          child: Text(
+                            status.hint,
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: AppColors.textSecondary,
+                              fontWeight: FontWeight.w500,
+                              height: 1.4,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: AppSpacing.lg),
                     Row(
@@ -511,25 +522,35 @@ class _MetricPill extends StatelessWidget {
         vertical: AppSpacing.md,
       ),
       decoration: BoxDecoration(
-        color: tint.withValues(alpha: 0.08),
+        color: AppColors.surfaceMuted,
         borderRadius: AppRadius.lgAll,
-        border: Border.all(color: tint.withValues(alpha: 0.16)),
+        border: Border.all(color: AppColors.border),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 18, color: tint),
-          const SizedBox(height: 6),
+          Container(
+            width: 32,
+            height: 32,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: tint.withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, size: 17, color: tint),
+          ),
+          const SizedBox(height: AppSpacing.sm),
           FittedBox(
             fit: BoxFit.scaleDown,
             child: Text(
               value,
-              style: theme.textTheme.titleMedium?.copyWith(
+              style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w800,
                 color: AppColors.textPrimary,
               ),
             ),
           ),
+          const SizedBox(height: 2),
           Text(
             label,
             maxLines: 1,
@@ -564,7 +585,7 @@ class _QuickActionGrid extends StatelessWidget {
             icon: Icons.storefront_rounded,
             title: 'Club profile',
             subtitle: 'Edit details',
-            gradient: const [Color(0xFFFF5A5F), Color(0xFFFF7B7F)],
+            gradient: const [Color(0xFF2563EB), Color(0xFF3B82F6)],
             onTap: onClubProfile,
           ),
         ),
@@ -574,7 +595,7 @@ class _QuickActionGrid extends StatelessWidget {
             icon: Icons.event_available_rounded,
             title: 'Events hub',
             subtitle: 'Schedule & edit',
-            gradient: const [Color(0xFF3B82F6), Color(0xFF60A5FA)],
+            gradient: const [Color(0xFF0EA5E9), Color(0xFF38BDF8)],
             onTap: onEvents,
           ),
         ),

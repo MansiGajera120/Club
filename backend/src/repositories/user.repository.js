@@ -29,6 +29,13 @@ export const userRepository = {
     );
   },
 
+  /** Include the hashed password-reset OTP + expiry + attempts (to verify a code). */
+  findByEmailWithReset(email) {
+    return User.findOne({ email: email.toLowerCase() }).select(
+      '+passwordResetToken +passwordResetExpires +passwordResetAttempts +password'
+    );
+  },
+
   findByProviderId(provider, providerId) {
     return User.findOne({ provider, providerId });
   },

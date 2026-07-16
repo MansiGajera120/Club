@@ -1,38 +1,64 @@
 import { useForm } from 'react-hook-form';
-import {
-  Link as RouterLink,
-  useNavigate,
-  useSearchParams,
-} from 'react-router-dom';
+import { Link as RouterLink, useNavigate, useSearchParams } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
-import { Box, Button, Link, Stack, Typography, InputAdornment } from '@mui/material';
+import {
+  Box,
+  Button,
+  Link,
+  Stack,
+  Typography,
+  InputAdornment,
+  TextField,
+} from '@mui/material';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
+import PinOutlinedIcon from '@mui/icons-material/PinOutlined';
 
 import { ROUTES } from '@/constants';
 import { authService } from '@/services/authService';
 import { getApiErrorMessage } from '@/services/apiClient';
 import PasswordField from '@/components/common/PasswordField';
 
+const fieldInputSx = {
+  borderRadius: '16px',
+  height: 64,
+  fontSize: '1.2rem',
+  border: '1px solid rgba(229, 231, 235, 0.9)',
+  '& fieldset': { border: 'none' },
+  bgcolor: '#FFFFFF',
+};
+
 /**
- * Complete a password reset. The one-time token arrives in the URL (the emailed
- * link points to `/reset-password?token=…`). Without a token the page shows an
- * invalid-link message.
+ * Complete a password reset with the 6-digit code emailed by the forgot-password
+ * flow. The email is prefilled from the `?email=` query param when present.
  */
 export function ResetPasswordPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const token = searchParams.get('token');
+  const emailFromQuery = searchParams.get('email') || '';
 
   const {
     register,
     handleSubmit,
     watch,
     formState: { errors },
-  } = useForm({ defaultValues: { password: '', confirm: '' } });
+  } = useForm({
+    defaultValues: {
+      email: emailFromQuery,
+      code: '',
+      password: '',
+      confirm: '',
+    },
+  });
 
   const mutation = useMutation({
-    mutationFn: (password) => authService.resetPassword({ token, password }),
+    mutationFn: (values) =>
+      authService.resetPassword({
+        email: values.email.trim(),
+        code: values.code.trim(),
+        password: values.password,
+      }),
     onSuccess: () => {
       toast.success('Password updated — please sign in with your new password.');
       navigate(ROUTES.login, { replace: true });
@@ -40,42 +66,76 @@ export function ResetPasswordPage() {
     onError: (error) => toast.error(getApiErrorMessage(error)),
   });
 
-  if (!token) {
-    return (
-      <Stack spacing={2} sx={{ textAlign: 'center' }}>
-        <Typography variant="h6" fontWeight={800}>
-          Invalid reset link
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          This password-reset link is missing or malformed. Request a new one to
-          continue.
-        </Typography>
-        <Button component={RouterLink} to={ROUTES.forgotPassword} variant="contained">
-          Request a new link
-        </Button>
-      </Stack>
-    );
-  }
-
   return (
-    <Box
-      component="form"
-      onSubmit={handleSubmit((values) => mutation.mutate(values.password))}
-    >
+    <Box component="form" onSubmit={handleSubmit((values) => mutation.mutate(values))}>
       <Stack spacing={1} sx={{ mb: 6, textAlign: 'center' }}>
-        <Typography variant="h3" fontWeight={850} sx={{ color: '#111827', fontSize: '2.5rem', letterSpacing: '-0.02em' }}>
+        <Typography
+          variant="h3"
+          fontWeight={850}
+          sx={{ color: '#111827', fontSize: '2.5rem', letterSpacing: '-0.02em' }}
+        >
           Set a new password
         </Typography>
         <Typography variant="h6" sx={{ color: '#6B7280', fontWeight: 500 }}>
-          Choose a strong password for your admin account.
+          Enter the 6-digit code from your email and choose a new password.
         </Typography>
       </Stack>
 
       <Stack spacing={2}>
+        {!emailFromQuery && (
+          <TextField
+            placeholder="Enter email"
+            type="email"
+            autoComplete="email"
+            error={Boolean(errors.email)}
+            helperText={errors.email?.message}
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start" sx={{ mr: 2 }}>
+                    <EmailOutlinedIcon sx={{ color: '#9CA3AF', fontSize: 26 }} />
+                  </InputAdornment>
+                ),
+                sx: fieldInputSx,
+              },
+            }}
+            {...register('email', {
+              required: 'Email is required',
+              pattern: {
+                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                message: 'Enter a valid email',
+              },
+            })}
+          />
+        )}
+        <TextField
+          placeholder="6-digit code"
+          autoFocus
+          inputMode="numeric"
+          error={Boolean(errors.code)}
+          helperText={errors.code?.message}
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start" sx={{ mr: 2 }}>
+                  <PinOutlinedIcon sx={{ color: '#9CA3AF', fontSize: 26 }} />
+                </InputAdornment>
+              ),
+              sx: { ...fieldInputSx, letterSpacing: '0.3em', fontWeight: 700 },
+            },
+            htmlInput: { maxLength: 6 },
+          }}
+          {...register('code', {
+            required: 'Enter the 6-digit code',
+            pattern: {
+              value: /^\d{6}$/,
+              message: 'Enter the 6-digit code from your email',
+            },
+          })}
+        />
         <PasswordField
           placeholder="New password"
           autoComplete="new-password"
-          autoFocus
           error={Boolean(errors.password)}
           helperText={errors.password?.message}
           slotProps={{
@@ -85,14 +145,7 @@ export function ResetPasswordPage() {
                   <LockOutlinedIcon sx={{ color: '#9CA3AF', fontSize: 26 }} />
                 </InputAdornment>
               ),
-              sx: {
-                borderRadius: '16px',
-                height: 64,
-                fontSize: '1.2rem',
-                border: '1px solid rgba(229, 231, 235, 0.9)',
-                '& fieldset': { border: 'none' },
-                bgcolor: '#FFFFFF',
-              },
+              sx: fieldInputSx,
             },
           }}
           {...register('password', {
@@ -116,14 +169,7 @@ export function ResetPasswordPage() {
                   <LockOutlinedIcon sx={{ color: '#9CA3AF', fontSize: 26 }} />
                 </InputAdornment>
               ),
-              sx: {
-                borderRadius: '16px',
-                height: 64,
-                fontSize: '1.2rem',
-                border: '1px solid rgba(229, 231, 235, 0.9)',
-                '& fieldset': { border: 'none' },
-                bgcolor: '#FFFFFF',
-              },
+              sx: fieldInputSx,
             },
           }}
           {...register('confirm', {

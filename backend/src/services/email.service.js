@@ -41,15 +41,14 @@ export const sendOtpEmail = async (user, code) => {
 };
 
 /**
- * Send the password-reset message.
+ * Send the password-reset OTP message.
  * @param {{ name: string, email: string }} user
- * @param {string} rawToken
+ * @param {string} code plaintext OTP (only its hash is stored)
  */
-export const sendPasswordResetEmail = async (user, rawToken) => {
-  const resetUrl = buildClientUrl('/reset-password', rawToken);
+export const sendPasswordResetEmail = async (user, code) => {
   const { subject, html, text } = passwordResetEmail({
     name: user.name,
-    resetUrl,
+    code,
     expiresInMinutes: Math.floor(PASSWORD_RESET_TTL_MS / 60000),
   });
   await sendEmail({ to: user.email, subject, html, text });

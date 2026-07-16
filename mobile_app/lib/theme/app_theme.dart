@@ -48,7 +48,7 @@ class AppTheme {
       brightness: Brightness.light,
       primary: AppColors.primary,
       onPrimary: Colors.white,
-      primaryContainer: Color(0xFFFFE8E6),
+      primaryContainer: Color(0xFFDBE7FE),
       onPrimaryContainer: AppColors.primaryDark,
       secondary: AppColors.secondary,
       onSecondary: Colors.white,

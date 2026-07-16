@@ -1,8 +1,15 @@
 import { useForm } from 'react-hook-form';
 import { Link as RouterLink } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
-import { Box, Button, Link, Stack, TextField, Typography, InputAdornment } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import {
+  Box,
+  Button,
+  Link,
+  Stack,
+  TextField,
+  Typography,
+  InputAdornment,
+} from '@mui/material';
 import MarkEmailReadOutlinedIcon from '@mui/icons-material/MarkEmailReadOutlined';
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
 
@@ -47,21 +54,25 @@ export function ForgotPasswordPage() {
         </Box>
 
         <Stack spacing={1}>
-          <Typography variant="h3" fontWeight={850} sx={{ color: '#111827', fontSize: '2.5rem', letterSpacing: '-0.02em' }}>
+          <Typography
+            variant="h3"
+            fontWeight={850}
+            sx={{ color: '#111827', fontSize: '2.5rem', letterSpacing: '-0.02em' }}
+          >
             Check your email
           </Typography>
           <Typography variant="h6" sx={{ color: '#6B7280', fontWeight: 500 }}>
-            If an admin account exists for <b style={{ color: '#111827' }}>{getValues('email')}</b>, we&apos;ve
-            sent a link to reset your password. The link expires shortly.
+            If an admin account exists for{' '}
+            <b style={{ color: '#111827' }}>{getValues('email')}</b>, we&apos;ve sent a
+            6-digit code to reset your password. The code expires shortly.
           </Typography>
         </Stack>
 
         <Button
           component={RouterLink}
-          to={ROUTES.login}
+          to={`${ROUTES.resetPassword}?email=${encodeURIComponent(getValues('email'))}`}
           variant="contained"
           size="large"
-          startIcon={<ArrowBackIcon />}
           sx={{
             height: 64,
             borderRadius: '16px',
@@ -77,7 +88,7 @@ export function ForgotPasswordPage() {
             mt: 1,
           }}
         >
-          Back to sign in
+          Enter reset code
         </Button>
       </Stack>
     );
@@ -89,11 +100,15 @@ export function ForgotPasswordPage() {
       onSubmit={handleSubmit((values) => mutation.mutate(values.email))}
     >
       <Stack spacing={1} sx={{ mb: 6, textAlign: 'center' }}>
-        <Typography variant="h3" fontWeight={850} sx={{ color: '#111827', fontSize: '2.5rem', letterSpacing: '-0.02em' }}>
+        <Typography
+          variant="h3"
+          fontWeight={850}
+          sx={{ color: '#111827', fontSize: '2.5rem', letterSpacing: '-0.02em' }}
+        >
           Forgot password?
         </Typography>
         <Typography variant="h6" sx={{ color: '#6B7280', fontWeight: 500 }}>
-          Enter your admin email and we&apos;ll send you a reset link.
+          Enter your admin email and we&apos;ll send you a 6-digit reset code.
         </Typography>
       </Stack>
 
@@ -150,7 +165,7 @@ export function ForgotPasswordPage() {
             mt: 3,
           }}
         >
-          {mutation.isPending ? 'Sending…' : 'Send reset link'}
+          {mutation.isPending ? 'Sending…' : 'Send reset code'}
         </Button>
         <Box sx={{ textAlign: 'center', mt: 2 }}>
           <Link

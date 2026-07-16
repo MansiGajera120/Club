@@ -141,7 +141,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: RouteNames.resetPassword,
         path: RouteNames.resetPasswordPath,
         builder: (context, state) =>
-            ResetPasswordScreen(token: state.uri.queryParameters['token']),
+            ResetPasswordScreen(email: state.uri.queryParameters['email']),
       ),
 
       // Bottom-navigation shell
