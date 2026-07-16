@@ -28,22 +28,54 @@ export function ForgotPasswordPage() {
 
   if (mutation.isSuccess) {
     return (
-      <Stack spacing={2} sx={{ textAlign: 'center' }}>
+      <Stack spacing={3} sx={{ textAlign: 'center' }}>
         <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-          <MarkEmailReadOutlinedIcon color="primary" sx={{ fontSize: 48 }} />
+          <Box
+            sx={{
+              width: 96,
+              height: 96,
+              borderRadius: '28px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'linear-gradient(135deg, #FF5A5F 0%, #FF8469 100%)',
+              boxShadow: '0 12px 28px rgba(255, 90, 95, 0.32)',
+            }}
+          >
+            <MarkEmailReadOutlinedIcon sx={{ fontSize: 48, color: '#FFFFFF' }} />
+          </Box>
         </Box>
-        <Typography variant="h6" fontWeight={800}>
-          Check your email
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          If an admin account exists for <b>{getValues('email')}</b>, we&apos;ve sent a
-          link to reset your password. The link expires shortly.
-        </Typography>
+
+        <Stack spacing={1}>
+          <Typography variant="h3" fontWeight={850} sx={{ color: '#111827', fontSize: '2.5rem', letterSpacing: '-0.02em' }}>
+            Check your email
+          </Typography>
+          <Typography variant="h6" sx={{ color: '#6B7280', fontWeight: 500 }}>
+            If an admin account exists for <b style={{ color: '#111827' }}>{getValues('email')}</b>, we&apos;ve
+            sent a link to reset your password. The link expires shortly.
+          </Typography>
+        </Stack>
+
         <Button
           component={RouterLink}
           to={ROUTES.login}
+          variant="contained"
+          size="large"
           startIcon={<ArrowBackIcon />}
-          sx={{ mt: 1 }}
+          sx={{
+            height: 64,
+            borderRadius: '16px',
+            textTransform: 'none',
+            fontSize: '1.15rem',
+            fontWeight: 800,
+            background: 'linear-gradient(135deg, #FF5A5F 0%, #FF8469 100%)',
+            boxShadow: '0 6px 20px rgba(255, 90, 95, 0.3)',
+            '&:hover': {
+              background: 'linear-gradient(135deg, #E04E53 0%, #E8745E 100%)',
+              boxShadow: '0 8px 24px rgba(255, 90, 95, 0.4)',
+            },
+            mt: 1,
+          }}
         >
           Back to sign in
         </Button>
