@@ -114,7 +114,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 child: PageHero(
                   overline: 'SEARCH',
                   title: 'Find a club',
-                  subtitle: 'Filter by city, age and more to narrow things down.',
+                  subtitle:
+                      'Filter by city, age and more to narrow things down.',
                 ),
               ),
               SliverToBoxAdapter(
@@ -151,7 +152,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                               visualDensity: VisualDensity.compact,
                             ),
                           Padding(
-                            padding: const EdgeInsets.only(right: AppSpacing.sm),
+                            padding: const EdgeInsets.only(
+                              right: AppSpacing.sm,
+                            ),
                             child: _FilterButton(
                               active: state.filter.hasActiveFilters,
                               onTap: () => _openFilters(state.filter),
@@ -269,8 +272,9 @@ class _FilterButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return PressableScale(
       child: Material(
-        color:
-            active ? AppColors.primary : AppColors.primary.withValues(alpha: 0.08),
+        color: active
+            ? AppColors.primary
+            : AppColors.primary.withValues(alpha: 0.08),
         borderRadius: AppRadius.smAll,
         clipBehavior: Clip.antiAlias,
         child: InkWell(

@@ -16,11 +16,7 @@ class RefreshInterceptor extends QueuedInterceptor {
   final Dio _refreshDio;
   final void Function()? onSessionExpired;
 
-  RefreshInterceptor(
-    this._storage,
-    this._refreshDio, {
-    this.onSessionExpired,
-  });
+  RefreshInterceptor(this._storage, this._refreshDio, {this.onSessionExpired});
 
   /// Endpoints that never carry (or must never refresh) an access token — a 401
   /// from these must not trigger a token refresh.
@@ -89,7 +85,10 @@ class RefreshInterceptor extends QueuedInterceptor {
           newRefresh.isEmpty) {
         throw StateError('Malformed refresh response');
       }
-      await _storage.saveTokens(accessToken: newAccess, refreshToken: newRefresh);
+      await _storage.saveTokens(
+        accessToken: newAccess,
+        refreshToken: newRefresh,
+      );
       return _retry(options, newAccess, handler, err);
     } catch (_) {
       await _storage.clearTokens();

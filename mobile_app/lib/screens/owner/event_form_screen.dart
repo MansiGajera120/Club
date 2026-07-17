@@ -43,6 +43,10 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
   late String _type;
   bool _busy = false;
 
+  /// Set on a failed submit; the date picker isn't a [FormField], so its error
+  /// is tracked here rather than by the [Form].
+  String? _startDateError;
+
   @override
   void initState() {
     super.initState();
@@ -81,8 +85,8 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     final clampedInitial = initial.isBefore(minDate)
         ? minDate
         : initial.isAfter(maxDate)
-            ? maxDate
-            : initial;
+        ? maxDate
+        : initial;
 
     final date = await showDatePicker(
       context: context,
@@ -107,8 +111,9 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     // When editing an event whose start is already in the past, allow keeping
     // (or re-picking) that original date; new events stay today-or-later.
     final original = widget.event?.startDate.toLocal();
-    final minDate =
-        (original != null && original.isBefore(_now)) ? original : _now;
+    final minDate = (original != null && original.isBefore(_now))
+        ? original
+        : _now;
     final picked = await _pickDate(
       _startDate,
       minDate: minDate,
@@ -117,6 +122,9 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     if (picked != null) {
       setState(() {
         _startDate = picked;
+        // Clear the miss as soon as it's fixed, rather than leaving the message
+        // under a field that now has a date in it.
+        _startDateError = null;
       });
     }
   }
@@ -140,11 +148,14 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
   }
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
-    if (_startDate == null) {
-      AppToast.info('Please choose a start date');
-      return;
-    }
+    // Run both checks before bailing out, so every problem on the form is
+    // flagged at once instead of one per tap.
+    final fieldsOk = _formKey.currentState!.validate();
+    final dateOk = _startDate != null;
+    setState(
+      () => _startDateError = dateOk ? null : 'Please choose a start date',
+    );
+    if (!fieldsOk || !dateOk) return;
 
     setState(() => _busy = true);
     try {
@@ -152,19 +163,14 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
       if (widget.isEditing) {
         await repo.updateEvent(widget.event!.id, _buildPayload());
       } else {
-        await repo.createEvent({
-          'club': widget.clubId,
-          ..._buildPayload(),
-        });
+        await repo.createEvent({'club': widget.clubId, ..._buildPayload()});
       }
 
       ref.invalidate(ownerEventsScreenProvider);
       ref.invalidate(ownerEventsProvider);
       ref.invalidate(upcomingEventsProvider);
       if (mounted) {
-        AppToast.success(
-          widget.isEditing ? 'Event updated' : 'Event created',
-        );
+        AppToast.success(widget.isEditing ? 'Event updated' : 'Event created');
         context.pop();
       }
     } catch (e) {
@@ -197,16 +203,30 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                       label: 'Title',
                       controller: _title,
                       maxLength: 160,
-                      validator: (v) =>
-                          Validators.required(v, field: 'a title'),
+                      validator: (v) {
+                        final empty = Validators.required(v, field: 'a title');
+                        if (empty != null) return empty;
+                        // The API enforces min(2); mirror it so a one-letter
+                        // title fails here rather than as a 400.
+                        if (v!.trim().length < 2) {
+                          return 'Title must be at least 2 characters';
+                        }
+                        return null;
+                      },
                     ),
                     AppDropdownField<String>(
                       label: 'Event type',
                       value: _type,
                       items: const [
                         DropdownMenuItem(value: 'Camps', child: Text('Camps')),
-                        DropdownMenuItem(value: 'Clinics', child: Text('Clinics')),
-                        DropdownMenuItem(value: 'Events', child: Text('Events')),
+                        DropdownMenuItem(
+                          value: 'Clinics',
+                          child: Text('Clinics'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Events',
+                          child: Text('Events'),
+                        ),
                       ],
                       onChanged: (v) => setState(() => _type = v ?? _type),
                     ),
@@ -216,11 +236,16 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                       maxLines: 4,
                       minLines: 3,
                       maxLength: 4000,
+                      validator: (v) =>
+                          Validators.required(v, field: 'a description'),
                     ),
                     AppTextField(
-                        label: 'Location',
-                        controller: _location,
-                        maxLength: 300),
+                      label: 'Location',
+                      controller: _location,
+                      maxLength: 300,
+                      validator: (v) =>
+                          Validators.required(v, field: 'a location'),
+                    ),
                   ],
                 ),
                 const SizedBox(height: AppSpacing.lg),
@@ -235,12 +260,16 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                           : Formatters.date(_startDate!),
                       placeholder: 'Choose date',
                       onTap: _pickStart,
+                      errorText: _startDateError,
                     ),
                     AppTextField(
                       label: 'Registration link',
                       controller: _registration,
                       hint: 'https://…',
+                      keyboardType: TextInputType.url,
                       maxLength: 300,
+                      validator: (v) =>
+                          Validators.url(v, field: 'a registration link'),
                     ),
                   ],
                 ),
@@ -252,11 +281,23 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                     AppTextField(
                       label: 'Price (₹)',
                       controller: _price,
+                      hint: 'Enter 0 for a free event',
                       keyboardType: TextInputType.number,
                       maxLength: 7,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      validator: (v) {
+                        final empty = Validators.required(v, field: 'a price');
+                        if (empty != null) return empty;
+                        final amount = num.tryParse(v!.trim());
+                        if (amount == null) return 'Enter a valid price';
+                        // maxLength of 7 allows 9,999,999 but the API caps
+                        // price at 1,000,000 — without this the form happily
+                        // submits a value the server then rejects.
+                        if (amount > 1000000) {
+                          return 'Price cannot be more than 10,00,000';
+                        }
+                        return null;
+                      },
                     ),
                   ],
                 ),

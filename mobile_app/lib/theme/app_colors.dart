@@ -11,7 +11,10 @@ class AppColors {
   static const Color secondary = Color(0xFF38BDF8);
   static const Color accent = Color(0xFF0EA5E9);
 
-  static const List<Color> brandGradient = [Color(0xFF2563EB), Color(0xFF38BDF8)];
+  static const List<Color> brandGradient = [
+    Color(0xFF2563EB),
+    Color(0xFF38BDF8),
+  ];
 
   // ---- Status ----
   static const Color success = Color(0xFF16A34A);

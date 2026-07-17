@@ -170,8 +170,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   // ── Image pickers ──
 
   Future<void> _pickAvatar() async {
-    final picked = await ImagePicker()
-        .pickImage(source: ImageSource.gallery, maxWidth: 1024, imageQuality: 85);
+    final picked = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1024,
+      imageQuality: 85,
+    );
     if (picked == null) return;
     setState(() => _busy = true);
     try {
@@ -186,14 +189,19 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   }
 
   Future<void> _pickLogo() async {
-    final picked = await ImagePicker()
-        .pickImage(source: ImageSource.gallery, maxWidth: 1024, imageQuality: 85);
+    final picked = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1024,
+      imageQuality: 85,
+    );
     if (picked != null) setState(() => _logoPath = picked.path);
   }
 
   Future<void> _pickGallery() async {
-    final picked =
-        await ImagePicker().pickMultiImage(maxWidth: 1600, imageQuality: 85);
+    final picked = await ImagePicker().pickMultiImage(
+      maxWidth: 1600,
+      imageQuality: 85,
+    );
     if (picked.isNotEmpty) {
       setState(() => _galleryPaths.addAll(picked.map((x) => x.path)));
     }
@@ -219,26 +227,26 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       .toList();
 
   Map<String, dynamic> _clubBody() => {
-        'name': _clubNameCtrl.text.trim(),
-        'sport': _servicesList().firstOrNull ?? '',
-        'services': _servicesList(),
-        'city': _cityCtrl.text.trim(),
-        'address': _addressCtrl.text.trim(),
-        'description': _descriptionCtrl.text.trim(),
-        'gender': _gender,
-        'ageMin': int.tryParse(_ageMinCtrl.text.trim()) ?? 0,
-        'ageMax': int.tryParse(_ageMaxCtrl.text.trim()) ?? 100,
-        'price': num.tryParse(_priceCtrl.text.trim()) ?? 0,
-        'priceCurrency': _currency,
-        'registrationLink': _registrationLinkCtrl.text.trim(),
-        'contact': {
-          'phone': _phoneCtrl.text.trim(),
-          'email': _emailCtrl.text.trim(),
-          'website': _websiteCtrl.text.trim(),
-          'instagram': _instagramCtrl.text.trim(),
-          'tiktok': _tiktokCtrl.text.trim(),
-        },
-      };
+    'name': _clubNameCtrl.text.trim(),
+    'sport': _servicesList().firstOrNull ?? '',
+    'services': _servicesList(),
+    'city': _cityCtrl.text.trim(),
+    'address': _addressCtrl.text.trim(),
+    'description': _descriptionCtrl.text.trim(),
+    'gender': _gender,
+    'ageMin': int.tryParse(_ageMinCtrl.text.trim()) ?? 0,
+    'ageMax': int.tryParse(_ageMaxCtrl.text.trim()) ?? 100,
+    'price': num.tryParse(_priceCtrl.text.trim()) ?? 0,
+    'priceCurrency': _currency,
+    'registrationLink': _registrationLinkCtrl.text.trim(),
+    'contact': {
+      'phone': _phoneCtrl.text.trim(),
+      'email': _emailCtrl.text.trim(),
+      'website': _websiteCtrl.text.trim(),
+      'instagram': _instagramCtrl.text.trim(),
+      'tiktok': _tiktokCtrl.text.trim(),
+    },
+  };
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
@@ -252,8 +260,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
       // Save club data (owner only)
       if (_isOwner) {
-        final club =
-            await ref.read(myClubProvider.future);
+        final club = await ref.read(myClubProvider.future);
         if (club != null) {
           final repo = ref.read(clubRepositoryProvider);
           await repo.updateClub(club.id, _clubBody());
@@ -412,32 +419,31 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                           ? Image.file(
                               File(_logoPath!),
                               fit: BoxFit.cover,
-                              errorBuilder: (_, _, _) => const Icon(
-                                Icons.add_a_photo_outlined,
-                              ),
+                              errorBuilder: (_, _, _) =>
+                                  const Icon(Icons.add_a_photo_outlined),
                             )
                           : (club.logo != null
-                              ? CachedImage(url: club.logo)
-                              : Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.add_a_photo_outlined,
-                                      size: 28,
-                                      color: AppColors.textTertiary,
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'Add logo',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .labelSmall
-                                          ?.copyWith(
-                                            color: AppColors.textTertiary,
-                                          ),
-                                    ),
-                                  ],
-                                )),
+                                ? CachedImage(url: club.logo)
+                                : Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.add_a_photo_outlined,
+                                        size: 28,
+                                        color: AppColors.textTertiary,
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Add logo',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .labelSmall
+                                            ?.copyWith(
+                                              color: AppColors.textTertiary,
+                                            ),
+                                      ),
+                                    ],
+                                  )),
                     ),
                   ),
                 ),
@@ -495,10 +501,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 Text(
                   'Gender',
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textSecondary,
-                      ),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textSecondary,
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 SegmentedButton<String>(
@@ -508,8 +514,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     ButtonSegment(value: 'mixed', label: Text('Mixed')),
                   ],
                   selected: {_gender},
-                  onSelectionChanged: (s) =>
-                      setState(() => _gender = s.first),
+                  onSelectionChanged: (s) => setState(() => _gender = s.first),
                 ),
                 Row(
                   children: [
@@ -632,8 +637,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   existing: _existingGallery,
                   staged: _galleryPaths,
                   onAdd: _busy ? null : _pickGallery,
-                  onRemoveExisting:
-                      _busy ? null : (url) => _removeExistingPhoto(url, club.id),
+                  onRemoveExisting: _busy
+                      ? null
+                      : (url) => _removeExistingPhoto(url, club.id),
                   onRemoveStaged: (path) =>
                       setState(() => _galleryPaths.remove(path)),
                 ),
@@ -697,14 +703,18 @@ class _GalleryEditor extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.add_a_photo_outlined,
-                    size: 22, color: AppColors.textTertiary),
+                Icon(
+                  Icons.add_a_photo_outlined,
+                  size: 22,
+                  color: AppColors.textTertiary,
+                ),
                 const SizedBox(height: 4),
-                Text('Add',
-                    style: Theme.of(context)
-                        .textTheme
-                        .labelSmall
-                        ?.copyWith(color: AppColors.textTertiary)),
+                Text(
+                  'Add',
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: AppColors.textTertiary,
+                  ),
+                ),
               ],
             ),
           ),

@@ -3,13 +3,14 @@ import { useForm } from 'react-hook-form';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
-import { Box, Button, Link, Stack, TextField, Typography } from '@mui/material';
+import { Box, Button, Link, Stack, TextField } from '@mui/material';
 import GroupsIcon from '@mui/icons-material/Groups';
 
 import { ROUTES } from '@/constants';
 import { useAuth } from '@/hooks/useAuth';
 import { getApiErrorMessage } from '@/services/apiClient';
 import PasswordField from '@/components/common/PasswordField';
+import AuthHeading from '@/components/ui/AuthHeading';
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -46,12 +47,12 @@ export function LoginPage() {
         px: { xs: 2, sm: 0 },
       }}
     >
-      {/* Circle Icon Badge */}
-      <Box sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}>
+      {/* Circle Icon Badge — left-aligned to sit over the headline's column. */}
+      <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 3 }}>
         <Box
           sx={{
-            width: 104,
-            height: 104,
+            width: 84,
+            height: 84,
             borderRadius: '50%',
             border: '2px solid rgba(228,234,242, 0.6)',
             display: 'flex',
@@ -72,20 +73,16 @@ export function LoginPage() {
               bgcolor: 'rgba(248,251,254, 0.8)',
             }}
           >
-            <GroupsIcon sx={{ color: '#566072', fontSize: 48 }} />
+            <GroupsIcon sx={{ color: '#566072', fontSize: 38 }} />
           </Box>
         </Box>
       </Box>
 
-      {/* Header */}
-      <Stack spacing={1} sx={{ mb: 6, textAlign: 'center' }}>
-        <Typography variant="h3" fontWeight={850} sx={{ color: '#111827', fontSize: '2.5rem', letterSpacing: '-0.02em' }}>
-          Welcome!
-        </Typography>
-        <Typography variant="h6" sx={{ color: '#566072', fontWeight: 500 }}>
-          Please sign in to continue
-        </Typography>
-      </Stack>
+      <AuthHeading
+        title="Welcome"
+        accent="back"
+        subtitle="Sign in to manage clubs, events and members."
+      />
 
       {/* Fields */}
       <Stack spacing={2.5}>

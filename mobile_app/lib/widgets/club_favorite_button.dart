@@ -44,10 +44,7 @@ class ClubFavoriteButton extends ConsumerWidget {
                   added ? 'Added to favorites' : 'Removed from favorites',
                 );
               } catch (e) {
-                AppToast.showError(
-                  e,
-                  fallback: 'Could not update favorite',
-                );
+                AppToast.showError(e, fallback: 'Could not update favorite');
               }
             },
       icon: isPending

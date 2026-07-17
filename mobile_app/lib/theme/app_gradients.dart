@@ -21,11 +21,7 @@ class AppGradients {
   /// Soft, three-stop fade over featured card images — keeps mid-tones clear
   /// while grounding text with a deeper, slightly warm base.
   static const LinearGradient imageOverlay = LinearGradient(
-    colors: [
-      Colors.transparent,
-      Color(0x33222B3A),
-      Color(0xE00B1220),
-    ],
+    colors: [Colors.transparent, Color(0x33222B3A), Color(0xE00B1220)],
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     stops: [0.35, 0.68, 1.0],
@@ -50,19 +46,19 @@ class AppGradients {
 
   /// Ambient warm mesh for the app background.
   static List<BoxDecoration> get mesh => [
-        BoxDecoration(
-          gradient: RadialGradient(
-            center: const Alignment(1.0, -0.5),
-            radius: 1.0,
-            colors: [AppColors.meshRose, Colors.transparent],
-          ),
-        ),
-        BoxDecoration(
-          gradient: RadialGradient(
-            center: const Alignment(-0.5, 1.0),
-            radius: 0.85,
-            colors: [AppColors.meshPeach, Colors.transparent],
-          ),
-        ),
-      ];
+    BoxDecoration(
+      gradient: RadialGradient(
+        center: const Alignment(1.0, -0.5),
+        radius: 1.0,
+        colors: [AppColors.meshRose, Colors.transparent],
+      ),
+    ),
+    BoxDecoration(
+      gradient: RadialGradient(
+        center: const Alignment(-0.5, 1.0),
+        radius: 0.85,
+        colors: [AppColors.meshPeach, Colors.transparent],
+      ),
+    ),
+  ];
 }

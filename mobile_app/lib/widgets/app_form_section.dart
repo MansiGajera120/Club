@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import '../theme/app_fonts.dart';
 import '../theme/app_radius.dart';
 import '../theme/app_shadows.dart';
 import '../theme/app_spacing.dart';
+import '../theme/app_typography.dart';
 
 /// Groups related form fields inside a bordered, titled container.
+///
+/// The heading renders [AppTypography.sectionTitle], the same style
+/// [SectionHeader] uses — these are both "the title of a section" and must not
+/// drift apart.
 class FormSection extends StatelessWidget {
   final String title;
   final String? subtitle;
@@ -46,9 +52,7 @@ class FormSection extends StatelessWidget {
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(AppRadius.lg),
               ),
-              border: const Border(
-                bottom: BorderSide(color: AppColors.border),
-              ),
+              border: const Border(bottom: BorderSide(color: AppColors.border)),
             ),
             child: Row(
               children: [
@@ -73,9 +77,9 @@ class FormSection extends StatelessWidget {
                     children: [
                       Text(
                         title,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
+                        style: AppFonts.display(
+                          AppTypography.sectionTitle,
+                        ).copyWith(color: AppColors.textPrimary),
                       ),
                       if (subtitle != null) ...[
                         const SizedBox(height: 2),
@@ -163,7 +167,10 @@ class AppDropdownField<T> extends StatelessWidget {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: AppRadius.mdAll,
-              borderSide: const BorderSide(color: AppColors.primary, width: 1.8),
+              borderSide: const BorderSide(
+                color: AppColors.primary,
+                width: 1.8,
+              ),
             ),
           ),
         ),
@@ -180,6 +187,14 @@ class AppPickerField extends StatelessWidget {
   final VoidCallback onTap;
   final IconData icon;
 
+  /// Validation message to show beneath the field.
+  ///
+  /// This isn't a [FormField], so it can't join a [Form]'s validate() pass —
+  /// the owning screen decides when the value is missing and passes the message
+  /// down. Without it a missing date could only be reported as a toast, far
+  /// away from the field that was actually empty.
+  final String? errorText;
+
   const AppPickerField({
     super.key,
     required this.label,
@@ -187,12 +202,14 @@ class AppPickerField extends StatelessWidget {
     required this.onTap,
     this.placeholder = 'Tap to choose',
     this.icon = Icons.calendar_today_outlined,
+    this.errorText,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final hasValue = value.isNotEmpty;
+    final hasError = errorText != null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -211,7 +228,9 @@ class AppPickerField extends StatelessWidget {
           color: AppColors.card,
           shape: RoundedRectangleBorder(
             borderRadius: AppRadius.mdAll,
-            side: const BorderSide(color: AppColors.borderStrong),
+            side: BorderSide(
+              color: hasError ? AppColors.danger : AppColors.borderStrong,
+            ),
           ),
           clipBehavior: Clip.antiAlias,
           child: InkWell(
@@ -226,7 +245,9 @@ class AppPickerField extends StatelessWidget {
                   Icon(
                     icon,
                     size: 20,
-                    color: hasValue ? AppColors.primary : AppColors.textTertiary,
+                    color: hasValue
+                        ? AppColors.primary
+                        : AppColors.textTertiary,
                   ),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
@@ -249,6 +270,21 @@ class AppPickerField extends StatelessWidget {
             ),
           ),
         ),
+        if (hasError) ...[
+          const SizedBox(height: 6),
+          // Matches InputDecoration's error slot so a missing date reads the
+          // same as a missing text field.
+          Padding(
+            padding: const EdgeInsets.only(left: AppSpacing.md),
+            child: Text(
+              errorText!,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: AppColors.danger,
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import '../theme/app_fonts.dart';
 import '../theme/app_gradients.dart';
 import '../theme/app_radius.dart';
 import '../theme/app_spacing.dart';
+import '../theme/app_typography.dart';
+import 'doodle_backdrop.dart';
 
 /// Editorial page header used at the top of every tab, in place of an AppBar.
 ///
@@ -20,12 +23,19 @@ class PageHero extends StatelessWidget {
   /// Optional action pinned to the right of the title (e.g. an icon button).
   final Widget? trailing;
 
+  /// Scatters faint hand-drawn marks behind the header.
+  ///
+  /// Opt-in rather than always-on: the marks need clear space to the right of
+  /// the copy, which a header carrying a [trailing] action doesn't have.
+  final bool doodles;
+
   const PageHero({
     super.key,
     required this.overline,
     required this.title,
     this.subtitle,
     this.trailing,
+    this.doodles = false,
   });
 
   @override
@@ -36,6 +46,43 @@ class PageHero extends StatelessWidget {
 
     final titleText = Text(title, style: theme.textTheme.headlineLarge);
 
+    final content = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 22,
+              height: 3,
+              decoration: BoxDecoration(
+                gradient: AppGradients.brandHorizontal,
+                borderRadius: AppRadius.pillAll,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Text(overline, style: theme.textTheme.labelSmall),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.md),
+        if (trailing == null)
+          titleText
+        else
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(child: titleText),
+              const SizedBox(width: AppSpacing.sm),
+              trailing!,
+            ],
+          ),
+        if (subtitle != null) ...[
+          const SizedBox(height: AppSpacing.sm),
+          Text(subtitle!, style: theme.textTheme.bodyMedium),
+        ],
+      ],
+    );
+
     return Container(
       decoration: const BoxDecoration(gradient: AppGradients.heroWash),
       padding: EdgeInsets.fromLTRB(
@@ -44,47 +91,30 @@ class PageHero extends StatelessWidget {
         AppSpacing.lg,
         AppSpacing.sm,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 22,
-                height: 3,
-                decoration: BoxDecoration(
-                  gradient: AppGradients.brandHorizontal,
-                  borderRadius: AppRadius.pillAll,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Text(overline, style: theme.textTheme.labelSmall),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.md),
-          if (trailing == null)
-            titleText
-          else
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
+      child: doodles
+          // The Column sizes the Stack; the field then fills whatever box that
+          // comes to, so the marks scale with the header's own content.
+          ? Stack(
               children: [
-                Expanded(child: titleText),
-                const SizedBox(width: AppSpacing.sm),
-                trailing!,
+                const Positioned.fill(
+                  child: AnimatedDoodleField(
+                    spots: kHeaderSpots,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                content,
               ],
-            ),
-          if (subtitle != null) ...[
-            const SizedBox(height: AppSpacing.sm),
-            Text(subtitle!, style: theme.textTheme.bodyMedium),
-          ],
-        ],
-      ),
+            )
+          : content,
     );
   }
 }
 
 /// Heading that separates sections within a page: a brand accent bar, the
 /// section title, and a fading tick on the right.
+///
+/// Renders [AppTypography.sectionTitle] — the same style [FormSection] uses, so
+/// every section heading in the app matches regardless of screen.
 ///
 /// Pass [trailing] to swap the tick for an action (e.g. a "See all" button).
 class SectionHeader extends StatelessWidget {
@@ -113,22 +143,35 @@ class SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Padding(
       padding: padding ?? defaultPadding,
       child: Row(
         children: [
           Container(
             width: 4,
-            height: 20,
+            // Tracks the title's cap height so the bar reads as a marker beside
+            // the text rather than a stub next to it.
+            height: 22,
             decoration: BoxDecoration(
               gradient: AppGradients.brand,
               borderRadius: AppRadius.pillAll,
             ),
           ),
           const SizedBox(width: AppSpacing.sm + 2),
-          Text(title, style: theme.textTheme.titleLarge),
-          const Spacer(),
+          // Expanded, not Flexible + Spacer: two flex children would split the
+          // free space between them and leave the trailing tick stranded
+          // mid-row. This fills the gap and still ellipsises a long title.
+          Expanded(
+            child: Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppFonts.display(
+                AppTypography.sectionTitle,
+              ).copyWith(color: AppColors.textPrimary),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
           trailing ??
               Container(
                 width: 32,

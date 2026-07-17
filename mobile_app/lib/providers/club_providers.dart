@@ -17,14 +17,17 @@ final featuredClubsProvider = FutureProvider.autoDispose<List<Club>>((ref) {
 
 /// First page of newest clubs for the home list.
 final recentClubsProvider = FutureProvider.autoDispose<List<Club>>((ref) async {
-  final result =
-      await ref.watch(clubRepositoryProvider).listClubs(const ClubFilter(), limit: 10);
+  final result = await ref
+      .watch(clubRepositoryProvider)
+      .listClubs(const ClubFilter(), limit: 10);
   return result.items;
 });
 
 /// A single club's detail.
-final clubDetailProvider =
-    FutureProvider.autoDispose.family<Club, String>((ref, id) {
+final clubDetailProvider = FutureProvider.autoDispose.family<Club, String>((
+  ref,
+  id,
+) {
   return ref.watch(clubRepositoryProvider).getClub(id);
 });
 
@@ -47,13 +50,13 @@ class SearchState {
   });
 
   factory SearchState.initial(ClubFilter filter) => SearchState(
-        filter: filter,
-        clubs: const [],
-        meta: PageMeta.empty,
-        loading: true,
-        loadingMore: false,
-        error: null,
-      );
+    filter: filter,
+    clubs: const [],
+    meta: PageMeta.empty,
+    loading: true,
+    loadingMore: false,
+    error: null,
+  );
 
   bool get hasMore => meta.hasMore;
 
@@ -95,7 +98,11 @@ class ClubSearchController extends Notifier<SearchState> {
   // can't apply its result after a newer load (filter change / reset) started.
   int _loadGeneration = 0;
 
-  Future<void> _load(ClubFilter filter, {required bool reset, int page = 1}) async {
+  Future<void> _load(
+    ClubFilter filter, {
+    required bool reset,
+    int page = 1,
+  }) async {
     final generation = ++_loadGeneration;
 
     if (!filter.shouldQueryCatalog) {
@@ -123,8 +130,9 @@ class ClubSearchController extends Notifier<SearchState> {
     }
 
     try {
-      final result =
-          await ref.read(clubRepositoryProvider).listClubs(filter, page: page);
+      final result = await ref
+          .read(clubRepositoryProvider)
+          .listClubs(filter, page: page);
       // A newer load superseded this one — drop the stale result.
       if (generation != _loadGeneration) return;
       final items = reset ? result.items : [...state.clubs, ...result.items];
@@ -159,4 +167,6 @@ class ClubSearchController extends Notifier<SearchState> {
 }
 
 final searchControllerProvider =
-    NotifierProvider<ClubSearchController, SearchState>(ClubSearchController.new);
+    NotifierProvider<ClubSearchController, SearchState>(
+      ClubSearchController.new,
+    );

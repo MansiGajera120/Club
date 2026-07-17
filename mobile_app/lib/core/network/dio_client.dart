@@ -13,7 +13,7 @@ class DioClient {
   final Dio dio;
 
   DioClient(StorageService storage, {void Function()? onSessionExpired})
-      : dio = Dio() {
+    : dio = Dio() {
     final baseOptions = BaseOptions(
       baseUrl: AppConfig.apiOrigin,
       connectTimeout: AppConfig.connectTimeout,
@@ -29,7 +29,11 @@ class DioClient {
 
     dio.interceptors.add(AuthInterceptor(storage));
     dio.interceptors.add(
-      RefreshInterceptor(storage, refreshDio, onSessionExpired: onSessionExpired),
+      RefreshInterceptor(
+        storage,
+        refreshDio,
+        onSessionExpired: onSessionExpired,
+      ),
     );
 
     if (!AppConfig.isProduction) {

@@ -43,7 +43,9 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
 
     setState(() => _busy = true);
     try {
-      await ref.read(userRepositoryProvider).changePassword(
+      await ref
+          .read(userRepositoryProvider)
+          .changePassword(
             currentPassword: _currentCtrl.text,
             newPassword: _newCtrl.text,
           );
@@ -84,12 +86,16 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                       controller: _currentCtrl,
                       obscureText: _obscureCurrent,
                       textInputAction: TextInputAction.next,
-                      validator: (v) =>
-                          Validators.required(v, field: 'your current password'),
+                      validator: (v) => Validators.required(
+                        v,
+                        field: 'your current password',
+                      ),
                       suffixIcon: IconButton(
-                        icon: Icon(_obscureCurrent
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined),
+                        icon: Icon(
+                          _obscureCurrent
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined,
+                        ),
                         onPressed: () =>
                             setState(() => _obscureCurrent = !_obscureCurrent),
                       ),
@@ -111,9 +117,11 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                         return null;
                       },
                       suffixIcon: IconButton(
-                        icon: Icon(_obscureNew
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined),
+                        icon: Icon(
+                          _obscureNew
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined,
+                        ),
                         onPressed: () =>
                             setState(() => _obscureNew = !_obscureNew),
                       ),
@@ -126,14 +134,17 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                       controller: _confirmCtrl,
                       obscureText: _obscureConfirm,
                       textInputAction: TextInputAction.done,
-                      validator:
-                          Validators.confirmPassword(() => _newCtrl.text),
+                      validator: Validators.confirmPassword(
+                        () => _newCtrl.text,
+                      ),
                       suffixIcon: IconButton(
-                        icon: Icon(_obscureConfirm
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined),
-                        onPressed: () => setState(
-                            () => _obscureConfirm = !_obscureConfirm),
+                        icon: Icon(
+                          _obscureConfirm
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined,
+                        ),
+                        onPressed: () =>
+                            setState(() => _obscureConfirm = !_obscureConfirm),
                       ),
                     ),
                   ],

@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../../config/app_config.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_gradients.dart';
 import '../../../theme/app_radius.dart';
 import '../../../theme/app_shadows.dart';
 import '../../../theme/app_spacing.dart';
-import 'doodle_backdrop.dart';
+import '../../../widgets/doodle_backdrop.dart';
 
 /// Shared auth layout — a hand-drawn sketchbook page with the form floating on
 /// top as a sticker-tagged card.
@@ -164,7 +163,10 @@ class _HeroBand extends StatelessWidget {
   }
 }
 
-/// Back sticker + brand tag.
+/// The band's top row: just the back sticker.
+///
+/// The [SizedBox] holds the row's height open on steps with no back action, so
+/// the headline below starts at the same place on every screen in the flow.
 class _TopBar extends StatelessWidget {
   final VoidCallback? onBack;
 
@@ -178,8 +180,6 @@ class _TopBar extends StatelessWidget {
           _StickerButton(onTap: onBack!)
         else
           const SizedBox(height: 44),
-        const Spacer(),
-        const _BrandTag(),
       ],
     );
   }
@@ -226,59 +226,6 @@ class _StickerButton extends StatelessWidget {
               ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Brand pill — a small anchor so the page never reads as a stray form. Solid
-/// white on the band, which inverts it against the gradient.
-class _BrandTag extends StatelessWidget {
-  const _BrandTag();
-
-  @override
-  Widget build(BuildContext context) {
-    return Transform.rotate(
-      angle: 0.03,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.sm,
-        ),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: AppRadius.pillAll,
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.shadow.withValues(alpha: 0.18),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // The app's own drawn ball, not a Material icon — the brand mark and
-            // the wallpaper come from the same pen.
-            const DoodleMark(
-              doodle: Doodle.ball,
-              size: 16,
-              color: AppColors.primary,
-              weight: 0.1,
-            ),
-            const SizedBox(width: 7),
-            Text(
-              AppConfig.appName.toUpperCase(),
-              style: const TextStyle(
-                color: AppColors.primary,
-                fontSize: 11,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 1.1,
-              ),
-            ),
-          ],
         ),
       ),
     );

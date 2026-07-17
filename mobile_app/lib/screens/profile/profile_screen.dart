@@ -77,7 +77,9 @@ class ProfileScreen extends ConsumerWidget {
             delegate: _ProfileHeaderDelegate(
               user: user,
               roleLabel: user == null ? '—' : _roleLabel(user.role),
-              roleIcon: user == null ? Icons.person_outline : _roleIcon(user.role),
+              roleIcon: user == null
+                  ? Icons.person_outline
+                  : _roleIcon(user.role),
               minHeight: 66 + MediaQuery.of(context).padding.top,
               maxHeight: 312,
             ),
@@ -94,7 +96,10 @@ class ProfileScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SectionHeader(title: 'Account', padding: EdgeInsets.zero),
+                  const SectionHeader(
+                    title: 'Account',
+                    padding: EdgeInsets.zero,
+                  ),
                   const SizedBox(height: AppSpacing.sm),
                   _SectionCard(
                     children: [
@@ -112,7 +117,8 @@ class ProfileScreen extends ConsumerWidget {
                           iconColor: const Color(0xFFF59E0B),
                           title: 'Change Password',
                           subtitle: 'Update your sign-in details',
-                          onTap: () => context.pushNamed(RouteNames.changePassword),
+                          onTap: () =>
+                              context.pushNamed(RouteNames.changePassword),
                         )
                       else
                         _ProfileMenuItem(
@@ -128,7 +134,10 @@ class ProfileScreen extends ConsumerWidget {
                   ),
 
                   const SizedBox(height: AppSpacing.xl),
-                  const SectionHeader(title: 'Support & Legal', padding: EdgeInsets.zero),
+                  const SectionHeader(
+                    title: 'Support & Legal',
+                    padding: EdgeInsets.zero,
+                  ),
                   const SizedBox(height: AppSpacing.sm),
                   _SectionCard(
                     children: [
@@ -147,7 +156,9 @@ class ProfileScreen extends ConsumerWidget {
                         subtitle: 'How we handle your data',
                         onTap: () => context.pushNamed(
                           RouteNames.legalDocument,
-                          pathParameters: {'type': LegalDocumentType.privacy.name},
+                          pathParameters: {
+                            'type': LegalDocumentType.privacy.name,
+                          },
                         ),
                       ),
                       const _MenuDivider(),
@@ -158,7 +169,9 @@ class ProfileScreen extends ConsumerWidget {
                         subtitle: 'Rules for using the platform',
                         onTap: () => context.pushNamed(
                           RouteNames.legalDocument,
-                          pathParameters: {'type': LegalDocumentType.terms.name},
+                          pathParameters: {
+                            'type': LegalDocumentType.terms.name,
+                          },
                         ),
                       ),
                     ],
@@ -168,8 +181,9 @@ class ProfileScreen extends ConsumerWidget {
 
                   // Sign out — styled as a section card row for consistency.
                   _SignOutButton(
-                    onTap:
-                        user == null ? null : () => _confirmLogout(context, ref),
+                    onTap: user == null
+                        ? null
+                        : () => _confirmLogout(context, ref),
                   ),
 
                   const SizedBox(height: AppSpacing.xl),
@@ -348,7 +362,10 @@ class _ProfileMenuItem extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: 16),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: 16,
+        ),
         child: Row(
           children: [
             Container(
@@ -417,7 +434,11 @@ class _ProfileHeaderDelegate extends SliverPersistentHeaderDelegate {
   double get maxExtent => maxHeight;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
     // 0.0 -> fully expanded, 1.0 -> fully shrunk
     final progress = shrinkOffset / (maxExtent - minExtent);
     final theme = Theme.of(context);
@@ -452,8 +473,11 @@ class _ProfileHeaderDelegate extends SliverPersistentHeaderDelegate {
                 ? CachedImage(url: user!.avatarUrl)
                 : Container(
                     color: Colors.white.withValues(alpha: 0.2),
-                    child: Icon(Icons.person,
-                        color: Colors.white, size: size * 0.5),
+                    child: Icon(
+                      Icons.person,
+                      color: Colors.white,
+                      size: size * 0.5,
+                    ),
                   ),
           ),
         ),
@@ -480,6 +504,25 @@ class _ProfileHeaderDelegate extends SliverPersistentHeaderDelegate {
                   offset: Offset(0, 8),
                 ),
               ],
+            ),
+          ),
+        ),
+
+        // Drifting marks over the gradient. Clipped to the card's own rounded
+        // base, or they'd paint into the squared-off corners the gradient
+        // leaves behind; and faded out with the hero, since the collapsed bar
+        // is too tight to carry them.
+        Positioned.fill(
+          child: ClipRRect(
+            borderRadius: const BorderRadius.vertical(
+              bottom: Radius.circular(28),
+            ),
+            child: Opacity(
+              opacity: expandedOpacity,
+              child: const AnimatedDoodleField(
+                spots: kProfileSpots,
+                color: Colors.white,
+              ),
             ),
           ),
         ),
@@ -526,7 +569,9 @@ class _ProfileHeaderDelegate extends SliverPersistentHeaderDelegate {
                 avatar(92),
                 const SizedBox(height: AppSpacing.md),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.lg,
+                  ),
                   child: Text(
                     user?.name ?? '—',
                     maxLines: 1,
@@ -540,7 +585,9 @@ class _ProfileHeaderDelegate extends SliverPersistentHeaderDelegate {
                 ),
                 const SizedBox(height: 4),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.lg,
+                  ),
                   child: Text(
                     user?.email ?? '',
                     maxLines: 1,
@@ -574,10 +621,7 @@ class _Badge extends StatelessWidget {
   final IconData icon;
   final String label;
 
-  const _Badge({
-    required this.icon,
-    required this.label,
-  });
+  const _Badge({required this.icon, required this.label});
 
   @override
   Widget build(BuildContext context) {

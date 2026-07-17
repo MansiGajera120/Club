@@ -77,7 +77,9 @@ class AuthController extends Notifier<AuthState> {
   }
 
   Future<void> _persist(AuthResponse res) async {
-    await ref.read(storageServiceProvider).saveTokens(
+    await ref
+        .read(storageServiceProvider)
+        .saveTokens(
           accessToken: res.accessToken,
           refreshToken: res.refreshToken,
         );
@@ -109,7 +111,9 @@ class AuthController extends Notifier<AuthState> {
   Future<void> verifyPendingOtp(String code) async {
     final pending = _pendingSignup;
     if (pending == null) {
-      throw const AppException('Your signup session expired. Please sign up again.');
+      throw const AppException(
+        'Your signup session expired. Please sign up again.',
+      );
     }
     await _repo.verifyOtp(email: pending.user.email, code: code);
     _pendingSignup = null;
@@ -122,7 +126,9 @@ class AuthController extends Notifier<AuthState> {
   Future<void> resendPendingOtp() async {
     final email = _pendingSignup?.user.email;
     if (email == null) {
-      throw const AppException('Your signup session expired. Please sign up again.');
+      throw const AppException(
+        'Your signup session expired. Please sign up again.',
+      );
     }
     await _repo.resendVerification(email);
   }
@@ -140,7 +146,10 @@ class AuthController extends Notifier<AuthState> {
   Future<void> loginWithApple() async {
     final apple = await _social.signInWithApple();
     await _persist(
-      await _repo.appleLogin(identityToken: apple.identityToken, name: apple.name),
+      await _repo.appleLogin(
+        identityToken: apple.identityToken,
+        name: apple.name,
+      ),
     );
   }
 
@@ -179,5 +188,6 @@ class AuthController extends Notifier<AuthState> {
   }
 }
 
-final authControllerProvider =
-    NotifierProvider<AuthController, AuthState>(AuthController.new);
+final authControllerProvider = NotifierProvider<AuthController, AuthState>(
+  AuthController.new,
+);

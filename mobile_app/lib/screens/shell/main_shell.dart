@@ -49,7 +49,9 @@ class MainShell extends ConsumerWidget {
     // full owner tabs appear only once their club is approved.
     var ownerApproved = false;
     if (isOwner) {
-      ownerApproved = ref.watch(myClubProvider).maybeWhen(
+      ownerApproved = ref
+          .watch(myClubProvider)
+          .maybeWhen(
             data: (club) => club?.status == 'approved',
             orElse: () => false,
           );
@@ -60,22 +62,43 @@ class MainShell extends ConsumerWidget {
     // so they get no Events tab.
     final items = isOwner
         ? const [
-            _NavItem(Icons.dashboard_outlined, Icons.dashboard_rounded, 'Dashboard', 0),
+            _NavItem(
+              Icons.dashboard_outlined,
+              Icons.dashboard_rounded,
+              'Dashboard',
+              0,
+            ),
             _NavItem(Icons.search_outlined, Icons.search_rounded, 'Search', 1),
             _NavItem(Icons.event_outlined, Icons.event_rounded, 'Events', 3),
-            _NavItem(Icons.person_outline_rounded, Icons.person_rounded, 'Profile', 4),
+            _NavItem(
+              Icons.person_outline_rounded,
+              Icons.person_rounded,
+              'Profile',
+              4,
+            ),
           ]
         : const [
             _NavItem(Icons.home_outlined, Icons.home_rounded, 'Home', 0),
             _NavItem(Icons.search_outlined, Icons.search_rounded, 'Search', 1),
-            _NavItem(Icons.favorite_border_rounded, Icons.favorite_rounded, 'Favorites', 2),
-            _NavItem(Icons.person_outline_rounded, Icons.person_rounded, 'Profile', 4),
+            _NavItem(
+              Icons.favorite_border_rounded,
+              Icons.favorite_rounded,
+              'Favorites',
+              2,
+            ),
+            _NavItem(
+              Icons.person_outline_rounded,
+              Icons.person_rounded,
+              'Profile',
+              4,
+            ),
           ];
 
     // Fall back to the first tab if the active branch has no tab for this role
     // (e.g. a parent deep-linked to /events).
-    final matched =
-        items.indexWhere((i) => i.branch == navigationShell.currentIndex);
+    final matched = items.indexWhere(
+      (i) => i.branch == navigationShell.currentIndex,
+    );
     final selectedIndex = matched == -1 ? 0 : matched;
 
     return Scaffold(
@@ -176,10 +199,7 @@ class _NavButton extends StatelessWidget {
             AnimatedContainer(
               duration: const Duration(milliseconds: 220),
               curve: Curves.easeOut,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 18,
-                vertical: 5,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 5),
               decoration: BoxDecoration(
                 color: selected
                     ? AppColors.primary.withValues(alpha: 0.12)

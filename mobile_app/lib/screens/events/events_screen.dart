@@ -132,99 +132,119 @@ class EventCard extends StatelessWidget {
         boxShadow: AppShadows.sm,
       ),
       child: Material(
-      color: theme.cardTheme.color ?? theme.colorScheme.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: AppRadius.lgAll,
-        side: BorderSide(color: theme.dividerColor),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-      onTap: onTap,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (event.coverImage != null)
-            CachedImage(
-              url: event.coverImage,
-              height: 130,
-              width: double.infinity,
-              placeholderIcon: Icons.event,
-            ),
-          Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        color: theme.cardTheme.color ?? theme.colorScheme.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: AppRadius.lgAll,
+          side: BorderSide(color: theme.dividerColor),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Every event gets a cover now: an uploaded one if it has it, and
+              // generated art from its id if not, rather than no image at all.
+              SizedBox(
+                height: 150,
+                width: double.infinity,
+                child: (event.coverImage?.isNotEmpty ?? false)
+                    ? CachedImage(
+                        url: event.coverImage,
+                        height: 150,
+                        width: double.infinity,
+                        placeholderIcon: Icons.event,
+                      )
+                    : EventCoverArt(seed: event.id),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Text(event.title, style: theme.textTheme.titleMedium),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            event.title,
+                            style: theme.textTheme.titleMedium,
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.sm),
+                        EventTypeBadge(type: event.type),
+                      ],
                     ),
-                    const SizedBox(width: AppSpacing.sm),
-                    EventTypeBadge(type: event.type),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    const Icon(Icons.schedule, size: 16),
-                    const SizedBox(width: 6),
-                    Text(Formatters.date(event.startDate),
-                        style: theme.textTheme.bodySmall),
-                  ],
-                ),
-                if (event.location != null && event.location!.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      const Icon(Icons.place_outlined, size: 16),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(event.location!,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.bodySmall),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(Icons.schedule, size: 16),
+                        const SizedBox(width: 6),
+                        Text(
+                          Formatters.date(event.startDate),
+                          style: theme.textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                    if (event.location != null &&
+                        event.location!.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          const Icon(Icons.place_outlined, size: 16),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              event.location!,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.bodySmall,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
-                  ),
-                ],
-                if (_windowText != null) ...[
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      const Icon(Icons.how_to_reg_outlined, size: 16),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(_windowText!,
-                            style: theme.textTheme.bodySmall),
+                    if (_windowText != null) ...[
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          const Icon(Icons.how_to_reg_outlined, size: 16),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              _windowText!,
+                              style: theme.textTheme.bodySmall,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
-                  ),
-                ],
-                if (_hasLink) ...[
-                  const SizedBox(height: AppSpacing.md),
-                  if (_closed)
-                    const _RegStatus(
-                        label: 'Registration closed', icon: Icons.lock_clock)
-                  else if (_notYetOpen)
-                    _RegStatus(
-                      label: 'Registration opens ${Formatters.date(event.registrationStartDate!)}',
-                      icon: Icons.schedule,
-                    )
-                  else
-                    AppButton(
-                      label: 'Register',
-                      icon: Icons.open_in_new,
-                      onPressed: () => _openRegistration(context),
-                    ),
-                ],
-              ],
-            ),
+                    if (_hasLink) ...[
+                      const SizedBox(height: AppSpacing.md),
+                      if (_closed)
+                        const _RegStatus(
+                          label: 'Registration closed',
+                          icon: Icons.lock_clock,
+                        )
+                      else if (_notYetOpen)
+                        _RegStatus(
+                          label:
+                              'Registration opens ${Formatters.date(event.registrationStartDate!)}',
+                          icon: Icons.schedule,
+                        )
+                      else
+                        AppButton(
+                          label: 'Register',
+                          icon: Icons.open_in_new,
+                          onPressed: () => _openRegistration(context),
+                        ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
-      ),
+        ),
       ),
     );
     // PressableScale only animates the dip; the InkWell above handles the tap.
@@ -266,7 +286,9 @@ class _RegStatus extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md, vertical: AppSpacing.sm + 2),
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm + 2,
+      ),
       decoration: BoxDecoration(
         color: theme.disabledColor.withValues(alpha: 0.08),
         borderRadius: AppRadius.mdAll,
@@ -280,8 +302,10 @@ class _RegStatus extends StatelessWidget {
           Flexible(
             child: Text(
               label,
-              style: theme.textTheme.bodyMedium
-                  ?.copyWith(color: theme.disabledColor, fontWeight: FontWeight.w600),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.disabledColor,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],
@@ -312,12 +336,10 @@ class EventTypeBadge extends StatelessWidget {
       ),
       child: Text(
         type,
-        style: Theme.of(context)
-            .textTheme
-            .labelSmall
-            ?.copyWith(color: color, letterSpacing: 0.2),
+        style: Theme.of(
+          context,
+        ).textTheme.labelSmall?.copyWith(color: color, letterSpacing: 0.2),
       ),
     );
   }
 }
-

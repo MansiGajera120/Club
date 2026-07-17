@@ -2,11 +2,12 @@ import { useForm } from 'react-hook-form';
 import { Link as RouterLink, useNavigate, useSearchParams } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
-import { Box, Button, Link, Stack, Typography, TextField } from '@mui/material';
+import { Box, Button, Link, Stack, TextField } from '@mui/material';
 
 import { ROUTES } from '@/constants';
 import { authService } from '@/services/authService';
 import { getApiErrorMessage } from '@/services/apiClient';
+import AuthHeading from '@/components/ui/AuthHeading';
 
 /**
  * Step two of the password-reset flow: confirm the 6-digit code from the email
@@ -44,20 +45,15 @@ export function VerifyResetCodePage() {
 
   return (
     <Box component="form" onSubmit={handleSubmit((values) => mutation.mutate(values))}>
-      <Stack spacing={1} sx={{ mb: 6, textAlign: 'center' }}>
-        <Typography
-          variant="h3"
-          fontWeight={850}
-          sx={{ color: '#111827', fontSize: '2.5rem', letterSpacing: '-0.02em' }}
-        >
-          Verify your code
-        </Typography>
-        <Typography variant="h6" sx={{ color: '#566072', fontWeight: 500 }}>
-          {emailFromQuery
+      <AuthHeading
+        title="Verify your"
+        accent="code"
+        subtitle={
+          emailFromQuery
             ? `Enter the 6-digit code we sent to ${emailFromQuery}.`
-            : 'Enter your email and the 6-digit code we sent you.'}
-        </Typography>
-      </Stack>
+            : 'Enter your email and the 6-digit code we sent you.'
+        }
+      />
 
       <Stack spacing={2}>
         {!emailFromQuery && (

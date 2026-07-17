@@ -4,8 +4,9 @@ class Validators {
 
   // Requires a proper domain: labels of alphanumerics/hyphens separated by
   // single dots and a TLD — rejects trailing/consecutive dots (e.g. `a@b.c.`).
-  static final RegExp _emailRegex =
-      RegExp(r'^[\w.+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$');
+  static final RegExp _emailRegex = RegExp(
+    r'^[\w.+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$',
+  );
   // 10–15 digits after stripping formatting; allows an optional country code.
   static final RegExp _phoneRegex = RegExp(r'^\d{10,15}$');
 
@@ -31,6 +32,25 @@ class Validators {
 
   static String? required(String? value, {String field = 'this field'}) {
     if ((value?.trim() ?? '').isEmpty) return 'Please enter $field';
+    return null;
+  }
+
+  /// Requires an absolute http(s) link.
+  ///
+  /// The API validates this server-side (`Joi.string().uri()`), so anything
+  /// that isn't a real URL comes back as a generic 400 well after the user has
+  /// finished typing. Catching the shape here keeps the correction next to the
+  /// field it belongs to.
+  static String? url(String? value, {String field = 'a link'}) {
+    final v = value?.trim() ?? '';
+    if (v.isEmpty) return 'Please enter $field';
+    final uri = Uri.tryParse(v);
+    if (uri == null ||
+        !uri.isAbsolute ||
+        uri.host.isEmpty ||
+        (uri.scheme != 'http' && uri.scheme != 'https')) {
+      return 'Enter a full link starting with https://';
+    }
     return null;
   }
 

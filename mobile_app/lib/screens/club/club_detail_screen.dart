@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
@@ -44,7 +44,11 @@ class _ClubDetailView extends ConsumerWidget {
   final Club club;
   const _ClubDetailView({required this.club});
 
-  Future<void> _launch(BuildContext context, String? raw, {String? scheme}) async {
+  Future<void> _launch(
+    BuildContext context,
+    String? raw, {
+    String? scheme,
+  }) async {
     if (raw == null || raw.isEmpty) return;
     final value = scheme != null ? '$scheme$raw' : raw;
     final uri = Uri.tryParse(value);
@@ -68,7 +72,9 @@ class _ClubDetailView extends ConsumerWidget {
           expandedHeight: 280,
           pinned: true,
           foregroundColor: Colors.white,
-          leading: const _GlassAppBarButton(child: BackButton(color: Colors.white)),
+          leading: const _GlassAppBarButton(
+            child: BackButton(color: Colors.white),
+          ),
           actions: [
             _GlassAppBarButton(
               child: ClubFavoriteButton(
@@ -80,17 +86,13 @@ class _ClubDetailView extends ConsumerWidget {
               child: IconButton(
                 icon: const Icon(Icons.ios_share_rounded, color: Colors.white),
                 onPressed: () => SharePlus.instance.share(
-                  ShareParams(
-                    text: 'Check out ${club.name} on Sports Club',
-                  ),
+                  ShareParams(text: 'Check out ${club.name} on Sports Club'),
                 ),
               ),
             ),
             const SizedBox(width: AppSpacing.sm),
           ],
-          flexibleSpace: FlexibleSpaceBar(
-            background: _Gallery(images: images),
-          ),
+          flexibleSpace: FlexibleSpaceBar(background: _Gallery(images: images)),
         ),
         SliverToBoxAdapter(
           child: Padding(
@@ -109,26 +111,35 @@ class _ClubDetailView extends ConsumerWidget {
                 const SizedBox(height: 4),
                 Text(
                   [
-                    if (club.sport != null && club.sport!.isNotEmpty) club.sport,
+                    if (club.sport != null && club.sport!.isNotEmpty)
+                      club.sport,
                     if (club.city != null && club.city!.isNotEmpty) club.city,
                   ].join('  •  '),
-                  style: theme.textTheme.bodyMedium
-                      ?.copyWith(color: theme.textTheme.bodySmall?.color),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.textTheme.bodySmall?.color,
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.md),
                 Wrap(
                   spacing: AppSpacing.sm,
                   runSpacing: AppSpacing.sm,
                   children: [
-                    _Tag(icon: Icons.people, label: Formatters.genderLabel(club.gender)),
-                    _Tag(icon: Icons.cake_outlined, label: Formatters.ageRange(club.ageMin, club.ageMax)),
+                    _Tag(
+                      icon: Icons.people,
+                      label: Formatters.genderLabel(club.gender),
+                    ),
+                    _Tag(
+                      icon: Icons.cake_outlined,
+                      label: Formatters.ageRange(club.ageMin, club.ageMax),
+                    ),
                     _Tag(
                       icon: Icons.payments_outlined,
                       label: Formatters.price(club.price, club.priceCurrency),
                     ),
                   ],
                 ),
-                if (club.description != null && club.description!.isNotEmpty) ...[
+                if (club.description != null &&
+                    club.description!.isNotEmpty) ...[
                   const SizedBox(height: AppSpacing.lg),
                   const SectionHeader(title: 'About', padding: EdgeInsets.zero),
                   const SizedBox(height: AppSpacing.sm),
@@ -148,24 +159,31 @@ class _ClubDetailView extends ConsumerWidget {
                 const SizedBox(height: AppSpacing.sm),
                 events.when(
                   loading: () => const AppSkeleton(height: 100),
-                  error: (_, _) => Text('Could not load events',
-                      style: theme.textTheme.bodySmall),
+                  error: (_, _) => Text(
+                    'Could not load events',
+                    style: theme.textTheme.bodySmall,
+                  ),
                   data: (list) => list.isEmpty
-                      ? Text('No events scheduled',
-                          style: theme.textTheme.bodyMedium)
+                      ? Text(
+                          'No events scheduled',
+                          style: theme.textTheme.bodyMedium,
+                        )
                       : Column(
                           children: list
-                              .map((e) => Padding(
-                                    padding: const EdgeInsets.only(
-                                        bottom: AppSpacing.md),
-                                    child: EventCard(
-                                      event: e,
-                                      onTap: () => context.pushNamed(
-                                        RouteNames.eventDetail,
-                                        extra: e,
-                                      ),
+                              .map(
+                                (e) => Padding(
+                                  padding: const EdgeInsets.only(
+                                    bottom: AppSpacing.md,
+                                  ),
+                                  child: EventCard(
+                                    event: e,
+                                    onTap: () => context.pushNamed(
+                                      RouteNames.eventDetail,
+                                      extra: e,
                                     ),
-                                  ))
+                                  ),
+                                ),
+                              )
                               .toList(),
                         ),
                 ),
@@ -188,7 +206,9 @@ class _GlassAppBarButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.xs, vertical: AppSpacing.sm),
+        horizontal: AppSpacing.xs,
+        vertical: AppSpacing.sm,
+      ),
       decoration: BoxDecoration(
         color: Colors.black.withValues(alpha: 0.28),
         shape: BoxShape.circle,
@@ -310,9 +330,13 @@ class _Tag extends StatelessWidget {
         children: [
           Icon(icon, size: 16, color: AppColors.primary),
           const SizedBox(width: 6),
-          Text(label,
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: AppColors.primary, fontWeight: FontWeight.w600)),
+          Text(
+            label,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: AppColors.primary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ],
       ),
     );
@@ -354,11 +378,7 @@ class _ContactActions extends StatelessWidget {
           gradient: const LinearGradient(
             begin: Alignment.bottomLeft,
             end: Alignment.topRight,
-            colors: [
-              Color(0xFFF58529),
-              Color(0xFFDD2A7B),
-              Color(0xFF8134AF),
-            ],
+            colors: [Color(0xFFF58529), Color(0xFFDD2A7B), Color(0xFF8134AF)],
           ),
           onTap: () => onWeb(c.instagram!),
         ),
@@ -372,8 +392,10 @@ class _ContactActions extends StatelessWidget {
     ];
 
     if (!hasPhone && !hasEmail && socials.isEmpty) {
-      return Text('No contact details provided',
-          style: Theme.of(context).textTheme.bodyMedium);
+      return Text(
+        'No contact details provided',
+        style: Theme.of(context).textTheme.bodyMedium,
+      );
     }
 
     return Column(
@@ -438,7 +460,9 @@ class _ContactRow extends StatelessWidget {
             border: Border.all(color: theme.dividerColor),
           ),
           padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
+          ),
           child: Row(
             children: [
               Container(
@@ -455,20 +479,28 @@ class _ContactRow extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(label,
-                        style: theme.textTheme.labelSmall
-                            ?.copyWith(color: AppColors.textTertiary)),
+                    Text(
+                      label,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: AppColors.textTertiary,
+                      ),
+                    ),
                     Text(
                       value,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodyLarge
-                          ?.copyWith(fontWeight: FontWeight.w600),
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
               ),
-              const Icon(Icons.north_east, size: 16, color: AppColors.textTertiary),
+              const Icon(
+                Icons.north_east,
+                size: 16,
+                color: AppColors.textTertiary,
+              ),
             ],
           ),
         ),
@@ -525,7 +557,9 @@ class _SocialButton extends StatelessWidget {
                         width: 24,
                         height: 24,
                         colorFilter: const ColorFilter.mode(
-                            Colors.white, BlendMode.srcIn),
+                          Colors.white,
+                          BlendMode.srcIn,
+                        ),
                       )
                     : Icon(icon, size: 24, color: Colors.white),
               ),
@@ -535,8 +569,9 @@ class _SocialButton extends StatelessWidget {
         const SizedBox(height: 6),
         Text(
           label,
-          style: theme.textTheme.labelSmall
-              ?.copyWith(color: AppColors.textSecondary),
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: AppColors.textSecondary,
+          ),
         ),
       ],
     );

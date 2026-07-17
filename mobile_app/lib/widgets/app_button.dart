@@ -47,17 +47,17 @@ class AppButton extends StatelessWidget {
     final child = _buildChild(context);
     final Widget button = switch (variant) {
       AppButtonVariant.tonal => FilledButton.tonal(
-          onPressed: effectiveOnPressed,
-          child: child,
-        ),
+        onPressed: effectiveOnPressed,
+        child: child,
+      ),
       AppButtonVariant.outline => OutlinedButton(
-          onPressed: effectiveOnPressed,
-          child: child,
-        ),
+        onPressed: effectiveOnPressed,
+        child: child,
+      ),
       AppButtonVariant.text => TextButton(
-          onPressed: effectiveOnPressed,
-          child: child,
-        ),
+        onPressed: effectiveOnPressed,
+        child: child,
+      ),
       AppButtonVariant.filled => const SizedBox.shrink(),
     };
 
@@ -120,14 +120,21 @@ class _PrimaryButton extends StatelessWidget {
         children: [
           Icon(icon, size: 20, color: Colors.white),
           const SizedBox(width: 8),
-          Text(label,
-              style: AppFonts.body(AppTypography.button)
-                  .copyWith(color: Colors.white)),
+          Text(
+            label,
+            style: AppFonts.body(
+              AppTypography.button,
+            ).copyWith(color: Colors.white),
+          ),
         ],
       );
     } else {
-      content =
-          Text(label, style: AppFonts.body(AppTypography.button).copyWith(color: Colors.white));
+      content = Text(
+        label,
+        style: AppFonts.body(
+          AppTypography.button,
+        ).copyWith(color: Colors.white),
+      );
     }
 
     final button = DecoratedBox(

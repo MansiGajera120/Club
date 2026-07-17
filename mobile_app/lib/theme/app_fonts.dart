@@ -8,7 +8,8 @@ class AppFonts {
   static TextStyle display(TextStyle style) =>
       GoogleFonts.outfit(textStyle: style);
 
-  static TextStyle body(TextStyle style) => GoogleFonts.dmSans(textStyle: style);
+  static TextStyle body(TextStyle style) =>
+      GoogleFonts.dmSans(textStyle: style);
 
   static TextStyle displayTextTheme(TextStyle style) => display(style);
   static TextStyle bodyTextTheme(TextStyle style) => body(style);

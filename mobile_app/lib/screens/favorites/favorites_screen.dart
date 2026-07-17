@@ -18,7 +18,8 @@ class FavoritesScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: RefreshIndicator(
-        onRefresh: () => ref.read(favoritesControllerProvider.notifier).refresh(),
+        onRefresh: () =>
+            ref.read(favoritesControllerProvider.notifier).refresh(),
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [

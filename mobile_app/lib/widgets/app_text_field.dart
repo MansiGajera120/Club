@@ -65,6 +65,13 @@ class AppTextField extends StatelessWidget {
           keyboardType: keyboardType,
           textInputAction: textInputAction,
           validator: validator,
+          // Re-check as the user types, but only once they've touched the field.
+          // Flutter's default (`disabled`) only re-runs validators on the next
+          // Form.validate() — so "Please enter a title" stayed on screen after
+          // the user had typed a title, until they pressed submit again. This
+          // clears the message the moment the value becomes valid, without
+          // shouting at anyone about fields they haven't reached yet.
+          autovalidateMode: AutovalidateMode.onUserInteraction,
           onChanged: onChanged,
           enabled: enabled,
           inputFormatters: inputFormatters,
@@ -92,7 +99,10 @@ class AppTextField extends StatelessWidget {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: AppRadius.mdAll,
-              borderSide: const BorderSide(color: AppColors.primary, width: 1.8),
+              borderSide: const BorderSide(
+                color: AppColors.primary,
+                width: 1.8,
+              ),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: AppRadius.mdAll,

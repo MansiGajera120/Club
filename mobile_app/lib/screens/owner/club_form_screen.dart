@@ -41,25 +41,39 @@ class _ClubFormScreenState extends ConsumerState<ClubFormScreen> {
   late final _name = TextEditingController(text: widget.club?.name ?? '');
   late final _city = TextEditingController(text: widget.club?.city ?? '');
   late final _address = TextEditingController(text: widget.club?.address ?? '');
-  late final _description =
-      TextEditingController(text: widget.club?.description ?? '');
-  late final _ageMin =
-      TextEditingController(text: (widget.club?.ageMin ?? 0).toString());
-  late final _ageMax =
-      TextEditingController(text: (widget.club?.ageMax ?? 100).toString());
-  late final _price =
-      TextEditingController(text: (widget.club?.price ?? 0).toString());
-  late final _phone = TextEditingController(text: widget.club?.contact?.phone ?? '');
-  late final _email = TextEditingController(text: widget.club?.contact?.email ?? '');
-  late final _website =
-      TextEditingController(text: widget.club?.contact?.website ?? '');
-  late final _instagram =
-      TextEditingController(text: widget.club?.contact?.instagram ?? '');
-  late final _tiktok = TextEditingController(text: widget.club?.contact?.tiktok ?? '');
-  late final _services =
-      TextEditingController(text: (widget.club?.services ?? []).join(', '));
-  late final _registrationLink =
-      TextEditingController(text: widget.club?.registrationLink ?? '');
+  late final _description = TextEditingController(
+    text: widget.club?.description ?? '',
+  );
+  late final _ageMin = TextEditingController(
+    text: (widget.club?.ageMin ?? 0).toString(),
+  );
+  late final _ageMax = TextEditingController(
+    text: (widget.club?.ageMax ?? 100).toString(),
+  );
+  late final _price = TextEditingController(
+    text: (widget.club?.price ?? 0).toString(),
+  );
+  late final _phone = TextEditingController(
+    text: widget.club?.contact?.phone ?? '',
+  );
+  late final _email = TextEditingController(
+    text: widget.club?.contact?.email ?? '',
+  );
+  late final _website = TextEditingController(
+    text: widget.club?.contact?.website ?? '',
+  );
+  late final _instagram = TextEditingController(
+    text: widget.club?.contact?.instagram ?? '',
+  );
+  late final _tiktok = TextEditingController(
+    text: widget.club?.contact?.tiktok ?? '',
+  );
+  late final _services = TextEditingController(
+    text: (widget.club?.services ?? []).join(', '),
+  );
+  late final _registrationLink = TextEditingController(
+    text: widget.club?.registrationLink ?? '',
+  );
 
   late String _gender = widget.club?.gender ?? 'mixed';
   String? _logoPath;
@@ -77,8 +91,20 @@ class _ClubFormScreenState extends ConsumerState<ClubFormScreen> {
   @override
   void dispose() {
     for (final c in [
-      _name, _city, _address, _description, _ageMin, _ageMax, _price,
-      _phone, _email, _website, _instagram, _tiktok, _services, _registrationLink,
+      _name,
+      _city,
+      _address,
+      _description,
+      _ageMin,
+      _ageMax,
+      _price,
+      _phone,
+      _email,
+      _website,
+      _instagram,
+      _tiktok,
+      _services,
+      _registrationLink,
     ]) {
       c.dispose();
     }
@@ -166,14 +192,19 @@ class _ClubFormScreenState extends ConsumerState<ClubFormScreen> {
   }
 
   Future<void> _pickLogo() async {
-    final picked = await ImagePicker()
-        .pickImage(source: ImageSource.gallery, maxWidth: 1024, imageQuality: 85);
+    final picked = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1024,
+      imageQuality: 85,
+    );
     if (picked != null) setState(() => _logoPath = picked.path);
   }
 
   Future<void> _pickGallery() async {
-    final picked = await ImagePicker()
-        .pickMultiImage(maxWidth: 1600, imageQuality: 85);
+    final picked = await ImagePicker().pickMultiImage(
+      maxWidth: 1600,
+      imageQuality: 85,
+    );
     if (picked.isNotEmpty) {
       setState(() => _galleryPaths.addAll(picked.map((x) => x.path)));
     }
@@ -181,7 +212,9 @@ class _ClubFormScreenState extends ConsumerState<ClubFormScreen> {
 
   Future<void> _removeExistingPhoto(String url) async {
     try {
-      await ref.read(clubRepositoryProvider).removeGallery(widget.club!.id, url);
+      await ref
+          .read(clubRepositoryProvider)
+          .removeGallery(widget.club!.id, url);
       if (!mounted) return;
       setState(() => _existingGallery.remove(url));
       ref.invalidate(clubDetailProvider(widget.club!.id));
@@ -197,26 +230,36 @@ class _ClubFormScreenState extends ConsumerState<ClubFormScreen> {
       .toList();
 
   Map<String, dynamic> _body() => {
-        'name': _name.text.trim(),
-        'sport': _servicesList().firstOrNull ?? '',
-        'services': _servicesList(),
-        'city': _city.text.trim(),
-        'address': _address.text.trim(),
-        'description': _description.text.trim(),
-        'gender': _gender,
-        'ageMin': int.tryParse(_ageMin.text.trim()) ?? 0,
-        'ageMax': int.tryParse(_ageMax.text.trim()) ?? 100,
-        'price': num.tryParse(_price.text.trim()) ?? 0,
-        'priceCurrency': 'INR',
-        'registrationLink': _registrationLink.text.trim(),
-        'contact': {
-          'phone': _phone.text.trim(),
-          'email': _email.text.trim(),
-          'website': _website.text.trim(),
-          'instagram': _instagram.text.trim(),
-          'tiktok': _tiktok.text.trim(),
-        },
-      };
+    'name': _name.text.trim(),
+    'sport': _servicesList().firstOrNull ?? '',
+    'services': _servicesList(),
+    'city': _city.text.trim(),
+    'address': _address.text.trim(),
+    'description': _description.text.trim(),
+    'gender': _gender,
+    'ageMin': int.tryParse(_ageMin.text.trim()) ?? 0,
+    'ageMax': int.tryParse(_ageMax.text.trim()) ?? 100,
+    'price': num.tryParse(_price.text.trim()) ?? 0,
+    'priceCurrency': 'INR',
+    'registrationLink': _registrationLink.text.trim(),
+    'contact': {
+      'phone': _phone.text.trim(),
+      'email': _email.text.trim(),
+      'website': _website.text.trim(),
+      'instagram': _instagram.text.trim(),
+      'tiktok': _tiktok.text.trim(),
+    },
+  };
+
+  /// Shared bounds check for the age pair — the API accepts integers 0..100.
+  String? _ageError(String? value, String field) {
+    final empty = Validators.required(value, field: field);
+    if (empty != null) return empty;
+    final age = int.tryParse(value!.trim());
+    if (age == null) return 'Enter a whole number';
+    if (age > 100) return 'Age cannot be over 100';
+    return null;
+  }
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
@@ -306,33 +349,32 @@ class _ClubFormScreenState extends ConsumerState<ClubFormScreen> {
                               ? Image.file(
                                   File(_logoPath!),
                                   fit: BoxFit.cover,
-                                  errorBuilder: (_, _, _) => const Icon(
-                                    Icons.add_a_photo_outlined,
-                                  ),
+                                  errorBuilder: (_, _, _) =>
+                                      const Icon(Icons.add_a_photo_outlined),
                                 )
                               : (widget.club?.logo != null
-                                  ? CachedImage(url: widget.club!.logo)
-                                  : Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          Icons.add_a_photo_outlined,
-                                          size: 28,
-                                          color: AppColors.textTertiary,
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          'Add logo',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .labelSmall
-                                              ?.copyWith(
-                                                color: AppColors.textTertiary,
-                                              ),
-                                        ),
-                                      ],
-                                    )),
+                                    ? CachedImage(url: widget.club!.logo)
+                                    : Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.add_a_photo_outlined,
+                                            size: 28,
+                                            color: AppColors.textTertiary,
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            'Add logo',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .labelSmall
+                                                ?.copyWith(
+                                                  color: AppColors.textTertiary,
+                                                ),
+                                          ),
+                                        ],
+                                      )),
                         ),
                       ),
                     ),
@@ -348,8 +390,18 @@ class _ClubFormScreenState extends ConsumerState<ClubFormScreen> {
                       label: 'Club name',
                       controller: _name,
                       maxLength: 120,
-                      validator: (v) =>
-                          Validators.required(v, field: 'the club name'),
+                      validator: (v) {
+                        final empty = Validators.required(
+                          v,
+                          field: 'the club name',
+                        );
+                        if (empty != null) return empty;
+                        // The API enforces min(2) on name.
+                        if (v!.trim().length < 2) {
+                          return 'Club name must be at least 2 characters';
+                        }
+                        return null;
+                      },
                     ),
                     AppTextField(
                       label: 'Services offered (comma-separated)',
@@ -360,13 +412,20 @@ class _ClubFormScreenState extends ConsumerState<ClubFormScreen> {
                           Validators.required(v, field: 'the services offered'),
                     ),
                     AppTextField(
-                        label: 'Address', controller: _address, maxLength: 300),
+                      label: 'Address',
+                      controller: _address,
+                      maxLength: 300,
+                      validator: (v) =>
+                          Validators.required(v, field: 'an address'),
+                    ),
                     AppTextField(
                       label: 'Description',
                       controller: _description,
                       maxLines: 4,
                       minLines: 3,
                       maxLength: 4000,
+                      validator: (v) =>
+                          Validators.required(v, field: 'a description'),
                     ),
                   ],
                 ),
@@ -378,10 +437,10 @@ class _ClubFormScreenState extends ConsumerState<ClubFormScreen> {
                     Text(
                       'Gender',
                       style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textSecondary,
-                          ),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     SegmentedButton<String>(
@@ -405,6 +464,7 @@ class _ClubFormScreenState extends ConsumerState<ClubFormScreen> {
                             inputFormatters: [
                               FilteringTextInputFormatter.digitsOnly,
                             ],
+                            validator: (v) => _ageError(v, 'a minimum age'),
                           ),
                         ),
                         const SizedBox(width: AppSpacing.md),
@@ -417,6 +477,18 @@ class _ClubFormScreenState extends ConsumerState<ClubFormScreen> {
                             inputFormatters: [
                               FilteringTextInputFormatter.digitsOnly,
                             ],
+                            validator: (v) {
+                              final bounds = _ageError(v, 'a maximum age');
+                              if (bounds != null) return bounds;
+                              // The API rejects ageMax < ageMin outright, and
+                              // the pair is meaningless inverted anyway.
+                              final min = int.tryParse(_ageMin.text.trim());
+                              final max = int.parse(v!.trim());
+                              if (min != null && max < min) {
+                                return 'Must be at least the minimum age';
+                              }
+                              return null;
+                            },
                           ),
                         ),
                       ],
@@ -424,11 +496,18 @@ class _ClubFormScreenState extends ConsumerState<ClubFormScreen> {
                     AppTextField(
                       label: 'Price (₹)',
                       controller: _price,
+                      hint: 'Enter 0 if the club is free to join',
                       keyboardType: TextInputType.number,
                       maxLength: 9,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      validator: (v) {
+                        final empty = Validators.required(v, field: 'a price');
+                        if (empty != null) return empty;
+                        if (num.tryParse(v!.trim()) == null) {
+                          return 'Enter a valid price';
+                        }
+                        return null;
+                      },
                     ),
                   ],
                 ),
@@ -453,24 +532,38 @@ class _ClubFormScreenState extends ConsumerState<ClubFormScreen> {
                       controller: _email,
                       keyboardType: TextInputType.emailAddress,
                       maxLength: 160,
+                      validator: Validators.email,
                     ),
                     AppTextField(
                       label: 'Website',
                       controller: _website,
                       hint: 'https://…',
+                      keyboardType: TextInputType.url,
                       maxLength: 300,
+                      validator: (v) => Validators.url(v, field: 'a website'),
                     ),
                     AppTextField(
-                        label: 'Instagram',
-                        controller: _instagram,
-                        maxLength: 300),
+                      label: 'Instagram',
+                      controller: _instagram,
+                      maxLength: 300,
+                      validator: (v) =>
+                          Validators.required(v, field: 'an Instagram handle'),
+                    ),
                     AppTextField(
-                        label: 'TikTok', controller: _tiktok, maxLength: 300),
+                      label: 'TikTok',
+                      controller: _tiktok,
+                      maxLength: 300,
+                      validator: (v) =>
+                          Validators.required(v, field: 'a TikTok handle'),
+                    ),
                     AppTextField(
                       label: 'Registration link',
                       controller: _registrationLink,
                       hint: 'https://…',
+                      keyboardType: TextInputType.url,
                       maxLength: 300,
+                      validator: (v) =>
+                          Validators.url(v, field: 'a registration link'),
                     ),
                   ],
                 ),
@@ -556,14 +649,18 @@ class _GalleryEditor extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.add_a_photo_outlined,
-                    size: 22, color: AppColors.textTertiary),
+                Icon(
+                  Icons.add_a_photo_outlined,
+                  size: 22,
+                  color: AppColors.textTertiary,
+                ),
                 const SizedBox(height: 4),
-                Text('Add',
-                    style: Theme.of(context)
-                        .textTheme
-                        .labelSmall
-                        ?.copyWith(color: AppColors.textTertiary)),
+                Text(
+                  'Add',
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: AppColors.textTertiary,
+                  ),
+                ),
               ],
             ),
           ),

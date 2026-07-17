@@ -2,12 +2,13 @@ import { useForm } from 'react-hook-form';
 import { Link as RouterLink, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
-import { Box, Button, Link, Stack, Typography } from '@mui/material';
+import { Box, Button, Link, Stack } from '@mui/material';
 
 import { ROUTES } from '@/constants';
 import { authService } from '@/services/authService';
 import { getApiErrorMessage } from '@/services/apiClient';
 import PasswordField from '@/components/common/PasswordField';
+import AuthHeading from '@/components/ui/AuthHeading';
 
 /**
  * Final step of the password-reset flow. Reachable only with the email/code that
@@ -45,18 +46,11 @@ export function ResetPasswordPage() {
 
   return (
     <Box component="form" onSubmit={handleSubmit((values) => mutation.mutate(values))}>
-      <Stack spacing={1} sx={{ mb: 6, textAlign: 'center' }}>
-        <Typography
-          variant="h3"
-          fontWeight={850}
-          sx={{ color: '#111827', fontSize: '2.5rem', letterSpacing: '-0.02em' }}
-        >
-          Set a new password
-        </Typography>
-        <Typography variant="h6" sx={{ color: '#566072', fontWeight: 500 }}>
-          Choose a new password for {email}.
-        </Typography>
-      </Stack>
+      <AuthHeading
+        title="Set a new"
+        accent="password"
+        subtitle={`Choose a new password for ${email}.`}
+      />
 
       <Stack spacing={2}>
         <PasswordField

@@ -1,11 +1,12 @@
 import { useForm } from 'react-hook-form';
 import { Link as RouterLink } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
-import { Box, Button, Link, Stack, TextField, Typography } from '@mui/material';
+import { Box, Button, Link, Stack, TextField } from '@mui/material';
 import MarkEmailReadOutlinedIcon from '@mui/icons-material/MarkEmailReadOutlined';
 
 import { ROUTES } from '@/constants';
 import { authService } from '@/services/authService';
+import AuthHeading from '@/components/ui/AuthHeading';
 
 /**
  * Request a password-reset link. The API always responds the same way to avoid
@@ -44,20 +45,17 @@ export function ForgotPasswordPage() {
           </Box>
         </Box>
 
-        <Stack spacing={1}>
-          <Typography
-            variant="h3"
-            fontWeight={850}
-            sx={{ color: '#111827', fontSize: '2.5rem', letterSpacing: '-0.02em' }}
-          >
-            Check your email
-          </Typography>
-          <Typography variant="h6" sx={{ color: '#566072', fontWeight: 500 }}>
-            If an admin account exists for{' '}
-            <b style={{ color: '#111827' }}>{getValues('email')}</b>, we&apos;ve sent a
-            6-digit code to reset your password. The code expires shortly.
-          </Typography>
-        </Stack>
+        <AuthHeading
+          title="Check your"
+          accent="email"
+          subtitle={
+            <>
+              If an admin account exists for{' '}
+              <b style={{ color: '#111827' }}>{getValues('email')}</b>, we&apos;ve sent a
+              6-digit code to reset your password. The code expires shortly.
+            </>
+          }
+        />
 
         <Button
           component={RouterLink}
@@ -90,18 +88,11 @@ export function ForgotPasswordPage() {
       component="form"
       onSubmit={handleSubmit((values) => mutation.mutate(values.email))}
     >
-      <Stack spacing={1} sx={{ mb: 6, textAlign: 'center' }}>
-        <Typography
-          variant="h3"
-          fontWeight={850}
-          sx={{ color: '#111827', fontSize: '2.5rem', letterSpacing: '-0.02em' }}
-        >
-          Forgot password?
-        </Typography>
-        <Typography variant="h6" sx={{ color: '#566072', fontWeight: 500 }}>
-          Enter your admin email and we&apos;ll send you a 6-digit reset code.
-        </Typography>
-      </Stack>
+      <AuthHeading
+        title="Forgot your"
+        accent="password?"
+        subtitle="Enter your admin email and we'll send you a 6-digit reset code."
+      />
 
       <Stack spacing={2}>
         <TextField

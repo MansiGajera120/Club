@@ -165,41 +165,51 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state, navigationShell) =>
             MainShell(navigationShell: navigationShell),
         branches: [
-          StatefulShellBranch(routes: [
-            GoRoute(
-              name: RouteNames.home,
-              path: RouteNames.homePath,
-              builder: (context, state) => const _RoleAwareHome(),
-            ),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(
-              name: RouteNames.search,
-              path: RouteNames.searchPath,
-              builder: (context, state) => const _RoleAwareSearch(),
-            ),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(
-              name: RouteNames.favorites,
-              path: RouteNames.favoritesPath,
-              builder: (context, state) => const _RoleAwareFavorites(),
-            ),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(
-              name: RouteNames.events,
-              path: RouteNames.eventsPath,
-              builder: (context, state) => const _RoleAwareEvents(),
-            ),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(
-              name: RouteNames.profile,
-              path: RouteNames.profilePath,
-              builder: (context, state) => const ProfileScreen(),
-            ),
-          ]),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                name: RouteNames.home,
+                path: RouteNames.homePath,
+                builder: (context, state) => const _RoleAwareHome(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                name: RouteNames.search,
+                path: RouteNames.searchPath,
+                builder: (context, state) => const _RoleAwareSearch(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                name: RouteNames.favorites,
+                path: RouteNames.favoritesPath,
+                builder: (context, state) => const _RoleAwareFavorites(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                name: RouteNames.events,
+                path: RouteNames.eventsPath,
+                builder: (context, state) => const _RoleAwareEvents(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                name: RouteNames.profile,
+                path: RouteNames.profilePath,
+                builder: (context, state) => const ProfileScreen(),
+              ),
+            ],
+          ),
         ],
       ),
 
@@ -221,8 +231,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: RouteNames.clubForm,
         path: RouteNames.clubFormPath,
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) =>
-            ClubFormScreen(club: state.extra as Club?),
+        builder: (context, state) => ClubFormScreen(club: state.extra as Club?),
       ),
       GoRoute(
         name: RouteNames.eventDetail,
@@ -245,10 +254,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final extra = state.extra;
           if (extra is EventFormArgs) {
-            return EventFormScreen(
-              clubId: extra.clubId,
-              event: extra.event,
-            );
+            return EventFormScreen(clubId: extra.clubId, event: extra.event);
           }
           if (extra is String) {
             return EventFormScreen(clubId: extra);

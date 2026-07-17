@@ -55,13 +55,18 @@ class EventDetailScreen extends StatelessWidget {
               background: Stack(
                 fit: StackFit.expand,
                 children: [
-                  CachedImage(
-                    url: event.coverImage,
-                    placeholderIcon: Icons.event,
-                  ),
+                  if (event.coverImage?.isNotEmpty ?? false)
+                    CachedImage(
+                      url: event.coverImage,
+                      placeholderIcon: Icons.event,
+                    )
+                  else
+                    EventCoverArt(seed: event.id),
                   // Keep the back button legible over a bright cover image.
                   const DecoratedBox(
-                    decoration: BoxDecoration(gradient: AppGradients.imageOverlay),
+                    decoration: BoxDecoration(
+                      gradient: AppGradients.imageOverlay,
+                    ),
                   ),
                 ],
               ),
@@ -80,7 +85,10 @@ class EventDetailScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
-                      child: Text(event.title, style: theme.textTheme.headlineSmall),
+                      child: Text(
+                        event.title,
+                        style: theme.textTheme.headlineSmall,
+                      ),
                     ),
                     const SizedBox(width: AppSpacing.sm),
                     EventTypeBadge(type: event.type),
@@ -115,14 +123,20 @@ class EventDetailScreen extends StatelessWidget {
                     event.description!.isNotEmpty) ...[
                   const SectionHeader(
                     title: 'About this event',
-                    padding: EdgeInsets.only(top: AppSpacing.lg, bottom: AppSpacing.md),
+                    padding: EdgeInsets.only(
+                      top: AppSpacing.lg,
+                      bottom: AppSpacing.md,
+                    ),
                   ),
                   Text(event.description!, style: theme.textTheme.bodyLarge),
                 ],
 
                 const SectionHeader(
                   title: 'Registration',
-                  padding: EdgeInsets.only(top: AppSpacing.lg, bottom: AppSpacing.md),
+                  padding: EdgeInsets.only(
+                    top: AppSpacing.lg,
+                    bottom: AppSpacing.md,
+                  ),
                 ),
                 if (_windowText != null) ...[
                   _DetailRow(

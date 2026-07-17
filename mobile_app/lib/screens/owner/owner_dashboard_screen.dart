@@ -64,10 +64,9 @@ class OwnerDashboardScreen extends ConsumerWidget {
 
     final club = clubs.isEmpty ? null : clubs.first;
     final events = eventsAsync.value ?? const <OwnerEventItem>[];
-    final upcoming = events
-        .where((e) => e.event.startDate.isAfter(DateTime.now()))
-        .toList()
-      ..sort((a, b) => a.event.startDate.compareTo(b.event.startDate));
+    final upcoming =
+        events.where((e) => e.event.startDate.isAfter(DateTime.now())).toList()
+          ..sort((a, b) => a.event.startDate.compareTo(b.event.startDate));
 
     final approved = club?.status == 'approved';
 
@@ -78,136 +77,143 @@ class OwnerDashboardScreen extends ConsumerWidget {
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
-                SliverToBoxAdapter(
-                  child: _OwnerHero(
-                    ownerName: user?.name ?? 'Club owner',
-                    totalEvents: events.length,
-                    upcomingCount: upcoming.length,
-                    saves: club?.favoritesCount ?? 0,
+            SliverToBoxAdapter(
+              child: _OwnerHero(
+                ownerName: user?.name ?? 'Club owner',
+                totalEvents: events.length,
+                upcomingCount: upcoming.length,
+                saves: club?.favoritesCount ?? 0,
+              ),
+            ),
+
+            if (club == null)
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.lg,
+                  AppSpacing.lg,
+                  AppSpacing.lg,
+                  0,
+                ),
+                sliver: SliverToBoxAdapter(
+                  child: _EmptyClubCard(
+                    onRegister: () => context.go(RouteNames.searchPath),
                   ),
                 ),
-
-                if (club == null)
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.lg,
-                      AppSpacing.lg,
-                      AppSpacing.lg,
-                      0,
-                    ),
-                    sliver: SliverToBoxAdapter(
-                      child: _EmptyClubCard(
-                        onRegister: () => context.go(RouteNames.searchPath),
-                      ),
-                    ),
-                  )
-                else
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.lg,
-                      AppSpacing.lg,
-                      AppSpacing.lg,
-                      0,
-                    ),
-                    sliver: SliverToBoxAdapter(
-                      child: _ClubSpotlightCard(
-                        club: club,
-                        onManage: () => context.pushNamed(RouteNames.editProfile),
-                      ),
-                    ),
-                  ),
-
-                const SliverToBoxAdapter(
-                  child: SectionHeader(title: 'Quick actions'),
+              )
+            else
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.lg,
+                  AppSpacing.lg,
+                  AppSpacing.lg,
+                  0,
                 ),
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                  sliver: SliverToBoxAdapter(
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: _ActionTile(
-                            icon: Icons.storefront_rounded,
-                            title: 'Club profile',
-                            subtitle: 'Edit details',
-                            gradient: AppGradients.brand,
-                            onTap: () =>
-                                context.pushNamed(RouteNames.editProfile),
-                          ),
+                sliver: SliverToBoxAdapter(
+                  child: _ClubSpotlightCard(
+                    club: club,
+                    onManage: () => context.pushNamed(RouteNames.editProfile),
+                  ),
+                ),
+              ),
+
+            const SliverToBoxAdapter(
+              child: SectionHeader(title: 'Quick actions'),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+              sliver: SliverToBoxAdapter(
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _ActionTile(
+                        icon: Icons.storefront_rounded,
+                        title: 'Club profile',
+                        subtitle: 'Edit details',
+                        gradient: AppGradients.brand,
+                        onTap: () => context.pushNamed(RouteNames.editProfile),
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: _ActionTile(
+                        icon: Icons.event_available_rounded,
+                        title: 'Events hub',
+                        subtitle: 'Schedule & edit',
+                        gradient: const LinearGradient(
+                          colors: [AppColors.accent, AppColors.secondary],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
-                        const SizedBox(width: AppSpacing.md),
-                        Expanded(
-                          child: _ActionTile(
-                            icon: Icons.event_available_rounded,
-                            title: 'Events hub',
-                            subtitle: 'Schedule & edit',
-                            gradient: const LinearGradient(
-                              colors: [AppColors.accent, AppColors.secondary],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            onTap: () => context.go(RouteNames.eventsPath),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                SliverToBoxAdapter(
-                  child: SectionHeader(
-                    title: 'Upcoming schedule',
-                    trailing: upcoming.isEmpty
-                        ? null
-                        : TextButton(
-                            onPressed: () => context.go(RouteNames.eventsPath),
-                            child: const Text('View all'),
-                          ),
-                  ),
-                ),
-                if (upcoming.isEmpty)
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.lg,
-                      0,
-                      AppSpacing.lg,
-                      AppSpacing.xxl,
-                    ),
-                    sliver: SliverToBoxAdapter(
-                      child: _ScheduleEmptyState(
-                        clubApproved: approved,
-                        onCreateEvent: approved
-                            ? () => context.pushNamed(
-                                  RouteNames.eventForm,
-                                  extra: EventFormArgs(clubId: club!.id),
-                                )
-                            : null,
+                        onTap: () => context.go(RouteNames.eventsPath),
                       ),
                     ),
-                  )
-                else
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.lg,
-                      0,
-                      AppSpacing.lg,
-                      AppSpacing.xxl,
-                    ),
-                    sliver: SliverList.builder(
-                      itemCount: upcoming.length.clamp(0, 4),
-                      itemBuilder: (context, i) {
-                        final shown = upcoming.length.clamp(0, 4);
-                        return _TimelineRow(
+                  ],
+                ),
+              ),
+            ),
+
+            SliverToBoxAdapter(
+              child: SectionHeader(
+                title: 'Upcoming schedule',
+                trailing: upcoming.isEmpty
+                    ? null
+                    : TextButton(
+                        onPressed: () => context.go(RouteNames.eventsPath),
+                        child: const Text('View all'),
+                      ),
+              ),
+            ),
+            if (upcoming.isEmpty)
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.lg,
+                  0,
+                  AppSpacing.lg,
+                  AppSpacing.xxl,
+                ),
+                sliver: SliverToBoxAdapter(
+                  child: _ScheduleEmptyState(
+                    clubApproved: approved,
+                    onCreateEvent: approved
+                        ? () => context.pushNamed(
+                            RouteNames.eventForm,
+                            extra: EventFormArgs(clubId: club!.id),
+                          )
+                        : null,
+                  ),
+                ),
+              )
+            else
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.lg,
+                  0,
+                  AppSpacing.lg,
+                  AppSpacing.xxl,
+                ),
+                sliver: SliverList.builder(
+                  itemCount: upcoming.length.clamp(0, 4),
+                  itemBuilder: (context, i) {
+                    final shown = upcoming.length.clamp(0, 4);
+                    return _TimelineRow(
+                      event: upcoming[i].event,
+                      isLast: i == shown - 1,
+                      // Open the event for editing, not the attendee-facing
+                      // detail screen: that page is built to sell the event to
+                      // a parent — "Register" button and all — which is nothing
+                      // an owner looking at their own schedule needs. This
+                      // matches the Edit action on the Events tab.
+                      onTap: () => context.pushNamed(
+                        RouteNames.eventForm,
+                        extra: EventFormArgs(
+                          clubId: upcoming[i].event.club,
                           event: upcoming[i].event,
-                          isLast: i == shown - 1,
-                          onTap: () => context.pushNamed(
-                            RouteNames.eventDetail,
-                            extra: upcoming[i].event,
-                          ),
-                        );
-                      },
-                    ),
-                  ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
           ],
         ),
       ),
@@ -249,103 +255,116 @@ class _OwnerHero extends StatelessWidget {
     final initial = firstName.isNotEmpty ? firstName[0].toUpperCase() : '?';
     final today = DateFormat('EEEE, MMM d').format(DateTime.now());
 
-    return Container(
-      decoration: BoxDecoration(
-        gradient: AppGradients.brand,
-        borderRadius: const BorderRadius.vertical(
-          bottom: Radius.circular(AppRadius.xl),
+    // Shallower than the auth band's tear: this header ends in stat tiles rather
+    // than empty gradient, so a full-depth bite would eat the numbers.
+    const clipper = TornEdgeClipper(depth: 0.5);
+
+    return ClipPath(
+      clipper: clipper,
+      child: Container(
+        decoration: const BoxDecoration(gradient: AppGradients.brand),
+        padding: EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          topInset + AppSpacing.lg,
+          AppSpacing.lg,
+          // Reserve the tear's deepest bite so it never crosses the tiles.
+          AppSpacing.lg + clipper.maxBite,
         ),
-        boxShadow: AppShadows.brand,
-      ),
-      padding: EdgeInsets.fromLTRB(
-        AppSpacing.lg,
-        topInset + AppSpacing.lg,
-        AppSpacing.lg,
-        AppSpacing.lg,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        child: Stack(
+          children: [
+            const Positioned.fill(
+              child: AnimatedDoodleField(
+                spots: kDashboardSpots,
+                color: Colors.white,
+              ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
                   children: [
-                    Text(
-                      today.toUpperCase(),
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.75),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            today.toUpperCase(),
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: Colors.white.withValues(alpha: 0.75),
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+                          Text(
+                            '$_greeting,',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: Colors.white.withValues(alpha: 0.85),
+                            ),
+                          ),
+                          Text(
+                            firstName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.headlineMedium?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800,
+                              height: 1.15,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: AppSpacing.sm),
-                    Text(
-                      '$_greeting,',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.85),
-                      ),
-                    ),
-                    Text(
-                      firstName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.headlineMedium?.copyWith(
+                    const SizedBox(width: AppSpacing.md),
+                    Container(
+                      width: 54,
+                      height: 54,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
                         color: Colors.white,
-                        fontWeight: FontWeight.w800,
-                        height: 1.15,
+                        shape: BoxShape.circle,
+                        boxShadow: AppShadows.sm,
+                      ),
+                      child: Text(
+                        initial,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Container(
-                width: 54,
-                height: 54,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                  boxShadow: AppShadows.sm,
-                ),
-                child: Text(
-                  initial,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w800,
+                const SizedBox(height: AppSpacing.xl),
+                // IntrinsicHeight keeps all three tiles identical even though
+                // "Upcoming events" wraps onto a second line.
+                IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _GlassStat(
+                        icon: Icons.event_rounded,
+                        value: '$totalEvents',
+                        label: 'Events',
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      _GlassStat(
+                        icon: Icons.schedule_rounded,
+                        value: '$upcomingCount',
+                        label: 'Upcoming events',
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      _GlassStat(
+                        icon: Icons.favorite_rounded,
+                        value: '$saves',
+                        label: 'Favourites',
+                      ),
+                    ],
                   ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.xl),
-          // IntrinsicHeight keeps all three tiles identical even though
-          // "Upcoming events" wraps onto a second line.
-          IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _GlassStat(
-                  icon: Icons.event_rounded,
-                  value: '$totalEvents',
-                  label: 'Events',
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                _GlassStat(
-                  icon: Icons.schedule_rounded,
-                  value: '$upcomingCount',
-                  label: 'Upcoming events',
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                _GlassStat(
-                  icon: Icons.favorite_rounded,
-                  value: '$saves',
-                  label: 'Favourites',
                 ),
               ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -447,7 +466,8 @@ class _ClubSpotlightCard extends StatelessWidget {
   final VoidCallback onManage;
   const _ClubSpotlightCard({required this.club, required this.onManage});
 
-  String? get _coverUrl => club.gallery.isNotEmpty ? club.gallery.first : club.logo;
+  String? get _coverUrl =>
+      club.gallery.isNotEmpty ? club.gallery.first : club.logo;
 
   @override
   Widget build(BuildContext context) {
@@ -481,7 +501,9 @@ class _ClubSpotlightCard extends StatelessWidget {
                         CachedImage(url: _coverUrl, fit: BoxFit.cover)
                       else
                         const DecoratedBox(
-                          decoration: BoxDecoration(gradient: AppGradients.brand),
+                          decoration: BoxDecoration(
+                            gradient: AppGradients.brand,
+                          ),
                         ),
                       Positioned(
                         top: AppSpacing.md,
@@ -578,10 +600,9 @@ class _StatusPill extends StatelessWidget {
           const SizedBox(width: AppSpacing.sm - 2),
           Text(
             label,
-            style: Theme.of(context)
-                .textTheme
-                .labelSmall
-                ?.copyWith(color: color, letterSpacing: 0.2),
+            style: Theme.of(
+              context,
+            ).textTheme.labelSmall?.copyWith(color: color, letterSpacing: 0.2),
           ),
         ],
       ),
@@ -698,7 +719,9 @@ class _TimelineRow extends StatelessWidget {
                   Expanded(
                     child: Container(
                       width: 2,
-                      margin: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+                      margin: const EdgeInsets.symmetric(
+                        vertical: AppSpacing.xs,
+                      ),
                       color: AppColors.primary.withValues(alpha: 0.18),
                     ),
                   ),
@@ -717,7 +740,9 @@ class _TimelineRow extends StatelessWidget {
                     // Date block
                     Container(
                       width: 48,
-                      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: AppSpacing.sm,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.primary.withValues(alpha: 0.08),
                         borderRadius: AppRadius.mdAll,
@@ -726,8 +751,9 @@ class _TimelineRow extends StatelessWidget {
                         children: [
                           Text(
                             DateFormat('MMM').format(date).toUpperCase(),
-                            style: theme.textTheme.labelSmall
-                                ?.copyWith(color: AppColors.primary),
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: AppColors.primary,
+                            ),
                           ),
                           Text(
                             DateFormat('d').format(date),
@@ -807,7 +833,9 @@ class _ScheduleEmptyState extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.md),
           Text(
-            clubApproved ? 'Nothing scheduled yet' : 'Schedule opens once approved',
+            clubApproved
+                ? 'Nothing scheduled yet'
+                : 'Schedule opens once approved',
             style: theme.textTheme.titleSmall,
             textAlign: TextAlign.center,
           ),

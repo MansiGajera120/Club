@@ -6,9 +6,16 @@ import HourglassTopRoundedIcon from '@mui/icons-material/HourglassTopRounded';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 
 import { useDashboardStats } from '@/hooks/useAdmin';
-import { BreakdownDonutChart, UserGrowthChart } from '@/components/ui';
+import { BreakdownDonutChart, UserGrowthChart, DashboardHeader } from '@/components/ui';
 
 const GAP = 3;
+
+function greeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 17) return 'Good afternoon';
+  return 'Good evening';
+}
 
 /* ---------- Stat Card (minimal, reference-style) ---------- */
 function StatCard({ title, value, icon: Icon, iconColor, iconBg }) {
@@ -32,7 +39,14 @@ function StatCard({ title, value, icon: Icon, iconColor, iconBg }) {
       }}
     >
       {/* Label + Icon row */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          mb: 2,
+        }}
+      >
         <Typography
           sx={{
             fontSize: '0.88rem',
@@ -80,12 +94,20 @@ function StatCard({ title, value, icon: Icon, iconColor, iconBg }) {
 /* ---------- Main Dashboard Page (Overview + Analytics combined) ---------- */
 export function DashboardPage() {
   const { data: stats, isLoading, isError } = useDashboardStats();
+  const today = new Date().toLocaleDateString(undefined, {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  });
 
-  const clubsTotal    = stats?.clubs.total   ?? 0;
-  const clubsPending  = stats?.clubs.pending ?? 0;
-  const usersTotal    = stats?.users.total   ?? 0;
-  const eventsTotal   = stats?.events.total  ?? 0;
-  const inactiveClubs = (stats?.clubs.rejected ?? 0) + (stats?.clubs.suspended ?? 0) + (stats?.clubs.hidden ?? 0);
+  const clubsTotal = stats?.clubs.total ?? 0;
+  const clubsPending = stats?.clubs.pending ?? 0;
+  const usersTotal = stats?.users.total ?? 0;
+  const eventsTotal = stats?.events.total ?? 0;
+  const inactiveClubs =
+    (stats?.clubs.rejected ?? 0) +
+    (stats?.clubs.suspended ?? 0) +
+    (stats?.clubs.hidden ?? 0);
 
   const KPI_CARDS = [
     {
@@ -133,6 +155,8 @@ export function DashboardPage() {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <DashboardHeader title={`${greeting()},`} accent="Admin" subtitle={today} />
+
       {/* KPI Cards */}
       <Grid container spacing={2.5}>
         {KPI_CARDS.map((card) => (
@@ -144,7 +168,11 @@ export function DashboardPage() {
 
       {/* Platform Insights — independent section heading */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <Typography variant="h6" fontWeight={800} sx={{ color: '#111827', letterSpacing: '-0.01em' }}>
+        <Typography
+          variant="h6"
+          fontWeight={800}
+          sx={{ color: '#111827', letterSpacing: '-0.01em' }}
+        >
           Platform Insights
         </Typography>
 

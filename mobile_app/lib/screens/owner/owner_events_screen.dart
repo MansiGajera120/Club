@@ -85,6 +85,13 @@ class OwnerEventsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final screenData = ref.watch(ownerEventsScreenProvider);
 
+    // Read through the AsyncValue so the header can carry the add action itself
+    // — that used to live on a second "Your events" heading further down, which
+    // said the page's title twice.
+    final approvedClubs =
+        screenData.value?.clubs.where((c) => c.status == 'approved').toList() ??
+        const <Club>[];
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: RefreshIndicator(
@@ -92,11 +99,16 @@ class OwnerEventsScreen extends ConsumerWidget {
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
-            const SliverToBoxAdapter(
+            SliverToBoxAdapter(
               child: PageHero(
                 overline: 'MANAGE',
                 title: 'Your events',
                 subtitle: 'Create, edit and keep your schedule up to date.',
+                trailing: approvedClubs.isEmpty
+                    ? null
+                    : _AddEventButton(
+                        onTap: () => _addEvent(context, approvedClubs),
+                      ),
               ),
             ),
             ...screenData.when(
@@ -107,16 +119,18 @@ class OwnerEventsScreen extends ConsumerWidget {
                   child: EmptyState(
                     icon: Icons.event_busy_outlined,
                     title: 'Could not load events',
-                    message:
-                        error is AppException ? error.message : error.toString(),
+                    message: error is AppException
+                        ? error.message
+                        : error.toString(),
                     actionLabel: 'Retry',
                     onAction: () => _refresh(ref),
                   ),
                 ),
               ],
               data: (data) {
-                final approved =
-                    data.clubs.where((c) => c.status == 'approved').toList();
+                final approved = data.clubs
+                    .where((c) => c.status == 'approved')
+                    .toList();
                 return _bodySlivers(
                   context: context,
                   ref: ref,
@@ -138,14 +152,6 @@ class OwnerEventsScreen extends ConsumerWidget {
     required List<OwnerEventItem> events,
   }) {
     return [
-      SliverToBoxAdapter(
-        child: SectionHeader(
-          title: events.isEmpty ? 'Your events' : 'Your events (${events.length})',
-          trailing: approvedClubs.isEmpty
-              ? null
-              : _AddEventButton(onTap: () => _addEvent(context, approvedClubs)),
-        ),
-      ),
       if (events.isEmpty)
         SliverFillRemaining(
           hasScrollBody: false,
@@ -222,14 +228,18 @@ class _AddEventButton extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.add_rounded, size: 20, color: Colors.white),
+                    const Icon(
+                      Icons.add_rounded,
+                      size: 20,
+                      color: Colors.white,
+                    ),
                     const SizedBox(width: AppSpacing.sm - 2),
                     Text(
                       'Add event',
                       style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
@@ -322,27 +332,26 @@ class _CompactEventRow extends StatelessWidget {
     final event = item.event;
 
     return AppCard(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.md,
-      ),
+      padding: const EdgeInsets.all(AppSpacing.md),
       variant: AppCardVariant.outlined,
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.10),
-              borderRadius: AppRadius.mdAll,
-              border: Border.all(
-                color: AppColors.primary.withValues(alpha: 0.16),
-              ),
-            ),
-            child: const Icon(
-              Icons.event_rounded,
-              size: 24,
-              color: AppColors.primary,
+          // The event's own generated art, same as the card its attendees see —
+          // which makes a schedule scannable by colour, not just by reading.
+          ClipRRect(
+            borderRadius: AppRadius.mdAll,
+            child: SizedBox(
+              width: 76,
+              height: 76,
+              child: (event.coverImage?.isNotEmpty ?? false)
+                  ? CachedImage(
+                      url: event.coverImage,
+                      width: 76,
+                      height: 76,
+                      placeholderIcon: Icons.event,
+                    )
+                  : EventCoverArt(seed: event.id),
             ),
           ),
           const SizedBox(width: AppSpacing.md),
@@ -352,42 +361,80 @@ class _CompactEventRow extends StatelessWidget {
               children: [
                 Text(
                   event.title,
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleMedium,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    height: 1.25,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                _MetaLine(
+                  icon: Icons.storefront_outlined,
+                  text: item.club.name,
                 ),
                 const SizedBox(height: 3),
-                Text(
-                  '${item.club.name} · ${Formatters.date(event.startDate)}',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
+                _MetaLine(
+                  icon: Icons.schedule_rounded,
+                  text: Formatters.date(event.startDate),
                 ),
               ],
             ),
           ),
-          IconButton(
-            onPressed: onEdit,
-            icon: const Icon(Icons.edit_outlined, size: 22),
-            color: AppColors.primary,
-            tooltip: 'Edit',
-            visualDensity: VisualDensity.compact,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
-          ),
-          IconButton(
-            onPressed: onDelete,
-            icon: const Icon(Icons.delete_outline, size: 22),
-            color: theme.colorScheme.error,
-            tooltip: 'Delete',
-            visualDensity: VisualDensity.compact,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+          const SizedBox(width: AppSpacing.xs),
+          Column(
+            children: [
+              IconButton(
+                onPressed: onEdit,
+                icon: const Icon(Icons.edit_outlined, size: 20),
+                color: AppColors.primary,
+                tooltip: 'Edit',
+                visualDensity: VisualDensity.compact,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 40, minHeight: 38),
+              ),
+              IconButton(
+                onPressed: onDelete,
+                icon: const Icon(Icons.delete_outline, size: 20),
+                color: theme.colorScheme.error,
+                tooltip: 'Delete',
+                visualDensity: VisualDensity.compact,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 40, minHeight: 38),
+              ),
+            ],
           ),
         ],
       ),
+    );
+  }
+}
+
+/// One line of event metadata: a muted icon and its label.
+class _MetaLine extends StatelessWidget {
+  final IconData icon;
+  final String text;
+
+  const _MetaLine({required this.icon, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 14, color: AppColors.textTertiary),
+        const SizedBox(width: 5),
+        Expanded(
+          child: Text(
+            text,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
+          ),
+        ),
+      ],
     );
   }
 }

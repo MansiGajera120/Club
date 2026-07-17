@@ -45,11 +45,35 @@ class AppTypography {
     letterSpacing: -0.2,
   );
 
+  /// The one contract for "title of a section" — the heading above a group of
+  /// content, wherever it appears: `SectionHeader` on a page, `FormSection`
+  /// inside a form.
+  ///
+  /// This is deliberately its own token rather than a `textTheme` slot. It used
+  /// to borrow `titleLarge` (Outfit 18/w600) in one place and `titleMedium`
+  /// (DM Sans 14/w700) in another, which is why section headings rendered in two
+  /// different typefaces depending on the screen. Those slots are shared with
+  /// dialogs, empty states and list rows, so they can't carry this weight.
+  static const TextStyle sectionTitle = TextStyle(
+    fontSize: 20,
+    // Bold, not extraBold: at 20px Outfit's w800 turned form headings like
+    // "Edit profile" into slabs that shouted over the fields beneath them.
+    fontWeight: bold,
+    height: 1.25,
+    letterSpacing: -0.4,
+  );
+
   // ---- Body (DM Sans) ----
-  static const TextStyle body =
-      TextStyle(fontSize: 16, fontWeight: regular, height: 1.55);
-  static const TextStyle bodySm =
-      TextStyle(fontSize: 14, fontWeight: regular, height: 1.5);
+  static const TextStyle body = TextStyle(
+    fontSize: 16,
+    fontWeight: regular,
+    height: 1.55,
+  );
+  static const TextStyle bodySm = TextStyle(
+    fontSize: 14,
+    fontWeight: regular,
+    height: 1.5,
+  );
   static const TextStyle caption = TextStyle(
     fontSize: 12,
     fontWeight: medium,

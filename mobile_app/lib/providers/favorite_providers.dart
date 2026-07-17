@@ -34,7 +34,9 @@ class FavoriteUiNotifier extends Notifier<FavoriteUiState> {
 }
 
 final favoriteUiProvider =
-    NotifierProvider<FavoriteUiNotifier, FavoriteUiState>(FavoriteUiNotifier.new);
+    NotifierProvider<FavoriteUiNotifier, FavoriteUiState>(
+      FavoriteUiNotifier.new,
+    );
 
 /// Resolves favorite state for the signed-in user only. Keyed by club id.
 /// Cached `isFavorite` from club payloads is deliberately ignored — it can
@@ -50,7 +52,10 @@ final clubIsFavoriteProvider = Provider.family<bool, String>((ref, clubId) {
   return list.any((c) => c.id == clubId);
 });
 
-final clubFavoritePendingProvider = Provider.family<bool, String>((ref, clubId) {
+final clubFavoritePendingProvider = Provider.family<bool, String>((
+  ref,
+  clubId,
+) {
   return ref.watch(favoriteUiProvider).isPending(clubId);
 });
 
@@ -89,7 +94,9 @@ class FavoritesController extends AsyncNotifier<List<Club>> {
   /// Toggle favorite for a club. Returns the new favorited state.
   Future<bool> toggle(Club club) async {
     final ui = ref.read(favoriteUiProvider.notifier);
-    if (ref.read(favoriteUiProvider).isPending(club.id)) return _resolveFavorite(club);
+    if (ref.read(favoriteUiProvider).isPending(club.id)) {
+      return _resolveFavorite(club);
+    }
 
     // Snapshot so a failed toggle restores the exact prior list — original
     // ordering and any fresher fields — instead of re-inserting at the front.
@@ -127,5 +134,5 @@ class FavoritesController extends AsyncNotifier<List<Club>> {
 
 final favoritesControllerProvider =
     AsyncNotifierProvider<FavoritesController, List<Club>>(
-  FavoritesController.new,
-);
+      FavoritesController.new,
+    );

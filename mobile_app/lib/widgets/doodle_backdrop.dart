@@ -173,6 +173,391 @@ const List<DoodleSpot> kBandSpots = [
   ),
 ];
 
+/// Marks for the owner dashboard's hero — the same white ink as [kBandSpots],
+/// but a much tighter composition.
+///
+/// This header is dense: the greeting owns the left, the avatar the top-right,
+/// and the glass stat tiles the entire bottom. So the marks live almost entirely
+/// in the top strip and the right rail, where the only thing they can overlap is
+/// the avatar — which is opaque, so the big ball just peeks out from behind it.
+/// Nothing drifts below y≈0.5, where the numbers start.
+const List<DoodleSpot> kDashboardSpots = [
+  // Hero mark, tucked behind the avatar and bleeding off the corner.
+  DoodleSpot(
+    Doodle.ball,
+    0.93,
+    0.06,
+    86,
+    rotation: -0.1,
+    phase: 0.0,
+    opacity: 0.26,
+    drift: 8,
+    spin: 0.5,
+    weight: 0.05,
+  ),
+  DoodleSpot(
+    Doodle.dottedArc,
+    0.66,
+    0.02,
+    52,
+    rotation: 0.24,
+    phase: 0.4,
+    opacity: 0.30,
+    drift: 4,
+  ),
+  DoodleSpot(
+    Doodle.sparkle,
+    0.55,
+    0.13,
+    20,
+    rotation: 0.3,
+    phase: 0.45,
+    opacity: 0.40,
+    drift: 4,
+    twinkle: true,
+  ),
+  DoodleSpot(
+    Doodle.bolt,
+    0.80,
+    0.40,
+    30,
+    rotation: 0.18,
+    phase: 0.15,
+    opacity: 0.22,
+    drift: 6,
+  ),
+  DoodleSpot(
+    Doodle.plus,
+    0.62,
+    0.34,
+    13,
+    rotation: 0.2,
+    phase: 0.9,
+    opacity: 0.28,
+    drift: 3,
+  ),
+  DoodleSpot(
+    Doodle.star,
+    0.72,
+    0.22,
+    18,
+    rotation: -0.2,
+    phase: 0.7,
+    opacity: 0.30,
+    drift: 4,
+    twinkle: true,
+  ),
+];
+
+/// Marks for the profile header's gradient card.
+///
+/// Unlike the other heroes, this one's content runs down the *centre* — avatar,
+/// name, email, role badge — so the marks take the top strip and both side
+/// rails and leave the middle column alone.
+const List<DoodleSpot> kProfileSpots = [
+  DoodleSpot(
+    Doodle.ball,
+    0.90,
+    0.14,
+    84,
+    rotation: -0.1,
+    phase: 0.0,
+    opacity: 0.26,
+    drift: 8,
+    spin: 0.5,
+    weight: 0.05,
+  ),
+  DoodleSpot(
+    Doodle.dottedArc,
+    0.16,
+    0.09,
+    48,
+    rotation: 0.22,
+    phase: 0.4,
+    opacity: 0.30,
+    drift: 4,
+  ),
+  DoodleSpot(
+    Doodle.sparkle,
+    0.10,
+    0.34,
+    18,
+    rotation: 0.3,
+    phase: 0.45,
+    opacity: 0.38,
+    drift: 3,
+    twinkle: true,
+  ),
+  DoodleSpot(
+    Doodle.bolt,
+    0.07,
+    0.60,
+    24,
+    rotation: 0.18,
+    phase: 0.15,
+    opacity: 0.20,
+    drift: 5,
+  ),
+  DoodleSpot(
+    Doodle.star,
+    0.92,
+    0.42,
+    18,
+    rotation: -0.2,
+    phase: 0.7,
+    opacity: 0.32,
+    drift: 4,
+    twinkle: true,
+  ),
+  DoodleSpot(
+    Doodle.plus,
+    0.86,
+    0.66,
+    12,
+    rotation: 0.2,
+    phase: 0.9,
+    opacity: 0.26,
+    drift: 3,
+  ),
+  DoodleSpot(
+    Doodle.plus,
+    0.27,
+    0.17,
+    10,
+    rotation: -0.1,
+    phase: 0.2,
+    opacity: 0.24,
+    drift: 3,
+  ),
+];
+
+/// Marks for the splash's full-bleed brand field.
+///
+/// The emblem and wordmark own the middle of the screen, so these ring the
+/// edges and corners — big and confident, since this is the first thing anyone
+/// sees and it's on screen for barely a second.
+const List<DoodleSpot> kSplashSpots = [
+  DoodleSpot(
+    Doodle.ball,
+    0.88,
+    0.10,
+    130,
+    rotation: -0.1,
+    phase: 0.0,
+    opacity: 0.22,
+    drift: 10,
+    spin: 0.4,
+    weight: 0.05,
+  ),
+  DoodleSpot(
+    Doodle.trophy,
+    0.13,
+    0.14,
+    72,
+    rotation: -0.18,
+    phase: 0.3,
+    opacity: 0.20,
+    drift: 9,
+  ),
+  DoodleSpot(
+    Doodle.whistle,
+    0.16,
+    0.86,
+    68,
+    rotation: 0.2,
+    phase: 0.55,
+    opacity: 0.18,
+    drift: 8,
+  ),
+  DoodleSpot(
+    Doodle.medal,
+    0.86,
+    0.88,
+    74,
+    rotation: 0.14,
+    phase: 0.75,
+    opacity: 0.20,
+    drift: 9,
+  ),
+  DoodleSpot(
+    Doodle.bolt,
+    0.30,
+    0.30,
+    40,
+    rotation: 0.18,
+    phase: 0.15,
+    opacity: 0.24,
+    drift: 7,
+  ),
+  DoodleSpot(
+    Doodle.cone,
+    0.86,
+    0.73,
+    38,
+    rotation: 0.1,
+    phase: 0.6,
+    opacity: 0.20,
+    drift: 6,
+  ),
+  DoodleSpot(
+    Doodle.sparkle,
+    0.12,
+    0.58,
+    26,
+    rotation: 0.3,
+    phase: 0.45,
+    opacity: 0.44,
+    drift: 4,
+    twinkle: true,
+  ),
+  DoodleSpot(
+    Doodle.sparkle,
+    0.78,
+    0.34,
+    22,
+    rotation: -0.1,
+    phase: 0.85,
+    opacity: 0.40,
+    drift: 4,
+    twinkle: true,
+  ),
+  DoodleSpot(
+    Doodle.star,
+    0.10,
+    0.48,
+    24,
+    rotation: -0.2,
+    phase: 0.7,
+    opacity: 0.34,
+    drift: 5,
+    twinkle: true,
+  ),
+  DoodleSpot(
+    Doodle.star,
+    0.93,
+    0.50,
+    18,
+    rotation: 0.25,
+    phase: 0.1,
+    opacity: 0.30,
+    drift: 4,
+    twinkle: true,
+  ),
+  DoodleSpot(
+    Doodle.dottedArc,
+    0.50,
+    0.06,
+    70,
+    rotation: 0.2,
+    phase: 0.4,
+    opacity: 0.30,
+    drift: 4,
+  ),
+  DoodleSpot(
+    Doodle.plus,
+    0.62,
+    0.20,
+    14,
+    rotation: 0.2,
+    phase: 0.9,
+    opacity: 0.30,
+    drift: 3,
+  ),
+  DoodleSpot(
+    Doodle.plus,
+    0.38,
+    0.84,
+    12,
+    rotation: -0.1,
+    phase: 0.2,
+    opacity: 0.28,
+    drift: 3,
+  ),
+  DoodleSpot(
+    Doodle.zigzag,
+    0.50,
+    0.94,
+    56,
+    rotation: 0.05,
+    phase: 0.25,
+    opacity: 0.22,
+    drift: 5,
+  ),
+];
+
+/// Marks for a light page header ([PageHero]) — drawn in ink rather than white,
+/// because there's no colour band under them to knock out of.
+///
+/// Far fainter than the band sets for the same reason: on a near-white surface
+/// there's nothing to hide behind, and dark marks at band opacity would fight
+/// the headline instead of backing it. They keep to the right of the copy.
+const List<DoodleSpot> kHeaderSpots = [
+  DoodleSpot(
+    Doodle.ball,
+    0.90,
+    0.34,
+    76,
+    rotation: -0.1,
+    phase: 0.0,
+    opacity: 0.12,
+    drift: 6,
+    spin: 0.5,
+    weight: 0.05,
+  ),
+  DoodleSpot(
+    Doodle.dottedArc,
+    0.70,
+    0.10,
+    44,
+    rotation: 0.22,
+    phase: 0.4,
+    opacity: 0.15,
+    drift: 3,
+  ),
+  DoodleSpot(
+    Doodle.sparkle,
+    0.62,
+    0.42,
+    18,
+    rotation: 0.3,
+    phase: 0.45,
+    opacity: 0.20,
+    drift: 3,
+    twinkle: true,
+  ),
+  DoodleSpot(
+    Doodle.bolt,
+    0.78,
+    0.78,
+    26,
+    rotation: 0.18,
+    phase: 0.15,
+    opacity: 0.13,
+    drift: 5,
+  ),
+  DoodleSpot(
+    Doodle.star,
+    0.55,
+    0.80,
+    15,
+    rotation: -0.2,
+    phase: 0.7,
+    opacity: 0.15,
+    drift: 3,
+    twinkle: true,
+  ),
+  DoodleSpot(
+    Doodle.plus,
+    0.97,
+    0.72,
+    11,
+    rotation: 0.2,
+    phase: 0.9,
+    opacity: 0.15,
+    drift: 2,
+  ),
+];
+
 /// Quieter ink marks on the page below the band. These fill the dead space
 /// around and under the form card without competing with it.
 ///
@@ -321,6 +706,31 @@ class _AnimatedDoodleFieldState extends State<AnimatedDoodleField>
             ),
             size: Size.infinite,
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A still field of marks — no controller, no ticker.
+///
+/// Use this wherever the doodles are content rather than atmosphere: generated
+/// artwork, list thumbnails, anything that repeats down a scrolling page. A
+/// screen full of independently drifting covers would be a mess to look at and
+/// a waste of frames to paint.
+class DoodleArt extends StatelessWidget {
+  final List<DoodleSpot> spots;
+  final Color color;
+
+  const DoodleArt({super.key, required this.spots, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: RepaintBoundary(
+        child: CustomPaint(
+          painter: _DoodlePainter(0, spots, color),
+          size: Size.infinite,
         ),
       ),
     );
@@ -551,30 +961,31 @@ void _trophy(Canvas canvas, Paint paint, double s) {
   );
 }
 
+/// Referee's whistle, in profile: mouthpiece at the left, barrel swelling to the
+/// right, air hole on the crown.
+///
+/// The previous take was a rounded box with a hole in it and a spur on the side,
+/// which at any real size read as a padlock rather than a whistle.
 void _whistle(Canvas canvas, Paint paint, double s) {
-  final w = s * 0.4;
-  final h = s * 0.28;
+  // Barrel: flat where the mouthpiece meets it, swelling round to the right.
+  final body = Path()
+    ..moveTo(-s * 0.10, -s * 0.10)
+    ..lineTo(s * 0.02, -s * 0.27)
+    ..quadraticBezierTo(s * 0.46, -s * 0.30, s * 0.44, s * 0.02)
+    ..quadraticBezierTo(s * 0.42, s * 0.31, s * 0.04, s * 0.27)
+    ..lineTo(-s * 0.10, s * 0.10)
+    ..close();
+  canvas.drawPath(body, paint);
 
-  final body = RRect.fromRectAndRadius(
-    Rect.fromCenter(center: Offset(-w * 0.2, 0), width: w * 1.5, height: h * 2),
-    Radius.circular(h * 0.7),
+  // Mouthpiece: a slim bar running left to the lips.
+  final mouth = RRect.fromRectAndRadius(
+    Rect.fromLTRB(-s * 0.48, -s * 0.10, -s * 0.08, s * 0.10),
+    Radius.circular(s * 0.05),
   );
-  canvas.drawRRect(body, paint);
+  canvas.drawRRect(mouth, paint);
 
-  // Mouthpiece spur and the air hole.
-  final spout = Path()
-    ..moveTo(w * 0.55, -h * 0.45)
-    ..lineTo(w * 1.25, -h * 0.2)
-    ..lineTo(w * 1.25, h * 0.2)
-    ..lineTo(w * 0.55, h * 0.45);
-  canvas.drawPath(spout, paint);
-  canvas.drawCircle(Offset(-w * 0.45, 0), h * 0.36, paint);
-
-  // Lanyard loop.
-  final loop = Path()
-    ..moveTo(-w * 0.2, -h)
-    ..quadraticBezierTo(-w * 0.2, -h * 1.9, w * 0.35, -h * 1.5);
-  canvas.drawPath(loop, paint);
+  // Air hole on the crown.
+  canvas.drawCircle(Offset(s * 0.18, -s * 0.11), s * 0.055, paint);
 }
 
 void _sparkle(Canvas canvas, Paint paint, double s) {
@@ -697,16 +1108,23 @@ void _stopwatch(Canvas canvas, Paint paint, double s) {
 }
 
 void _medal(Canvas canvas, Paint paint, double s) {
-  final r = s * 0.32;
-  // Ribbon: two straps meeting at the disc.
+  final r = s * 0.30;
+  final cy = s * 0.16;
+  // Ribbon: a clean V from the top corners down to the disc. The straps used to
+  // stop short and sit vertically, which — above a ringed circle — read as a
+  // padlock shackle rather than a medal.
   final ribbon = Path()
-    ..moveTo(-r * 0.8, -s * 0.5)
-    ..lineTo(-r * 0.2, -r * 0.7)
-    ..moveTo(r * 0.8, -s * 0.5)
-    ..lineTo(r * 0.2, -r * 0.7);
+    ..moveTo(-s * 0.30, -s * 0.5)
+    ..lineTo(0, cy - r * 0.55)
+    ..moveTo(s * 0.30, -s * 0.5)
+    ..lineTo(0, cy - r * 0.55);
   canvas.drawPath(ribbon, paint);
-  canvas.drawCircle(Offset(0, s * 0.14), r, paint);
-  canvas.drawCircle(Offset(0, s * 0.14), r * 0.42, paint);
+  canvas.drawCircle(Offset(0, cy), r, paint);
+  // A star on the face, so the disc reads as struck rather than as a washer.
+  canvas.save();
+  canvas.translate(0, cy);
+  _star(canvas, paint, r * 1.05);
+  canvas.restore();
 }
 
 void _cone(Canvas canvas, Paint paint, double s) {
@@ -765,39 +1183,57 @@ class _MarkerPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Sits low and thick, like ink pooled under the baseline.
-    final top = size.height * 0.48;
-    final h = size.height * 0.42;
+    // The swipe has to cover the whole word, not just sit under it: the word on
+    // top is dark ink, which is only legible against the amber. A stroke that
+    // pooled under the baseline left the tops of the letters as ink-on-gradient
+    // at roughly 2:1 contrast.
+    final h = size.height * 0.86;
+    final centerY = size.height * 0.52;
     final paint = Paint()
-      ..color = color.withValues(alpha: 0.85)
+      ..color = color.withValues(alpha: 0.92)
       ..style = PaintingStyle.stroke
       ..strokeWidth = h
       ..strokeCap = StrokeCap.round;
 
-    // Overshoot both ends — nobody highlights exactly to the letter.
+    // A round cap bulges half a stroke-width *past* each endpoint. Starting the
+    // path at x=0 therefore threw ~h/2 of amber to the left of the word, over
+    // the space and into the last letter of the word before it. Pull the
+    // endpoints in by the cap radius and the paint lands where it's asked to,
+    // overshooting by [overshoot] and no more.
+    const overshoot = 3.0;
+    final capInset = math.min(h / 2 - overshoot, size.width * 0.35);
+
+    // A slight tilt across the word plus round caps: the band's edges stay
+    // uneven, so it still reads as drawn rather than as a rounded rectangle.
     final path = Path()
-      ..moveTo(-size.width * 0.02, top + h * 0.5)
+      ..moveTo(capInset, centerY + h * 0.04)
       ..quadraticBezierTo(
         size.width * 0.5,
-        top + h * 0.18,
-        size.width * 1.03,
-        top + h * 0.62,
+        centerY - h * 0.06,
+        size.width - capInset,
+        centerY + h * 0.06,
       );
     canvas.drawPath(path, paint);
 
-    // Lighter second pass, offset up — the streak of a stroke gone over twice.
+    // Lighter second pass across the top — the streak of a stroke gone over
+    // twice, which keeps the block from reading as a flat highlight chip.
+    final secondWidth = h * 0.22;
     final second = Paint()
-      ..color = color.withValues(alpha: 0.45)
+      ..color = color.withValues(alpha: 0.35)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = h * 0.5
+      ..strokeWidth = secondWidth
       ..strokeCap = StrokeCap.round;
+    final secondInset = math.min(
+      secondWidth / 2 + size.width * 0.04,
+      size.width * 0.4,
+    );
     final path2 = Path()
-      ..moveTo(size.width * 0.04, top + h * 0.02)
+      ..moveTo(secondInset, centerY - h * 0.34)
       ..quadraticBezierTo(
         size.width * 0.55,
-        top + h * 0.3,
-        size.width * 0.98,
-        top - h * 0.06,
+        centerY - h * 0.2,
+        size.width - secondInset,
+        centerY - h * 0.38,
       );
     canvas.drawPath(path2, second);
   }
@@ -806,25 +1242,35 @@ class _MarkerPainter extends CustomPainter {
   bool shouldRepaint(_MarkerPainter old) => old.color != color;
 }
 
-/// Clips the hero band to a hand-torn bottom edge — an uneven sweep rather than
-/// a machined arc, so the band belongs to the same hand as the doodles.
+/// Clips a hero band to a hand-torn bottom edge — an uneven sweep rather than a
+/// machined arc, so the band belongs to the same hand as the doodles.
 class TornEdgeClipper extends CustomClipper<Path> {
-  const TornEdgeClipper();
+  /// Scales how deep the tear bites into the band. 1.0 takes up to 58px out of
+  /// the bottom-right — fine for auth, where the band ends in empty gradient.
+  /// Denser headers want less, or the tear eats their content.
+  final double depth;
+
+  const TornEdgeClipper({this.depth = 1.0});
+
+  /// The largest vertical bite the tear takes, so callers can reserve exactly
+  /// enough bottom padding to keep content clear of it.
+  double get maxBite => 58 * depth;
 
   @override
   Path getClip(Size size) {
     final w = size.width;
     final h = size.height;
+    double y(double up) => h - up * depth;
     return Path()
       ..moveTo(0, 0)
-      ..lineTo(0, h - 38)
+      ..lineTo(0, y(38))
       // Two uneven sweeps: dips low on the left, rides up to the right.
-      ..cubicTo(w * 0.18, h - 4, w * 0.44, h + 2, w * 0.63, h - 18)
-      ..cubicTo(w * 0.78, h - 34, w * 0.88, h - 40, w, h - 58)
+      ..cubicTo(w * 0.18, y(4), w * 0.44, y(-2), w * 0.63, y(18))
+      ..cubicTo(w * 0.78, y(34), w * 0.88, y(40), w, y(58))
       ..lineTo(w, 0)
       ..close();
   }
 
   @override
-  bool shouldReclip(TornEdgeClipper oldClipper) => false;
+  bool shouldReclip(TornEdgeClipper oldClipper) => oldClipper.depth != depth;
 }
