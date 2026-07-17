@@ -4,7 +4,7 @@ import { Club } from '../models/club.model.js';
 
 import { ApiError } from '../errors/ApiError.js';
 import { MESSAGES } from '../constants/messages.js';
-import { CLUB_STATUS, USER_STATUS, ROLES, AUTH_PROVIDER } from '../enums/index.js';
+import { CLUB_STATUS, USER_STATUS, ROLES, AUTH_PROVIDER, GROWTH_RANGE } from '../enums/index.js';
 import { clubRepository } from '../repositories/club.repository.js';
 import { userRepository } from '../repositories/user.repository.js';
 import { eventRepository } from '../repositories/event.repository.js';
@@ -13,11 +13,72 @@ import { toUserResponse } from '../dto/user.dto.js';
 import { toEventResponse } from '../dto/event.dto.js';
 import { getPagination, buildPaginationMeta } from '../utils/pagination.js';
 import { buildClubSearchClause } from '../utils/clubSearch.js';
+import {
+  addUtcDays,
+  resolveGrowthWindow,
+  startOfUtcToday,
+  utcDateKey,
+} from '../utils/growthWindow.js';
 import * as clubService from './club.service.js';
 import * as eventService from './event.service.js';
 import * as authService from './auth.service.js';
 
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const countSignupsByDay = (role, window) =>
+  User.aggregate([
+    { $match: { createdAt: window, role } },
+    {
+      $group: {
+        _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+        count: { $sum: 1 },
+      },
+    },
+  ]);
+
+/**
+ * Daily signups per role over [range], one point per day.
+ *
+ * Days that haven't happened yet come back null rather than 0, so the chart
+ * draws a gap: "nobody signed up" and "hasn't happened yet" are different
+ * claims, and a trailing run of zeroes reads as the former.
+ */
+export const getUserGrowth = async ({ range = GROWTH_RANGE.THIS_WEEK } = {}) => {
+  const { start, days, label } = resolveGrowthWindow(range);
+  const end = addUtcDays(start, days);
+  const window = { $gte: start, $lt: end };
+
+  const [parentRaw, ownerRaw, adminRaw] = await Promise.all([
+    countSignupsByDay(ROLES.PARENT, window),
+    countSignupsByDay(ROLES.CLUB_OWNER, window),
+    countSignupsByDay(ROLES.ADMIN, window),
+  ]);
+
+  const today = startOfUtcToday();
+  const countOn = (raw, key, isFuture) =>
+    isFuture ? null : (raw.find((bucket) => bucket._id === key)?.count ?? 0);
+
+  const points = [];
+  for (let i = 0; i < days; i += 1) {
+    const date = addUtcDays(start, i);
+    const key = utcDateKey(date);
+    const isFuture = date > today;
+    points.push({
+      name: label(date),
+      date: key,
+      Parents: countOn(parentRaw, key, isFuture),
+      ClubOwners: countOn(ownerRaw, key, isFuture),
+      Admins: countOn(adminRaw, key, isFuture),
+    });
+  }
+
+  return {
+    range,
+    start: utcDateKey(start),
+    end: utcDateKey(addUtcDays(start, days - 1)),
+    points,
+  };
+};
 
 /** Aggregate dashboard counts across users, clubs and events. */
 export const getDashboardStats = async () => {
@@ -51,41 +112,10 @@ export const getDashboardStats = async () => {
     eventRepository.count(),
   ]);
 
-  const sevenDaysAgo = new Date();
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
-  sevenDaysAgo.setHours(0, 0, 0, 0);
-
-  const [parentGrowthRaw, ownerGrowthRaw, adminGrowthRaw] = await Promise.all([
-    User.aggregate([
-      { $match: { createdAt: { $gte: sevenDaysAgo }, role: ROLES.PARENT } },
-      { $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } }, count: { $sum: 1 } } }
-    ]),
-    User.aggregate([
-      { $match: { createdAt: { $gte: sevenDaysAgo }, role: ROLES.CLUB_OWNER } },
-      { $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } }, count: { $sum: 1 } } }
-    ]),
-    User.aggregate([
-      { $match: { createdAt: { $gte: sevenDaysAgo }, role: ROLES.ADMIN } },
-      { $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } }, count: { $sum: 1 } } }
-    ])
-  ]);
-
-  const growth = [];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(sevenDaysAgo);
-    d.setDate(d.getDate() + i);
-    const dateStr = d.toISOString().split('T')[0];
-    const name = d.toLocaleDateString('en-US', { weekday: 'short' }); 
-    growth.push({ 
-      name, 
-      Parents: parentGrowthRaw.find(g => g._id === dateStr)?.count || 0,
-      ClubOwners: ownerGrowthRaw.find(g => g._id === dateStr)?.count || 0,
-      Admins: adminGrowthRaw.find(g => g._id === dateStr)?.count || 0
-    });
-  }
-
+  // Growth is its own endpoint (`getUserGrowth`) because it's the one part of
+  // the dashboard with a filter: refetching every count above each time someone
+  // flips the chart to "Last Week" would be waste.
   return {
-    growth,
     clubs: {
       total: totalClubs,
       pending: pendingClubs,

@@ -1,6 +1,25 @@
 import React, { useState } from 'react';
-import { Box, Card, Typography, Select, MenuItem, Stack } from '@mui/material';
+import { Box, Typography, Select, MenuItem, Stack, Fade, LinearProgress } from '@mui/material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+
+import { useUserGrowth } from '@/hooks/useAdmin';
+
+const RANGES = [
+  { value: 'this-week', label: 'This Week' },
+  { value: 'last-week', label: 'Last Week' },
+  { value: 'this-month', label: 'This Month' },
+];
+
+/** '2026-07-12' -> 'Jul 12'. Parsed as UTC, which is how the server bucketed it. */
+function formatDay(key) {
+  if (!key) return '';
+  const [year, month, day] = key.split('-').map(Number);
+  return new Date(Date.UTC(year, month - 1, day)).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  });
+}
 
 
 function CustomTooltip({ active, payload, label }) {
@@ -19,18 +38,12 @@ function CustomTooltip({ active, payload, label }) {
   return null;
 }
 
-export function UserGrowthChart({ data = [] }) {
-  const [timeframe, setTimeframe] = useState('This Week');
+export function UserGrowthChart() {
+  const [range, setRange] = useState('this-week');
+  const { data: growth, isFetching, isError } = useUserGrowth(range);
 
-  const chartData = data?.length > 0 ? data : [
-    { name: 'Sun', Parents: 0, ClubOwners: 0, Admins: 0 },
-    { name: 'Mon', Parents: 0, ClubOwners: 0, Admins: 0 },
-    { name: 'Tue', Parents: 0, ClubOwners: 0, Admins: 0 },
-    { name: 'Wed', Parents: 0, ClubOwners: 0, Admins: 0 },
-    { name: 'Thu', Parents: 0, ClubOwners: 0, Admins: 0 },
-    { name: 'Fri', Parents: 0, ClubOwners: 0, Admins: 0 },
-    { name: 'Sat', Parents: 0, ClubOwners: 0, Admins: 0 },
-  ];
+  const chartData = growth?.points ?? [];
+  const rangeLabel = growth ? `${formatDay(growth.start)} – ${formatDay(growth.end)}` : '';
 
   return (
     <Box
@@ -46,28 +59,56 @@ export function UserGrowthChart({ data = [] }) {
         boxShadow: '0 2px 12px rgba(15,23,42, 0.04)',
       }}
     >
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-        <Typography variant="subtitle1" fontWeight={800} sx={{ color: '#111827' }}>
-          User Growth Trends
-        </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 4 }}>
+        <Box>
+          <Typography variant="subtitle1" fontWeight={800} sx={{ color: '#111827' }}>
+            User Growth Trends
+          </Typography>
+          {/* The dates the filter actually resolved to. Two calendar weeks carry
+              identical weekday labels, so without this the only proof that
+              "Last Week" did anything is the data itself changing — which it
+              won't on a quiet week. */}
+          <Typography variant="caption" sx={{ color: '#8A93A3', fontWeight: 600 }}>
+            {rangeLabel || ' '}
+          </Typography>
+        </Box>
         <Select
           size="small"
-          value={timeframe}
-          onChange={(e) => setTimeframe(e.target.value)}
-          sx={{ 
-            borderRadius: 2, 
-            height: 32, 
-            typography: 'caption', 
+          value={range}
+          onChange={(e) => setRange(e.target.value)}
+          sx={{
+            borderRadius: 2,
+            height: 32,
+            typography: 'caption',
             fontWeight: 600,
             '.MuiSelect-select': { py: 0.5, px: 2 }
           }}
         >
-          <MenuItem value="This Week" sx={{ typography: 'caption', fontWeight: 500 }}>This Week</MenuItem>
-          <MenuItem value="Last Week" sx={{ typography: 'caption', fontWeight: 500 }}>Last Week</MenuItem>
-          <MenuItem value="This Month" sx={{ typography: 'caption', fontWeight: 500 }}>This Month</MenuItem>
+          {RANGES.map((option) => (
+            <MenuItem
+              key={option.value}
+              value={option.value}
+              sx={{ typography: 'caption', fontWeight: 500 }}
+            >
+              {option.label}
+            </MenuItem>
+          ))}
         </Select>
       </Box>
 
+      {/* A thin bar rather than swapping the chart for a spinner: the previous
+          series stays put (keepPreviousData) and simply refreshes underneath. */}
+      <Fade in={isFetching} unmountOnExit>
+        <LinearProgress sx={{ height: 2, borderRadius: 1, mb: '-2px' }} />
+      </Fade>
+
+      {isError ? (
+        <Box sx={{ flex: 1, minHeight: 250, display: 'grid', placeItems: 'center' }}>
+          <Typography variant="body2" sx={{ color: '#8A93A3' }}>
+            Could not load growth data.
+          </Typography>
+        </Box>
+      ) : (
       <Box sx={{ flex: 1, minHeight: 250, width: '100%' }}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
@@ -93,8 +134,9 @@ export function UserGrowthChart({ data = [] }) {
               stroke="#2563EB" 
               strokeWidth={3} 
               dot={{ r: 5, fill: '#2563EB', strokeWidth: 0 }} 
-              activeDot={{ r: 7 }} 
+              activeDot={{ r: 7 }}
               isAnimationActive={false}
+              connectNulls={false}
             />
             <Line 
               type="monotone" 
@@ -102,21 +144,24 @@ export function UserGrowthChart({ data = [] }) {
               stroke="#38BDF8" 
               strokeWidth={3} 
               dot={{ r: 5, fill: '#38BDF8', strokeWidth: 0 }} 
-              activeDot={{ r: 7 }} 
+              activeDot={{ r: 7 }}
               isAnimationActive={false}
+              connectNulls={false}
             />
-            <Line 
-              type="monotone" 
-              dataKey="Admins" 
-              stroke="#f59e0b" 
-              strokeWidth={3} 
-              dot={{ r: 5, fill: '#f59e0b', strokeWidth: 0 }} 
-              activeDot={{ r: 7 }} 
+            <Line
+              type="monotone"
+              dataKey="Admins"
+              stroke="#f59e0b"
+              strokeWidth={3}
+              dot={{ r: 5, fill: '#f59e0b', strokeWidth: 0 }}
+              activeDot={{ r: 7 }}
               isAnimationActive={false}
+              connectNulls={false}
             />
           </LineChart>
         </ResponsiveContainer>
       </Box>
+      )}
 
       <Stack direction="row" spacing={4} justifyContent="center" sx={{ mt: 4, mb: 1 }}>
         <Stack direction="row" alignItems="center" spacing={1.5}>

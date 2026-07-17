@@ -53,3 +53,19 @@ export const GENDER = Object.freeze({
 });
 
 export const GENDER_VALUES = Object.freeze(Object.values(GENDER));
+
+/**
+ * Windows the admin dashboard's user-growth chart can plot.
+ *
+ * Calendar-based, not rolling: "this week" is Sunday-to-Saturday of the current
+ * week, not the last seven days. Two rolling seven-day windows would carry the
+ * same weekday labels, so switching between them would look like the filter had
+ * done nothing.
+ */
+export const GROWTH_RANGE = Object.freeze({
+  THIS_WEEK: 'this-week',
+  LAST_WEEK: 'last-week',
+  THIS_MONTH: 'this-month',
+});
+
+export const GROWTH_RANGE_VALUES = Object.freeze(Object.values(GROWTH_RANGE));

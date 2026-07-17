@@ -5,6 +5,8 @@ import {
   CLUB_STATUS_VALUES,
   GENDER,
   GENDER_VALUES,
+  GROWTH_RANGE,
+  GROWTH_RANGE_VALUES,
   ROLE_VALUES,
   USER_STATUS_VALUES,
 } from '../enums/index.js';
@@ -97,6 +99,12 @@ export const listClubsQuerySchema = Joi.object({
   search: Joi.string().trim().allow('').max(120),
   page: Joi.number().integer().min(1).default(1),
   limit: Joi.number().integer().min(1).max(100).default(20),
+});
+
+export const growthQuerySchema = Joi.object({
+  range: Joi.string()
+    .valid(...GROWTH_RANGE_VALUES)
+    .default(GROWTH_RANGE.THIS_WEEK),
 });
 
 export const listUsersQuerySchema = Joi.object({

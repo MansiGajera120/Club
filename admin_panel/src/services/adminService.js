@@ -7,6 +7,12 @@ export const adminService = {
     return data.data.stats;
   },
 
+  /** `range` is one of 'this-week' | 'last-week' | 'this-month'. */
+  async getGrowth(range) {
+    const { data } = await apiClient.get('/admin/stats/growth', { params: { range } });
+    return data.data.growth;
+  },
+
   async listClubs(params) {
     const { data } = await apiClient.get('/admin/clubs', { params });
     return { items: data.data.clubs, meta: data.meta };

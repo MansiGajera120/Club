@@ -71,6 +71,7 @@ export const MESSAGES = Object.freeze({
   },
   ADMIN: {
     STATS: 'Dashboard statistics fetched successfully',
+    GROWTH: 'User growth fetched successfully',
     CLUB_CREATED: 'Organization created successfully',
     CLUB_UPDATED: 'Organization updated successfully',
     CLUB_FETCHED: 'Organization fetched successfully',

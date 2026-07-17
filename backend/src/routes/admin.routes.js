@@ -13,6 +13,7 @@ import {
   updateClubStatusSchema,
   setFeaturedSchema,
   createAdminSchema,
+  growthQuerySchema,
   listClubsQuerySchema,
   listUsersQuerySchema,
   setUserStatusSchema,
@@ -26,6 +27,7 @@ router.use(authenticate, authorize(ROLES.ADMIN));
 
 // Dashboard
 router.get('/stats', adminController.getStats);
+router.get('/stats/growth', validate(growthQuerySchema, 'query'), adminController.getGrowth);
 
 // Clubs / moderation + full admin CRUD
 router.get('/clubs', validate(listClubsQuerySchema, 'query'), adminController.listClubs);

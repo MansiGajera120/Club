@@ -183,7 +183,7 @@ export function DashboardPage() {
             gap: GAP,
           }}
         >
-          <UserGrowthChart data={stats?.growth ?? []} />
+          <UserGrowthChart />
           <BreakdownDonutChart
             title="User Roles"
             data={userChartData}

@@ -9,6 +9,12 @@ export const getStats = asyncHandler(async (req, res) => {
   return ApiResponse.ok(res, { stats }, MESSAGES.ADMIN.STATS);
 });
 
+/** GET /admin/stats/growth — daily signups per role over ?range. */
+export const getGrowth = asyncHandler(async (req, res) => {
+  const growth = await adminService.getUserGrowth(req.query);
+  return ApiResponse.ok(res, { growth }, MESSAGES.ADMIN.GROWTH);
+});
+
 /** GET /admin/clubs — all clubs with optional status filter/search. */
 export const listClubs = asyncHandler(async (req, res) => {
   const { data, meta } = await adminService.listClubs(req.query);

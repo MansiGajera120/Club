@@ -17,6 +17,21 @@ export function useDashboardStats() {
   });
 }
 
+/**
+ * Daily signups per role for the growth chart.
+ *
+ * Its own query, keyed by range, so changing the chart's filter doesn't refetch
+ * the dashboard's headline counts. `keepPreviousData` holds the old series on
+ * screen while the new one loads, instead of collapsing the chart to a spinner.
+ */
+export function useUserGrowth(range) {
+  return useQuery({
+    queryKey: ['admin', 'stats', 'growth', range],
+    queryFn: () => adminService.getGrowth(range),
+    placeholderData: keepPreviousData,
+  });
+}
+
 /** Paginated clubs list. `params` = { status?, search?, page, limit }. */
 export function useAdminClubs(params) {
   return useQuery({
