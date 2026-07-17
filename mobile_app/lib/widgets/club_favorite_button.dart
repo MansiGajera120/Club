@@ -25,9 +25,7 @@ class ClubFavoriteButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isFavorite = ref.watch(
-      clubIsFavoriteProvider((clubId: club.id, fallback: club.isFavorite)),
-    );
+    final isFavorite = ref.watch(clubIsFavoriteProvider(club.id));
     final isPending = ref.watch(clubFavoritePendingProvider(club.id));
     final active = activeColor ?? AppColors.danger;
     final inactive = inactiveColor ?? AppColors.textTertiary;

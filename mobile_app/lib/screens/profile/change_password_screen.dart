@@ -85,7 +85,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                       obscureText: _obscureCurrent,
                       textInputAction: TextInputAction.next,
                       validator: (v) =>
-                          Validators.required(v, field: 'Current password'),
+                          Validators.required(v, field: 'your current password'),
                       suffixIcon: IconButton(
                         icon: Icon(_obscureCurrent
                             ? Icons.visibility_off_outlined

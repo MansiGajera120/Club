@@ -148,31 +148,31 @@ export function ClubFormPage() {
   const validate = () => {
     const next = {};
     const req = (key, label) => {
-      if (!String(form[key]).trim()) next[key] = `${label} is required`;
+      if (!String(form[key]).trim()) next[key] = `Please enter ${label}`;
     };
 
-    req('name', 'Name');
+    req('name', 'a name');
     if (!next.name && form.name.trim().length < 2) next.name = 'Min 2 characters';
-    req('description', 'Description');
-    req('services', 'At least one service');
-    req('city', 'City');
-    req('address', 'Address');
-    if (!form.phone.trim()) next.phone = 'Phone is required';
+    req('description', 'a description');
+    req('services', 'at least one service');
+    req('city', 'a city');
+    req('address', 'an address');
+    if (!form.phone.trim()) next.phone = 'Please enter a phone number';
     else if (!/^\d{10}$/.test(form.phone)) next.phone = 'Enter a 10-digit number';
 
-    if (!form.email.trim()) next.email = 'Email is required';
+    if (!form.email.trim()) next.email = 'Please enter an email';
     else if (!isEmail(form.email)) next.email = 'Enter a valid email';
 
-    if (!form.website.trim()) next.website = 'Website is required';
+    if (!form.website.trim()) next.website = 'Please enter a website';
     else if (!isUrl(form.website)) next.website = 'Start with http:// or https://';
 
     if (!form.registrationLink.trim())
-      next.registrationLink = 'Registration link is required';
+      next.registrationLink = 'Please enter a registration link';
     else if (!isUrl(form.registrationLink))
       next.registrationLink = 'Start with http:// or https://';
 
-    req('instagram', 'Instagram');
-    req('tiktok', 'TikTok');
+    req('instagram', 'an Instagram link');
+    req('tiktok', 'a TikTok link');
 
     const min = Number(form.ageMin);
     const max = Number(form.ageMax);
@@ -189,8 +189,8 @@ export function ClubFormPage() {
     // Media is mandatory on create; on edit it already exists on the server.
     let media = '';
     if (!isEdit) {
-      if (!logoFile) media = 'A logo is required.';
-      else if (staged.length === 0) media = 'Add at least one photo.';
+      if (!logoFile) media = 'Please add a logo';
+      else if (staged.length === 0) media = 'Please add at least one photo';
     }
     setMediaError(media);
 

@@ -20,7 +20,7 @@ export function AuthLayout() {
         <Box
           sx={{
             flex: { md: 1, lg: 1.2 }, // Takes up more space on very large screens
-            bgcolor: '#F4F6FA', // Light premium background
+            bgcolor: '#EEF3FB', // Light premium background
             position: 'relative',
             display: 'flex',
             alignItems: 'center',
@@ -33,12 +33,12 @@ export function AuthLayout() {
           }}
         >
           {/* Subtle background decorative shapes */}
-          <Box sx={{ position: 'absolute', top: '-10%', left: '-10%', width: '60%', height: '60%', borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,90,95,0.06) 0%, rgba(255,132,105,0) 70%)' }} />
-          <Box sx={{ position: 'absolute', bottom: '-10%', right: '-10%', width: '60%', height: '60%', borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,132,105,0.06) 0%, rgba(255,90,95,0) 70%)' }} />
+          <Box sx={{ position: 'absolute', top: '-10%', left: '-10%', width: '60%', height: '60%', borderRadius: '50%', background: 'radial-gradient(circle, rgba(37,99,235,0.06) 0%, rgba(56,189,248,0) 70%)' }} />
+          <Box sx={{ position: 'absolute', bottom: '-10%', right: '-10%', width: '60%', height: '60%', borderRadius: '50%', background: 'radial-gradient(circle, rgba(56,189,248,0.06) 0%, rgba(37,99,235,0) 70%)' }} />
           
           <Box
             component="img"
-            src="/login-illustration.png"
+            src="/login-illustration.jpg"
             alt="Admin login illustration"
             sx={{
               width: '100%',

@@ -33,7 +33,6 @@ import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
 import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined';
-import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined';
 
 import { ROUTES } from '@/constants';
 import { env } from '@/config/env';
@@ -52,7 +51,7 @@ const NAV_ITEMS = [
 const PAGE_TITLES = {
   [ROUTES.dashboard]: 'Overview',
   [ROUTES.clubs]: 'Clubs',
-  [ROUTES.users]: 'User Management',
+  [ROUTES.users]: 'Users',
   [ROUTES.events]: 'Events',
   [ROUTES.settings]: 'Change Password',
 };
@@ -120,7 +119,7 @@ export function DashboardLayout() {
           display: 'flex',
           alignItems: 'center',
           gap: 2,
-          borderBottom: '1px solid #F1F1F1',
+          borderBottom: '1px solid #E4EAF2',
         }}
       >
         <Box
@@ -128,12 +127,12 @@ export function DashboardLayout() {
             width: 46,
             height: 46,
             borderRadius: '12px',
-            background: 'linear-gradient(135deg, #F97316 0%, #FB923C 100%)',
+            background: 'linear-gradient(135deg, #2563EB 0%, #38BDF8 100%)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             flexShrink: 0,
-            boxShadow: '0 4px 14px rgba(249,115,22,0.32)',
+            boxShadow: '0 4px 14px rgba(37,99,235,0.32)',
           }}
         >
           <GroupsOutlinedIcon sx={{ color: '#fff', fontSize: 24 }} />
@@ -142,7 +141,7 @@ export function DashboardLayout() {
           sx={{
             fontWeight: 800,
             fontSize: '1.2rem',
-            color: '#262525',
+            color: '#111827',
             letterSpacing: '-0.01em',
           }}
         >
@@ -171,30 +170,30 @@ export function DashboardLayout() {
                   py: 1.4,
                   px: 2,
                   transition: 'all 0.18s ease',
-                  bgcolor: selected ? '#F97316' : 'transparent',
+                  bgcolor: selected ? '#2563EB' : 'transparent',
                   '&.Mui-selected': {
-                    bgcolor: '#F97316',
-                    '&:hover': { bgcolor: '#EA6C0A' },
+                    bgcolor: '#2563EB',
+                    '&:hover': { bgcolor: '#1D4ED8' },
                   },
                   '&:hover': {
-                    bgcolor: selected ? '#EA6C0A' : 'rgba(0,0,0,0.04)',
+                    bgcolor: selected ? '#1D4ED8' : 'rgba(0,0,0,0.04)',
                   },
                 }}
               >
                 <ListItemIcon
                   sx={{
                     minWidth: 40,
-                    color: selected ? '#FFFFFF' : '#8A8A9A',
+                    color: selected ? '#FFFFFF' : '#8A93A3',
                   }}
                 >
-                  <IconComp sx={{ fontSize: 22, color: selected ? '#FFFFFF' : '#8A8A9A' }} />
+                  <IconComp sx={{ fontSize: 22, color: selected ? '#FFFFFF' : '#8A93A3' }} />
                 </ListItemIcon>
                 <ListItemText
                   primary={item.label}
                   primaryTypographyProps={{
                     fontWeight: selected ? 700 : 500,
                     fontSize: '0.96rem',
-                    color: selected ? '#FFFFFF' : '#3D3D4E',
+                    color: selected ? '#FFFFFF' : '#566072',
                   }}
                 />
               </ListItemButton>
@@ -215,7 +214,7 @@ export function DashboardLayout() {
             '&:hover': { bgcolor: 'rgba(239,68,68,0.06)' },
           }}
         >
-          <ListItemIcon sx={{ minWidth: 40, color: '#8A8A9A' }}>
+          <ListItemIcon sx={{ minWidth: 40, color: '#8A93A3' }}>
             <LogoutOutlinedIcon sx={{ fontSize: 22 }} />
           </ListItemIcon>
           <ListItemText
@@ -223,7 +222,7 @@ export function DashboardLayout() {
             primaryTypographyProps={{
               fontWeight: 500,
               fontSize: '0.96rem',
-              color: '#6B7280',
+              color: '#566072',
             }}
           />
         </ListItemButton>
@@ -245,7 +244,7 @@ export function DashboardLayout() {
         display: 'flex',
         height: '100vh',
         overflow: 'hidden',
-        bgcolor: '#F7F8FA',
+        bgcolor: '#F7F9FC',
       }}
     >
       {/* Sidebar */}
@@ -279,7 +278,7 @@ export function DashboardLayout() {
             py: 0,
             minHeight: 68,
             bgcolor: '#FFFFFF',
-            borderBottom: '1px solid #EEEFF2',
+            borderBottom: '1px solid #E4EAF2',
             position: 'sticky',
             top: 0,
             zIndex: 10,
@@ -291,7 +290,7 @@ export function DashboardLayout() {
             <IconButton
               edge="start"
               onClick={() => setMobileOpen(true)}
-              sx={{ mr: 2, color: '#374151' }}
+              sx={{ mr: 2, color: '#566072' }}
             >
               <MenuIcon />
             </IconButton>
@@ -301,7 +300,7 @@ export function DashboardLayout() {
           <Typography
             variant="h5"
             fontWeight={800}
-            sx={{ color: '#262525', flex: 1, fontSize: '1.3rem', letterSpacing: '-0.01em' }}
+            sx={{ color: '#111827', flex: 1, fontSize: '1.3rem', letterSpacing: '-0.01em' }}
           >
             {pageTitle}
           </Typography>
@@ -317,45 +316,21 @@ export function DashboardLayout() {
                   width: 40,
                   height: 40,
                   borderRadius: '10px',
-                  border: '1px solid #EEEFF2',
-                  bgcolor: '#F7F8FA',
-                  color: '#6B7280',
+                  border: '1px solid #E4EAF2',
+                  bgcolor: '#F7F9FC',
+                  color: '#566072',
                   transition: 'all 0.2s',
                   '&:hover': {
                     bgcolor: '#fff',
-                    borderColor: '#F97316',
-                    color: '#F97316',
-                    boxShadow: '0 2px 8px rgba(249,115,22,0.15)',
+                    borderColor: '#2563EB',
+                    color: '#2563EB',
+                    boxShadow: '0 2px 8px rgba(37,99,235,0.15)',
                   },
                 }}
               >
                 <Badge badgeContent={3} color="error" variant="dot">
                   <NotificationsNoneOutlinedIcon sx={{ fontSize: 20 }} />
                 </Badge>
-              </IconButton>
-            </Tooltip>
-
-            {/* Profile icon */}
-            <Tooltip title="Admin profile">
-              <IconButton
-                id="profile-icon-btn"
-                onClick={(e) => setProfileAnchor(e.currentTarget)}
-                sx={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: '10px',
-                  border: '1px solid #EEEFF2',
-                  bgcolor: '#F7F8FA',
-                  color: '#6B7280',
-                  transition: 'all 0.2s',
-                  '&:hover': {
-                    bgcolor: '#fff',
-                    borderColor: '#F97316',
-                    color: '#F97316',
-                  },
-                }}
-              >
-                <PersonOutlineOutlinedIcon sx={{ fontSize: 20 }} />
               </IconButton>
             </Tooltip>
 
@@ -370,11 +345,11 @@ export function DashboardLayout() {
                 pr: 2,
                 py: 0.75,
                 borderRadius: '10px',
-                border: '1px solid #EEEFF2',
+                border: '1px solid #E4EAF2',
                 bgcolor: '#FFFFFF',
                 cursor: 'pointer',
                 transition: 'border-color 0.2s',
-                '&:hover': { borderColor: '#F97316' },
+                '&:hover': { borderColor: '#2563EB' },
                 ml: 0.5,
               }}
             >
@@ -382,7 +357,7 @@ export function DashboardLayout() {
                 sx={{
                   width: 32,
                   height: 32,
-                  background: 'linear-gradient(135deg, #F97316, #FB923C)',
+                  background: 'linear-gradient(135deg, #2563EB, #38BDF8)',
                   fontSize: '0.78rem',
                   fontWeight: 800,
                 }}
@@ -394,13 +369,13 @@ export function DashboardLayout() {
                   sx={{
                     fontWeight: 700,
                     fontSize: '0.88rem',
-                    color: '#262525',
+                    color: '#111827',
                     lineHeight: 1.25,
                   }}
                 >
                   {user?.name ?? 'Admin'}
                 </Typography>
-                <Typography sx={{ fontSize: '0.72rem', color: '#8A8A9A', lineHeight: 1 }}>
+                <Typography sx={{ fontSize: '0.72rem', color: '#8A93A3', lineHeight: 1 }}>
                   Admin
                 </Typography>
               </Box>
@@ -436,17 +411,17 @@ export function DashboardLayout() {
           sx: { mt: 1.5, width: 340, borderRadius: '14px', boxShadow: '0 12px 40px rgba(0,0,0,0.12)' },
         }}
       >
-        <Box sx={{ px: 2.5, py: 1.75, borderBottom: '1px solid #EEEFF2' }}>
-          <Typography sx={{ fontWeight: 800, color: '#262525', fontSize: '1rem' }}>
+        <Box sx={{ px: 2.5, py: 1.75, borderBottom: '1px solid #E4EAF2' }}>
+          <Typography sx={{ fontWeight: 800, color: '#111827', fontSize: '1rem' }}>
             Notifications
           </Typography>
         </Box>
         <Box sx={{ px: 3, py: 5, textAlign: 'center' }}>
-          <NotificationsNoneOutlinedIcon sx={{ fontSize: 42, color: '#D1D5DB', mb: 1 }} />
-          <Typography sx={{ color: '#374151', fontWeight: 700 }}>
+          <NotificationsNoneOutlinedIcon sx={{ fontSize: 42, color: '#D2DCEA', mb: 1 }} />
+          <Typography sx={{ color: '#566072', fontWeight: 700 }}>
             {"You're all caught up"}
           </Typography>
-          <Typography variant="caption" sx={{ color: '#9CA3AF' }}>
+          <Typography variant="caption" sx={{ color: '#8A93A3' }}>
             No new notifications
           </Typography>
         </Box>
@@ -468,7 +443,7 @@ export function DashboardLayout() {
             sx={{
               width: 40,
               height: 40,
-              background: 'linear-gradient(135deg, #F97316, #FB923C)',
+              background: 'linear-gradient(135deg, #2563EB, #38BDF8)',
               fontSize: '0.85rem',
               fontWeight: 800,
             }}
@@ -476,10 +451,10 @@ export function DashboardLayout() {
             {initials}
           </Avatar>
           <Box sx={{ minWidth: 0 }}>
-            <Typography sx={{ fontWeight: 700, fontSize: '0.92rem', color: '#262525' }} noWrap>
+            <Typography sx={{ fontWeight: 700, fontSize: '0.92rem', color: '#111827' }} noWrap>
               {user?.name ?? 'Admin'}
             </Typography>
-            <Typography variant="caption" sx={{ color: '#9CA3AF' }} noWrap>
+            <Typography variant="caption" sx={{ color: '#8A93A3' }} noWrap>
               {user?.email ?? ''}
             </Typography>
           </Box>
@@ -517,9 +492,9 @@ export function DashboardLayout() {
         onClose={() => setLogoutDialogOpen(false)}
         PaperProps={{ sx: { borderRadius: '16px', p: 1, minWidth: 340 } }}
       >
-        <DialogTitle sx={{ fontWeight: 800, pb: 1, color: '#262525' }}>Sign Out?</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 800, pb: 1, color: '#111827' }}>Sign Out?</DialogTitle>
         <DialogContent>
-          <DialogContentText sx={{ color: '#6B7280', fontWeight: 500 }}>
+          <DialogContentText sx={{ color: '#566072', fontWeight: 500 }}>
             Are you sure you want to sign out of the Admin Portal?
           </DialogContentText>
         </DialogContent>
@@ -527,12 +502,12 @@ export function DashboardLayout() {
           <Button
             onClick={() => setLogoutDialogOpen(false)}
             sx={{
-              color: '#6B7280',
+              color: '#566072',
               fontWeight: 600,
               borderRadius: '8px',
-              border: '1px solid #E5E7EB',
+              border: '1px solid #E4EAF2',
               px: 2.5,
-              '&:hover': { bgcolor: '#F7F8FA' },
+              '&:hover': { bgcolor: '#F7F9FC' },
             }}
           >
             Cancel
@@ -541,14 +516,14 @@ export function DashboardLayout() {
             onClick={confirmLogout}
             variant="contained"
             sx={{
-              background: 'linear-gradient(135deg, #F97316, #FB923C)',
+              background: 'linear-gradient(135deg, #2563EB, #38BDF8)',
               fontWeight: 700,
               borderRadius: '8px',
               boxShadow: 'none',
               px: 2.5,
               '&:hover': {
-                background: 'linear-gradient(135deg, #EA6C0A, #F97316)',
-                boxShadow: '0 4px 14px rgba(249,115,22,0.35)',
+                background: 'linear-gradient(135deg, #1D4ED8, #2563EB)',
+                boxShadow: '0 4px 14px rgba(37,99,235,0.35)',
               },
             }}
           >

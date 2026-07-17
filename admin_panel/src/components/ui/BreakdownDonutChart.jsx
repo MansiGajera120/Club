@@ -63,7 +63,7 @@ export function BreakdownDonutChart({
         border: '1px solid',
         borderColor: 'divider',
         bgcolor: 'background.paper',
-        boxShadow: '0 2px 12px rgba(42, 42, 53, 0.04)',
+        boxShadow: '0 2px 12px rgba(15,23,42, 0.04)',
       }}
     >
       <Box sx={{ mb: 2 }}>
@@ -179,7 +179,7 @@ export function BreakdownDonutChart({
                       bgcolor: CHART_COLORS[item.color] ?? brand.primary,
                     }}
                   />
-                  <Typography variant="caption" sx={{ color: '#6B7280', fontWeight: 600 }}>
+                  <Typography variant="caption" sx={{ color: '#566072', fontWeight: 600 }}>
                     {item.name}
                   </Typography>
                 </Stack>

@@ -36,19 +36,18 @@ class FavoriteUiNotifier extends Notifier<FavoriteUiState> {
 final favoriteUiProvider =
     NotifierProvider<FavoriteUiNotifier, FavoriteUiState>(FavoriteUiNotifier.new);
 
-/// Resolves favorite state for the signed-in user only. Never uses cached
-/// [fallback] from club payloads — those can belong to a previous session.
-final clubIsFavoriteProvider =
-    Provider.family<bool, ({String clubId, bool fallback})>((ref, args) {
+/// Resolves favorite state for the signed-in user only. Keyed by club id.
+/// Cached `isFavorite` from club payloads is deliberately ignored — it can
+/// belong to a previous session. During a reload the last-known list is used
+/// (via `valueOrNull`) so hearts don't flicker off.
+final clubIsFavoriteProvider = Provider.family<bool, String>((ref, clubId) {
   final auth = ref.watch(authControllerProvider);
   if (!auth.isAuthenticated) return false;
 
   final favorites = ref.watch(favoritesControllerProvider);
-  return favorites.when(
-    data: (clubs) => clubs.any((c) => c.id == args.clubId),
-    loading: () => false,
-    error: (_, _) => false,
-  );
+  final list = favorites.maybeWhen(data: (clubs) => clubs, orElse: () => null);
+  if (list == null) return false;
+  return list.any((c) => c.id == clubId);
 });
 
 final clubFavoritePendingProvider = Provider.family<bool, String>((ref, clubId) {
@@ -92,6 +91,9 @@ class FavoritesController extends AsyncNotifier<List<Club>> {
     final ui = ref.read(favoriteUiProvider.notifier);
     if (ref.read(favoriteUiProvider).isPending(club.id)) return _resolveFavorite(club);
 
+    // Snapshot so a failed toggle restores the exact prior list — original
+    // ordering and any fresher fields — instead of re-inserting at the front.
+    final previous = state;
     final currentlyFav = _resolveFavorite(club);
     final nextFav = !currentlyFav;
 
@@ -106,7 +108,7 @@ class FavoritesController extends AsyncNotifier<List<Club>> {
       }
       return nextFav;
     } catch (_) {
-      _setFavoriteLocally(club, currentlyFav);
+      state = previous;
       rethrow;
     } finally {
       ui.setPending(club.id, false);
@@ -114,7 +116,8 @@ class FavoritesController extends AsyncNotifier<List<Club>> {
   }
 
   Future<void> refresh() async {
-    state = const AsyncLoading();
+    // Keep the current list visible while refreshing (the pull-to-refresh
+    // indicator shows progress) so favorite hearts don't blank out app-wide.
     state = await AsyncValue.guard(() async {
       final result = await ref.read(favoriteRepositoryProvider).list();
       return result.items;

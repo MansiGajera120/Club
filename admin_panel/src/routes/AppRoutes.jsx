@@ -6,6 +6,7 @@ import AuthLayout from '@/layouts/AuthLayout';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import LoginPage from '@/pages/LoginPage';
 import ForgotPasswordPage from '@/pages/ForgotPasswordPage';
+import VerifyResetCodePage from '@/pages/VerifyResetCodePage';
 import ResetPasswordPage from '@/pages/ResetPasswordPage';
 import DashboardPage from '@/pages/DashboardPage';
 import ClubsPage from '@/pages/ClubsPage';
@@ -27,6 +28,7 @@ export function AppRoutes() {
       <Route element={<AuthLayout />}>
         <Route path={ROUTES.login} element={<LoginPage />} />
         <Route path={ROUTES.forgotPassword} element={<ForgotPasswordPage />} />
+        <Route path={ROUTES.verifyResetCode} element={<VerifyResetCodePage />} />
         <Route path={ROUTES.resetPassword} element={<ResetPasswordPage />} />
       </Route>
 

@@ -54,7 +54,11 @@ class SocialAuthButtons extends StatelessWidget {
             if (_showApple) ...[
               const SizedBox(width: AppSpacing.md),
               _SocialCircleButton(
-                leading: const Icon(Icons.apple, size: 26, color: AppColors.textPrimary),
+                leading: const Icon(
+                  Icons.apple,
+                  size: 26,
+                  color: AppColors.textPrimary,
+                ),
                 onPressed: isBusy ? null : onApple,
               ),
             ],
@@ -69,10 +73,7 @@ class _SocialCircleButton extends StatelessWidget {
   final Widget leading;
   final VoidCallback? onPressed;
 
-  const _SocialCircleButton({
-    required this.leading,
-    this.onPressed,
-  });
+  const _SocialCircleButton({required this.leading, this.onPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -89,11 +90,7 @@ class _SocialCircleButton extends StatelessWidget {
         child: AnimatedOpacity(
           duration: const Duration(milliseconds: 150),
           opacity: enabled ? 1 : 0.5,
-          child: SizedBox(
-            width: 52,
-            height: 52,
-            child: Center(child: leading),
-          ),
+          child: SizedBox(width: 52, height: 52, child: Center(child: leading)),
         ),
       ),
     );

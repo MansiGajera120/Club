@@ -1,14 +1,14 @@
 import { Box, Divider, Skeleton, Stack, Typography } from '@mui/material';
 
-import { brand } from '@/theme/tokens';
+import { brand, status } from '@/theme/tokens';
 
 const COLOR_MAP = {
   primary: brand.primary,
   secondary: brand.secondary,
-  success: '#22C55E',
-  warning: '#F59E0B',
-  info: '#3B82F6',
-  error: '#EF4444',
+  success: status.success,
+  warning: status.warning,
+  info: status.info,
+  error: status.danger,
 };
 
 /**

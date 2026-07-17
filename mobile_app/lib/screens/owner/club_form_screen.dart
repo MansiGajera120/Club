@@ -77,7 +77,7 @@ class _ClubFormScreenState extends ConsumerState<ClubFormScreen> {
   @override
   void dispose() {
     for (final c in [
-      _name, _address, _description, _ageMin, _ageMax, _price,
+      _name, _city, _address, _description, _ageMin, _ageMax, _price,
       _phone, _email, _website, _instagram, _tiktok, _services, _registrationLink,
     ]) {
       c.dispose();
@@ -182,6 +182,7 @@ class _ClubFormScreenState extends ConsumerState<ClubFormScreen> {
   Future<void> _removeExistingPhoto(String url) async {
     try {
       await ref.read(clubRepositoryProvider).removeGallery(widget.club!.id, url);
+      if (!mounted) return;
       setState(() => _existingGallery.remove(url));
       ref.invalidate(clubDetailProvider(widget.club!.id));
     } catch (e) {
@@ -348,7 +349,7 @@ class _ClubFormScreenState extends ConsumerState<ClubFormScreen> {
                       controller: _name,
                       maxLength: 120,
                       validator: (v) =>
-                          Validators.required(v, field: 'Club name'),
+                          Validators.required(v, field: 'the club name'),
                     ),
                     AppTextField(
                       label: 'Services offered (comma-separated)',
@@ -356,7 +357,7 @@ class _ClubFormScreenState extends ConsumerState<ClubFormScreen> {
                       hint: 'Coaching, Summer camp, Trials',
                       maxLength: 500,
                       validator: (v) =>
-                          Validators.required(v, field: 'Services offered'),
+                          Validators.required(v, field: 'the services offered'),
                     ),
                     AppTextField(
                         label: 'Address', controller: _address, maxLength: 300),

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../routes/route_names.dart';
+import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../utils/app_toast.dart';
 import '../../utils/validators.dart';
@@ -51,19 +52,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    await _run(() => ref.read(authControllerProvider.notifier).login(
-          email: _emailCtrl.text.trim(),
-          password: _passwordCtrl.text,
-        ));
+    await _run(
+      () => ref
+          .read(authControllerProvider.notifier)
+          .login(email: _emailCtrl.text.trim(), password: _passwordCtrl.text),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return AuthScaffold(
-      title: 'Welcome back',
+      title: 'Welcome',
+      titleAccent: 'back',
       subtitle: 'Sign in to discover clubs and events near you',
+      sticker: '👋',
+      footer: AuthLink(
+        leading: "Don't have an account?",
+        label: 'Create one',
+        onTap: () => context.pushNamed(RouteNames.signup),
+      ),
       child: Form(
         key: _formKey,
         child: Column(
@@ -77,7 +84,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               textInputAction: TextInputAction.next,
               validator: Validators.email,
             ),
-            const SizedBox(height: AppSpacing.md),
+            const SizedBox(height: AppSpacing.lg),
             AppTextField(
               label: 'Password',
               hint: '••••••••',
@@ -87,36 +94,35 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               validator: Validators.password,
               suffixIcon: IconButton(
                 icon: Icon(
-                  _obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                  _obscure
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined,
                 ),
                 onPressed: () => setState(() => _obscure = !_obscure),
               ),
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                TextButton(
-                  onPressed: () => context.pushNamed(RouteNames.signup),
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
-                  ),
-                  child: Text('Create account', style: TextStyle(color: theme.colorScheme.primary)),
+            const SizedBox(height: AppSpacing.sm),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () => context.pushNamed(RouteNames.forgotPassword),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
-                TextButton(
-                  onPressed: () => context.pushNamed(RouteNames.forgotPassword),
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+                child: const Text(
+                  'Forgot password?',
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
                   ),
-                  child: const Text('Forgot password?'),
                 ),
-              ],
+              ),
             ),
-            const SizedBox(height: AppSpacing.xs),
-            AppButton(
-              label: 'Sign in',
-              isLoading: _busy,
-              onPressed: _submit,
-            ),
+            const SizedBox(height: AppSpacing.lg),
+            AppButton(label: 'Sign in', isLoading: _busy, onPressed: _submit),
             const SizedBox(height: AppSpacing.lg),
             SocialAuthButtons(
               isBusy: _busy,

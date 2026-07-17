@@ -43,7 +43,7 @@ export function UserGrowthChart({ data = [] }) {
         border: '1px solid',
         borderColor: 'divider',
         bgcolor: 'background.paper',
-        boxShadow: '0 2px 12px rgba(42, 42, 53, 0.04)',
+        boxShadow: '0 2px 12px rgba(15,23,42, 0.04)',
       }}
     >
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
@@ -71,18 +71,18 @@ export function UserGrowthChart({ data = [] }) {
       <Box sx={{ flex: 1, minHeight: 250, width: '100%' }}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={true} horizontal={true} stroke="#E5E7EB" />
+            <CartesianGrid strokeDasharray="3 3" vertical={true} horizontal={true} stroke="#E4EAF2" />
             <XAxis 
               dataKey="name" 
               axisLine={false} 
               tickLine={false} 
-              tick={{ fontSize: 11, fill: '#6B7280' }} 
+              tick={{ fontSize: 11, fill: '#566072' }} 
               dy={15} 
             />
             <YAxis 
               axisLine={false} 
               tickLine={false} 
-              tick={{ fontSize: 11, fill: '#6B7280' }} 
+              tick={{ fontSize: 11, fill: '#566072' }} 
               allowDecimals={false}
               domain={[0, (dataMax) => Math.max(dataMax, 2)]}
             />
@@ -90,18 +90,18 @@ export function UserGrowthChart({ data = [] }) {
             <Line 
               type="monotone" 
               dataKey="Parents" 
-              stroke="#4bc39a" 
+              stroke="#2563EB" 
               strokeWidth={3} 
-              dot={{ r: 5, fill: '#4bc39a', strokeWidth: 0 }} 
+              dot={{ r: 5, fill: '#2563EB', strokeWidth: 0 }} 
               activeDot={{ r: 7 }} 
               isAnimationActive={false}
             />
             <Line 
               type="monotone" 
               dataKey="ClubOwners" 
-              stroke="#8faea3" 
+              stroke="#38BDF8" 
               strokeWidth={3} 
-              dot={{ r: 5, fill: '#8faea3', strokeWidth: 0 }} 
+              dot={{ r: 5, fill: '#38BDF8', strokeWidth: 0 }} 
               activeDot={{ r: 7 }} 
               isAnimationActive={false}
             />
@@ -120,16 +120,16 @@ export function UserGrowthChart({ data = [] }) {
 
       <Stack direction="row" spacing={4} justifyContent="center" sx={{ mt: 4, mb: 1 }}>
         <Stack direction="row" alignItems="center" spacing={1.5}>
-          <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#4bc39a' }} />
-          <Typography variant="caption" sx={{ color: '#6B7280', fontWeight: 600 }}>Parents</Typography>
+          <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#2563EB' }} />
+          <Typography variant="caption" sx={{ color: '#566072', fontWeight: 600 }}>Parents</Typography>
         </Stack>
         <Stack direction="row" alignItems="center" spacing={1.5}>
-          <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#8faea3' }} />
-          <Typography variant="caption" sx={{ color: '#6B7280', fontWeight: 600 }}>Club Owners</Typography>
+          <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#38BDF8' }} />
+          <Typography variant="caption" sx={{ color: '#566072', fontWeight: 600 }}>Club Owners</Typography>
         </Stack>
         <Stack direction="row" alignItems="center" spacing={1.5}>
           <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#f59e0b' }} />
-          <Typography variant="caption" sx={{ color: '#6B7280', fontWeight: 600 }}>Admins</Typography>
+          <Typography variant="caption" sx={{ color: '#566072', fontWeight: 600 }}>Admins</Typography>
         </Stack>
       </Stack>
     </Box>

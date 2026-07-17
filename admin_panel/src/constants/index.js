@@ -17,6 +17,7 @@ export const QUERY_KEYS = {
 export const ROUTES = {
   login: '/login',
   forgotPassword: '/forgot-password',
+  verifyResetCode: '/verify-code',
   resetPassword: '/reset-password',
   dashboard: '/',
   analytics: '/analytics',

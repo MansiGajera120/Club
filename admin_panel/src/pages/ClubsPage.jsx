@@ -68,12 +68,12 @@ const TH = ({ children, ...props }) => (
   <TableCell
     {...props}
     sx={{
-      bgcolor: '#F0F2F5 !important',
-      color: '#475569',
+      bgcolor: '#EEF3FB !important',
+      color: '#566072',
       fontWeight: 600,
       fontSize: '0.9rem',
       py: 2.5,
-      borderBottom: '1px solid #E5E7EB !important',
+      borderBottom: '1px solid #E4EAF2 !important',
       '&:first-of-type': { borderTopLeftRadius: '12px' },
       '&:last-of-type': { borderTopRightRadius: '12px' },
       zIndex: '100 !important',
@@ -95,8 +95,8 @@ function SimplePagination({ page, count, limit, onChange }) {
         onClick={() => onChange(page - 1)}
         disabled={page === 0}
         sx={{
-          width: 32, height: 32, borderRadius: '8px', border: '1px solid #E5E7EB', bgcolor: '#fff',
-          '&:hover': { borderColor: '#F97316', color: '#F97316' },
+          width: 32, height: 32, borderRadius: '8px', border: '1px solid #E4EAF2', bgcolor: '#fff',
+          '&:hover': { borderColor: '#2563EB', color: '#2563EB' },
           '&.Mui-disabled': { opacity: 0.4 },
         }}
       >
@@ -107,10 +107,10 @@ function SimplePagination({ page, count, limit, onChange }) {
           key={i} onClick={() => onChange(i)}
           sx={{
             width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            borderRadius: '8px', border: `1px solid ${page === i ? '#F97316' : '#E5E7EB'}`,
-            bgcolor: page === i ? '#F97316' : '#fff', color: page === i ? '#fff' : '#374151',
+            borderRadius: '8px', border: `1px solid ${page === i ? '#2563EB' : '#E4EAF2'}`,
+            bgcolor: page === i ? '#2563EB' : '#fff', color: page === i ? '#fff' : '#566072',
             fontSize: '0.92rem', fontWeight: page === i ? 700 : 500, cursor: 'pointer', transition: 'all 0.15s',
-            '&:hover': { borderColor: '#F97316', color: page === i ? '#fff' : '#F97316' },
+            '&:hover': { borderColor: '#2563EB', color: page === i ? '#fff' : '#2563EB' },
           }}
         >
           {i + 1}
@@ -119,8 +119,8 @@ function SimplePagination({ page, count, limit, onChange }) {
       <IconButton
         size="small" onClick={() => onChange(page + 1)} disabled={page >= totalPages - 1}
         sx={{
-          width: 32, height: 32, borderRadius: '8px', border: '1px solid #E5E7EB', bgcolor: '#fff',
-          '&:hover': { borderColor: '#F97316', color: '#F97316' }, '&.Mui-disabled': { opacity: 0.4 },
+          width: 32, height: 32, borderRadius: '8px', border: '1px solid #E4EAF2', bgcolor: '#fff',
+          '&:hover': { borderColor: '#2563EB', color: '#2563EB' }, '&.Mui-disabled': { opacity: 0.4 },
         }}
       >
         <KeyboardArrowRightIcon sx={{ fontSize: 18 }} />
@@ -189,6 +189,7 @@ export function ClubsPage() {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <PageHeader
+        actionsAlign="left"
         actions={
           <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate(ROUTES.clubNew)}>
             Add Organization
@@ -196,19 +197,19 @@ export function ClubsPage() {
         }
       />
       <ContentCard sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, minHeight: 0 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, px: 3, py: 2.5, borderBottom: '1px solid #EEEFF2', flexWrap: 'wrap' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, px: 3, py: 2.5, borderBottom: '1px solid #E4EAF2', flexWrap: 'wrap' }}>
           <TextField
             id="clubs-search" size="small" placeholder="Search by name, city, or sport…"
             value={searchInput} onChange={(e) => setSearchInput(e.target.value)}
             sx={{
               flex: 1, minWidth: 200, maxWidth: 400,
               '& .MuiOutlinedInput-root': {
-                bgcolor: '#fff', borderRadius: '24px', '& fieldset': { borderColor: '#E5E7EB' },
-                '&:hover fieldset': { borderColor: '#F97316' }, '&.Mui-focused fieldset': { borderColor: '#F97316', borderWidth: 1.5 },
+                bgcolor: '#fff', borderRadius: '24px', '& fieldset': { borderColor: '#E4EAF2' },
+                '&:hover fieldset': { borderColor: '#2563EB' }, '&.Mui-focused fieldset': { borderColor: '#2563EB', borderWidth: 1.5 },
               },
             }}
             InputProps={{
-              startAdornment: <InputAdornment position="start"><SearchIcon sx={{ fontSize: 18, color: '#9CA3AF' }} /></InputAdornment>,
+              startAdornment: <InputAdornment position="start"><SearchIcon sx={{ fontSize: 18, color: '#8A93A3' }} /></InputAdornment>,
               endAdornment: searchInput ? (
                 <InputAdornment position="end">
                   <IconButton size="small" edge="end" onClick={() => setSearchInput('')}><ClearIcon sx={{ fontSize: 16 }} /></IconButton>
@@ -221,12 +222,12 @@ export function ClubsPage() {
               id="clubs-status-select" value={status} displayEmpty
               onChange={(e) => { setPage(0); setStatus(e.target.value); }}
               sx={{
-                bgcolor: '#fff', borderRadius: '10px', '& .MuiOutlinedInput-notchedOutline': { borderColor: '#E5E7EB' },
-                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#F97316' },
-                '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#F97316', borderWidth: 1.5 },
+                bgcolor: '#fff', borderRadius: '10px', '& .MuiOutlinedInput-notchedOutline': { borderColor: '#E4EAF2' },
+                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#2563EB' },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#2563EB', borderWidth: 1.5 },
               }}
               renderValue={(val) => (
-                <Typography sx={{ fontSize: '0.95rem', color: val ? '#262525' : '#9CA3AF' }}>
+                <Typography sx={{ fontSize: '0.95rem', color: val ? '#111827' : '#8A93A3' }}>
                   {val ? val[0].toUpperCase() + val.slice(1) : 'All statuses'}
                 </Typography>
               )}
@@ -252,12 +253,12 @@ export function ClubsPage() {
             </TableHead>
             <TableBody>
               {clubs.map((club) => (
-                <TableRow key={club.id} hover sx={{ transition: 'background 0.12s', '&:hover': { bgcolor: '#FAFBFC' } }}>
+                <TableRow key={club.id} hover sx={{ transition: 'background 0.12s', '&:hover': { bgcolor: '#F8FBFE' } }}>
                   <TableCell sx={{ pl: 3, py: 2.5 }}>
-                    <span style={{ fontWeight: 600, fontSize: '1rem', color: '#000000' }}>{club.name}</span>
+                    <span style={{ fontWeight: 600, fontSize: '1rem', color: '#111827' }}>{club.name}</span>
                   </TableCell>
-                  <TableCell sx={{ color: '#000000', fontSize: '0.95rem', py: 2.5 }}>{club.city ?? '—'}</TableCell>
-                  <TableCell sx={{ color: '#000000', fontSize: '0.95rem', py: 2.5 }}>
+                  <TableCell sx={{ color: '#111827', fontSize: '0.95rem', py: 2.5 }}>{club.city ?? '—'}</TableCell>
+                  <TableCell sx={{ color: '#111827', fontSize: '0.95rem', py: 2.5 }}>
                     {formatPrice(club.price, club.priceCurrency)}
                   </TableCell>
                   <TableCell sx={{ py: 2.5 }}><StatusChip status={club.status} /></TableCell>
@@ -269,15 +270,15 @@ export function ClubsPage() {
                       onClick={() => setFeatured.mutate({ id: club.id, isFeatured: !club.isFeatured })}
                     />
                   </TableCell>
-                  <TableCell align="right" sx={{ color: '#000000', fontSize: '0.95rem', py: 2.5 }}>{club.favoritesCount ?? 0}</TableCell>
+                  <TableCell align="right" sx={{ color: '#111827', fontSize: '0.95rem', py: 2.5 }}>{club.favoritesCount ?? 0}</TableCell>
                   <TableCell align="right" sx={{ py: 2.5, pr: 3 }}>
                     <Stack direction="row" justifyContent="flex-end" spacing={0.5}>
                       <Tooltip title="View details">
                         <IconButton
                           size="small" onClick={() => setSelectedClub(club)}
                           sx={{
-                            width: 36, height: 36, borderRadius: '50%', border: '1px solid #E5E7EB', color: '#9CA3AF',
-                            transition: 'all 0.15s', '&:hover': { borderColor: '#F97316', color: '#F97316', bgcolor: 'rgba(249,115,22,0.06)' },
+                            width: 36, height: 36, borderRadius: '50%', border: '1px solid #E4EAF2', color: '#8A93A3',
+                            transition: 'all 0.15s', '&:hover': { borderColor: '#2563EB', color: '#2563EB', bgcolor: 'rgba(37,99,235,0.06)' },
                           }}
                         >
                           <RemoveRedEyeOutlinedIcon sx={{ fontSize: 20 }} />
@@ -286,8 +287,8 @@ export function ClubsPage() {
                       <IconButton
                         size="small" onClick={(e) => openMenu(e, club)}
                         sx={{
-                          width: 36, height: 36, borderRadius: '50%', border: '1px solid #E5E7EB', color: '#9CA3AF',
-                          transition: 'all 0.15s', '&:hover': { borderColor: '#374151', color: '#374151', bgcolor: 'rgba(55,65,81,0.06)' },
+                          width: 36, height: 36, borderRadius: '50%', border: '1px solid #E4EAF2', color: '#8A93A3',
+                          transition: 'all 0.15s', '&:hover': { borderColor: '#566072', color: '#566072', bgcolor: 'rgba(86,96,114,0.06)' },
                         }}
                       >
                         <MoreVertIcon sx={{ fontSize: 20 }} />
@@ -310,9 +311,9 @@ export function ClubsPage() {
           </Table>
         </TableContainer>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 3, py: 2, borderTop: '1px solid #EEEFF2', flexWrap: 'wrap', gap: 1.5 }}>
-          <Typography sx={{ fontSize: '0.92rem', color: '#6B7280' }}>
-            Showing <strong style={{ color: '#262525' }}>{clubs.length > 0 ? page * limit + 1 : 0}–{Math.min((page + 1) * limit, total)}</strong> out of <strong style={{ color: '#262525' }}>{total.toLocaleString()}</strong> results
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 3, py: 2, borderTop: '1px solid #E4EAF2', flexWrap: 'wrap', gap: 1.5 }}>
+          <Typography sx={{ fontSize: '0.92rem', color: '#566072' }}>
+            Showing <strong style={{ color: '#111827' }}>{clubs.length > 0 ? page * limit + 1 : 0}–{Math.min((page + 1) * limit, total)}</strong> out of <strong style={{ color: '#111827' }}>{total.toLocaleString()}</strong> results
           </Typography>
           <SimplePagination page={page} count={total} limit={limit} onChange={(p) => setPage(p)} />
         </Box>
@@ -367,7 +368,7 @@ export function ClubsPage() {
               <Stack direction="row" alignItems="center" spacing={2.5}>
                 <Avatar
                   variant="rounded"
-                  sx={{ width: 64, height: 64, borderRadius: '16px', bgcolor: '#F3F4F6', color: '#374151', fontWeight: 700, fontSize: '1.5rem' }}
+                  sx={{ width: 64, height: 64, borderRadius: '16px', bgcolor: '#EEF3FB', color: '#566072', fontWeight: 700, fontSize: '1.5rem' }}
                 >
                   {selectedClub.name?.[0]?.toUpperCase()}
                 </Avatar>
@@ -375,7 +376,7 @@ export function ClubsPage() {
                   <Typography variant="h6" fontWeight={700} sx={{ color: '#111827' }}>
                     {selectedClub.name}
                   </Typography>
-                  <Typography variant="body2" sx={{ color: '#6B7280' }}>
+                  <Typography variant="body2" sx={{ color: '#566072' }}>
                     {selectedClub.sport ? `${selectedClub.sport} • ` : ''}
                     {selectedClub.city ? selectedClub.city : 'Location unknown'}
                   </Typography>
@@ -383,17 +384,17 @@ export function ClubsPage() {
               </Stack>
               
               {selectedClub.description && (
-                <Box sx={{ p: 2, bgcolor: '#F9FAFB', borderRadius: '12px', border: '1px solid #EEEFF2' }}>
-                  <Typography variant="body2" sx={{ color: '#4B5563', lineHeight: 1.6 }}>
+                <Box sx={{ p: 2, bgcolor: '#F8FBFE', borderRadius: '12px', border: '1px solid #E4EAF2' }}>
+                  <Typography variant="body2" sx={{ color: '#566072', lineHeight: 1.6 }}>
                     {selectedClub.description}
                   </Typography>
                 </Box>
               )}
 
-              <Box sx={{ p: 3, bgcolor: '#F9FAFB', borderRadius: '16px', border: '1px solid #EEEFF2' }}>
+              <Box sx={{ p: 3, bgcolor: '#F8FBFE', borderRadius: '16px', border: '1px solid #E4EAF2' }}>
                 <Stack spacing={2.5}>
                   <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 180px', alignItems: 'flex-start', gap: 2 }}>
-                    <Typography sx={{ color: '#6B7280', fontWeight: 500 }}>Category / Sport</Typography>
+                    <Typography sx={{ color: '#566072', fontWeight: 500 }}>Category / Sport</Typography>
                     <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
                       <Typography sx={{ fontWeight: 600, color: '#111827' }}>
                         {selectedClub.sport || '—'}
@@ -402,7 +403,7 @@ export function ClubsPage() {
                   </Box>
                   
                   <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 180px', alignItems: 'flex-start', gap: 2 }}>
-                    <Typography sx={{ color: '#6B7280', fontWeight: 500 }}>Location</Typography>
+                    <Typography sx={{ color: '#566072', fontWeight: 500 }}>Location</Typography>
                     <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
                       <Typography sx={{ fontWeight: 600, color: '#111827', wordBreak: 'break-word' }}>
                         {selectedClub.address ? `${selectedClub.address}, ${selectedClub.city || ''}` : selectedClub.city || '—'}
@@ -411,7 +412,7 @@ export function ClubsPage() {
                   </Box>
 
                   <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 180px', alignItems: 'center', gap: 2 }}>
-                    <Typography sx={{ color: '#6B7280', fontWeight: 500 }}>Contact Email</Typography>
+                    <Typography sx={{ color: '#566072', fontWeight: 500 }}>Contact Email</Typography>
                     <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
                       <Typography sx={{ fontWeight: 600, color: '#111827', wordBreak: 'break-all' }}>
                         {selectedClub.contact?.email || '—'}
@@ -420,7 +421,7 @@ export function ClubsPage() {
                   </Box>
 
                   <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 180px', alignItems: 'center', gap: 2 }}>
-                    <Typography sx={{ color: '#6B7280', fontWeight: 500 }}>Contact Phone</Typography>
+                    <Typography sx={{ color: '#566072', fontWeight: 500 }}>Contact Phone</Typography>
                     <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
                       <Typography sx={{ fontWeight: 600, color: '#111827' }}>
                         {selectedClub.contact?.phone || '—'}
@@ -429,7 +430,7 @@ export function ClubsPage() {
                   </Box>
                   
                   <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 180px', alignItems: 'center', gap: 2 }}>
-                    <Typography sx={{ color: '#6B7280', fontWeight: 500 }}>Target Audience</Typography>
+                    <Typography sx={{ color: '#566072', fontWeight: 500 }}>Target Audience</Typography>
                     <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
                       <Typography sx={{ fontWeight: 600, color: '#111827' }}>
                         {selectedClub.gender ? selectedClub.gender[0].toUpperCase() + selectedClub.gender.slice(1) : 'Any'}, Ages {selectedClub.ageMin ?? 0}-{selectedClub.ageMax ?? 100}
@@ -438,7 +439,7 @@ export function ClubsPage() {
                   </Box>
 
                   <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 180px', alignItems: 'center', gap: 2 }}>
-                    <Typography sx={{ color: '#6B7280', fontWeight: 500 }}>Registration Fee</Typography>
+                    <Typography sx={{ color: '#566072', fontWeight: 500 }}>Registration Fee</Typography>
                     <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
                       <Typography sx={{ fontWeight: 700, color: '#111827' }}>
                         {formatPrice(selectedClub.price, selectedClub.priceCurrency)}
@@ -447,7 +448,7 @@ export function ClubsPage() {
                   </Box>
 
                   <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 180px', alignItems: 'center', gap: 2 }}>
-                    <Typography sx={{ color: '#6B7280', fontWeight: 500 }}>Status</Typography>
+                    <Typography sx={{ color: '#566072', fontWeight: 500 }}>Status</Typography>
                     <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
                       <StatusChip status={selectedClub.status} />
                     </Box>
@@ -458,16 +459,7 @@ export function ClubsPage() {
           )}
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button
-            onClick={() => setSelectedClub(null)}
-            variant="contained"
-            disableElevation
-            sx={{
-              borderRadius: '12px', textTransform: 'none', fontWeight: 700,
-              bgcolor: '#F3F4F6', color: '#374151', px: 3,
-              '&:hover': { bgcolor: '#E5E7EB' },
-            }}
-          >
+          <Button onClick={() => setSelectedClub(null)} variant="contained">
             Close
           </Button>
         </DialogActions>

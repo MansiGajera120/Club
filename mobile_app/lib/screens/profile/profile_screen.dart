@@ -47,26 +47,16 @@ class ProfileScreen extends ConsumerWidget {
   }
 
   Future<void> _confirmLogout(BuildContext context, WidgetRef ref) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Log out?'),
-        content: const Text('You will need to sign in again to access your account.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Log out'),
-          ),
-        ],
-      ),
+    final confirmed = await showAppConfirmDialog(
+      context,
+      icon: Icons.logout_rounded,
+      title: 'Log out?',
+      message: 'You will need to sign in again to access your account.',
+      confirmLabel: 'Log out',
+      destructive: true,
     );
 
-    if (confirmed != true || !context.mounted) return;
+    if (!confirmed || !context.mounted) return;
 
     AppToast.info('Logging out…');
     await ref.read(authControllerProvider.notifier).logout();
@@ -104,7 +94,7 @@ class ProfileScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const _SectionTitle(title: 'Account'),
+                  const SectionHeader(title: 'Account', padding: EdgeInsets.zero),
                   const SizedBox(height: AppSpacing.sm),
                   _SectionCard(
                     children: [
@@ -138,7 +128,7 @@ class ProfileScreen extends ConsumerWidget {
                   ),
 
                   const SizedBox(height: AppSpacing.xl),
-                  const _SectionTitle(title: 'Support & Legal'),
+                  const SectionHeader(title: 'Support & Legal', padding: EdgeInsets.zero),
                   const SizedBox(height: AppSpacing.sm),
                   _SectionCard(
                     children: [
@@ -211,26 +201,6 @@ class ProfileScreen extends ConsumerWidget {
       'apple' => 'Apple',
       _ => 'social sign-in',
     };
-  }
-}
-
-class _SectionTitle extends StatelessWidget {
-  final String title;
-  const _SectionTitle({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 8, bottom: 4),
-      child: Text(
-        title.toUpperCase(),
-        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              fontWeight: FontWeight.w800,
-              color: AppColors.textTertiary,
-              letterSpacing: 1.2,
-            ),
-      ),
-    );
   }
 }
 

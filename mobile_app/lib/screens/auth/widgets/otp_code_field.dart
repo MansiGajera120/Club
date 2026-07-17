@@ -49,8 +49,9 @@ class _OtpCodeFieldState extends State<OtpCodeField> {
     final cleaned = value.replaceAll(RegExp(r'\D'), '');
     final digits = cleaned.length > 6 ? cleaned.substring(0, 6) : cleaned;
     widget.controller.text = digits;
-    widget.controller.selection =
-        TextSelection.collapsed(offset: digits.length);
+    widget.controller.selection = TextSelection.collapsed(
+      offset: digits.length,
+    );
     setState(() => _code = digits);
   }
 
@@ -94,14 +95,16 @@ class _OtpCodeFieldState extends State<OtpCodeField> {
                         color: active
                             ? AppColors.primary
                             : filled
-                                ? AppColors.borderStrong
-                                : AppColors.border,
+                            ? AppColors.borderStrong
+                            : AppColors.border,
                         width: active ? 1.8 : 1.25,
                       ),
                       boxShadow: active
                           ? [
                               BoxShadow(
-                                color: AppColors.primary.withValues(alpha: 0.12),
+                                color: AppColors.primary.withValues(
+                                  alpha: 0.12,
+                                ),
                                 blurRadius: 8,
                                 offset: const Offset(0, 2),
                               ),

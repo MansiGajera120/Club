@@ -12,6 +12,7 @@ import {
   verifyOtpSchema,
   resendVerificationSchema,
   forgotPasswordSchema,
+  verifyResetCodeSchema,
   resetPasswordSchema,
   googleSchema,
   appleSchema,
@@ -44,6 +45,12 @@ router.post(
   authRateLimiter,
   validate(forgotPasswordSchema),
   authController.forgotPassword
+);
+router.post(
+  '/verify-reset-code',
+  authRateLimiter,
+  validate(verifyResetCodeSchema),
+  authController.verifyResetCode
 );
 router.post(
   '/reset-password',

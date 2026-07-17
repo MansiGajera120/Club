@@ -30,7 +30,7 @@ export function SettingsPage() {
         px: 2,
         py: { xs: 3, md: 5 },
         overflow: 'hidden',
-        // Soft orange glows to fill the empty space, on-theme
+        // Soft brand glows to fill the empty space, on-theme
         '&::before': {
           content: '""',
           position: 'absolute',
@@ -39,7 +39,7 @@ export function SettingsPage() {
           width: 360,
           height: 360,
           borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(249,115,22,0.16), rgba(249,115,22,0) 70%)',
+          background: 'radial-gradient(circle, rgba(37,99,235,0.16), rgba(37,99,235,0) 70%)',
           pointerEvents: 'none',
         },
         '&::after': {
@@ -50,7 +50,7 @@ export function SettingsPage() {
           width: 420,
           height: 420,
           borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(251,146,60,0.14), rgba(251,146,60,0) 70%)',
+          background: 'radial-gradient(circle, rgba(56,189,248,0.14), rgba(56,189,248,0) 70%)',
           pointerEvents: 'none',
         },
       }}
@@ -123,8 +123,8 @@ function ChangePasswordCard() {
           pt: 4,
           pb: 3.5,
           textAlign: 'center',
-          background: 'linear-gradient(135deg, rgba(249,115,22,0.08), rgba(251,146,60,0.04))',
-          borderBottom: '1px solid #EEEFF2',
+          background: 'linear-gradient(135deg, rgba(37,99,235,0.08), rgba(56,189,248,0.04))',
+          borderBottom: '1px solid #E4EAF2',
         }}
       >
         <Box
@@ -137,8 +137,8 @@ function ChangePasswordCard() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: 'linear-gradient(135deg, #F97316, #FB923C)',
-            boxShadow: '0 8px 22px rgba(249,115,22,0.32)',
+            background: 'linear-gradient(135deg, #2563EB, #38BDF8)',
+            boxShadow: '0 8px 22px rgba(37,99,235,0.32)',
           }}
         >
           <LockOutlinedIcon sx={{ color: '#fff', fontSize: 30 }} />
@@ -146,7 +146,7 @@ function ChangePasswordCard() {
         <Typography sx={{ fontWeight: 800, fontSize: '1.35rem', color: '#111827', letterSpacing: '-0.01em' }}>
           {requiresCurrentPassword ? 'Change Password' : 'Set Password'}
         </Typography>
-        <Typography sx={{ mt: 0.75, fontSize: '0.92rem', color: '#6B7280', maxWidth: 340, mx: 'auto', lineHeight: 1.5 }}>
+        <Typography sx={{ mt: 0.75, fontSize: '0.92rem', color: '#566072', maxWidth: 340, mx: 'auto', lineHeight: 1.5 }}>
           {"You'll be signed out and need to log in again with your new password."}
         </Typography>
       </Box>
@@ -166,7 +166,7 @@ function ChangePasswordCard() {
               error={Boolean(errors.currentPassword)}
               helperText={errors.currentPassword?.message}
               {...register('currentPassword', {
-                required: 'Current password is required',
+                required: 'Please enter your current password',
               })}
             />
           )}
@@ -177,7 +177,7 @@ function ChangePasswordCard() {
             error={Boolean(errors.newPassword)}
             helperText={errors.newPassword?.message}
             {...register('newPassword', {
-              required: 'New password is required',
+              required: 'Please enter a new password',
               minLength: { value: 8, message: 'At least 8 characters' },
               pattern: {
                 value: /^(?=.*[A-Za-z])(?=.*\d).+$/,
@@ -210,11 +210,11 @@ function ChangePasswordCard() {
               fontWeight: 700,
               textTransform: 'none',
               fontSize: '1rem',
-              background: 'linear-gradient(135deg, #F97316, #FB923C)',
-              boxShadow: '0 4px 14px rgba(249,115,22,0.30)',
+              background: 'linear-gradient(135deg, #2563EB, #38BDF8)',
+              boxShadow: '0 4px 14px rgba(37,99,235,0.30)',
               '&:hover': {
-                background: 'linear-gradient(135deg, #EA6C0A, #F97316)',
-                boxShadow: '0 6px 20px rgba(249,115,22,0.38)',
+                background: 'linear-gradient(135deg, #1D4ED8, #2563EB)',
+                boxShadow: '0 6px 20px rgba(37,99,235,0.38)',
               },
             }}
           >

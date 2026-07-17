@@ -2,13 +2,16 @@
 class Validators {
   const Validators._();
 
+  // Requires a proper domain: labels of alphanumerics/hyphens separated by
+  // single dots and a TLD — rejects trailing/consecutive dots (e.g. `a@b.c.`).
   static final RegExp _emailRegex =
-      RegExp(r'^[\w.+-]+@[\w-]+\.[\w.-]+$');
-  static final RegExp _phoneRegex = RegExp(r'^\d{10}$');
+      RegExp(r'^[\w.+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$');
+  // 10–15 digits after stripping formatting; allows an optional country code.
+  static final RegExp _phoneRegex = RegExp(r'^\d{10,15}$');
 
   static String? email(String? value) {
     final v = value?.trim() ?? '';
-    if (v.isEmpty) return 'Email is required';
+    if (v.isEmpty) return 'Please enter your email';
     if (!_emailRegex.hasMatch(v)) return 'Enter a valid email';
     return null;
   }
@@ -18,7 +21,7 @@ class Validators {
 
   static String? password(String? value) {
     final v = value ?? '';
-    if (v.isEmpty) return 'Password is required';
+    if (v.isEmpty) return 'Please enter your password';
     if (v.length < 8) return 'Password must be at least 8 characters';
     if (!_hasLetter.hasMatch(v) || !_hasDigit.hasMatch(v)) {
       return 'Include at least one letter and one number';
@@ -26,22 +29,27 @@ class Validators {
     return null;
   }
 
-  static String? required(String? value, {String field = 'This field'}) {
-    if ((value?.trim() ?? '').isEmpty) return '$field is required';
+  static String? required(String? value, {String field = 'this field'}) {
+    if ((value?.trim() ?? '').isEmpty) return 'Please enter $field';
     return null;
   }
 
   static String? name(String? value) {
     final v = value?.trim() ?? '';
-    if (v.isEmpty) return 'Name is required';
+    if (v.isEmpty) return 'Please enter your name';
     if (v.length < 2) return 'Name is too short';
     return null;
   }
 
   static String? phone(String? value, {bool required = true}) {
     final v = value?.trim() ?? '';
-    if (v.isEmpty) return required ? 'Phone number is required' : null;
-    if (!_phoneRegex.hasMatch(v)) return 'Enter a valid 10-digit mobile number';
+    if (v.isEmpty) return required ? 'Please enter your phone number' : null;
+    // Accept spaces, dashes, parentheses and an optional leading '+'.
+    final digits = v.replaceAll(RegExp(r'[\s\-().]'), '');
+    final normalized = digits.startsWith('+') ? digits.substring(1) : digits;
+    if (!_phoneRegex.hasMatch(normalized)) {
+      return 'Enter a valid phone number';
+    }
     return null;
   }
 

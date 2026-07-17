@@ -46,11 +46,11 @@ function TH({ children, ...props }) {
     <TableCell
       {...props}
       sx={{
-        bgcolor: '#F0F2F5 !important',
-        color: '#475569',
+        bgcolor: '#EEF3FB !important',
+        color: '#566072',
         fontWeight: 600,
         fontSize: '0.9rem',
-        borderBottom: '1px solid #E5E7EB !important',
+        borderBottom: '1px solid #E4EAF2 !important',
         '&:first-of-type': { borderTopLeftRadius: '12px' },
         '&:last-of-type': { borderTopRightRadius: '12px' },
         py: 2.5,
@@ -76,8 +76,8 @@ function SimplePagination({ page, count, limit, onChange }) {
         disabled={page === 0}
         sx={{
           width: 32, height: 32, borderRadius: '8px',
-          border: '1px solid #E5E7EB', bgcolor: '#fff',
-          '&:hover': { borderColor: '#F97316', color: '#F97316' },
+          border: '1px solid #E4EAF2', bgcolor: '#fff',
+          '&:hover': { borderColor: '#2563EB', color: '#2563EB' },
           '&.Mui-disabled': { opacity: 0.4 },
         }}
       >
@@ -92,14 +92,14 @@ function SimplePagination({ page, count, limit, onChange }) {
             width: 32, height: 32,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             borderRadius: '8px',
-            border: `1px solid ${page === i ? '#F97316' : '#E5E7EB'}`,
-            bgcolor: page === i ? '#F97316' : '#fff',
-            color: page === i ? '#fff' : '#374151',
+            border: `1px solid ${page === i ? '#2563EB' : '#E4EAF2'}`,
+            bgcolor: page === i ? '#2563EB' : '#fff',
+            color: page === i ? '#fff' : '#566072',
             fontSize: '0.92rem',
             fontWeight: page === i ? 700 : 500,
             cursor: 'pointer',
             transition: 'all 0.15s ease',
-            '&:hover': { borderColor: '#F97316', color: page === i ? '#fff' : '#F97316' },
+            '&:hover': { borderColor: '#2563EB', color: page === i ? '#fff' : '#2563EB' },
           }}
         >
           {i + 1}
@@ -112,8 +112,8 @@ function SimplePagination({ page, count, limit, onChange }) {
         disabled={page >= totalPages - 1}
         sx={{
           width: 32, height: 32, borderRadius: '8px',
-          border: '1px solid #E5E7EB', bgcolor: '#fff',
-          '&:hover': { borderColor: '#F97316', color: '#F97316' },
+          border: '1px solid #E4EAF2', bgcolor: '#fff',
+          '&:hover': { borderColor: '#2563EB', color: '#2563EB' },
           '&.Mui-disabled': { opacity: 0.4 },
         }}
       >
@@ -146,6 +146,7 @@ export function EventsPage() {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <PageHeader
+        actionsAlign="left"
         actions={
           <Button
             id="add-event-btn"
@@ -153,13 +154,13 @@ export function EventsPage() {
             startIcon={<AddIcon />}
             onClick={() => navigate(ROUTES.eventNew)}
             sx={{
-              background: 'linear-gradient(135deg, #F97316, #FB923C)',
+              background: 'linear-gradient(135deg, #2563EB, #38BDF8)',
               fontWeight: 700,
               borderRadius: '10px',
-              boxShadow: '0 4px 14px rgba(249,115,22,0.30)',
+              boxShadow: '0 4px 14px rgba(37,99,235,0.30)',
               '&:hover': {
-                background: 'linear-gradient(135deg, #EA6C0A, #F97316)',
-                boxShadow: '0 6px 20px rgba(249,115,22,0.38)',
+                background: 'linear-gradient(135deg, #1D4ED8, #2563EB)',
+                boxShadow: '0 6px 20px rgba(37,99,235,0.38)',
               },
             }}
           >
@@ -186,7 +187,7 @@ export function EventsPage() {
               {isLoading && events.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={6} align="center" sx={{ py: 7 }}>
-                    <CircularProgress size={26} sx={{ color: '#F97316' }} />
+                    <CircularProgress size={26} sx={{ color: '#2563EB' }} />
                   </TableCell>
                 </TableRow>
               )}
@@ -196,7 +197,7 @@ export function EventsPage() {
                   key={event.id}
                   sx={{
                     '&:last-child td': { borderBottom: 'none' },
-                    '&:hover': { bgcolor: '#FAFBFC' },
+                    '&:hover': { bgcolor: '#F8FBFE' },
                     transition: 'background 0.12s',
                   }}
                 >
@@ -209,32 +210,32 @@ export function EventsPage() {
                           width: 36, height: 36,
                           borderRadius: '10px',
                           fontSize: '0.92rem', fontWeight: 700,
-                          bgcolor: '#F3F4F6',
-                          color: '#374151',
+                          bgcolor: '#EEF3FB',
+                          color: '#566072',
                         }}
                       >
                         {event.title?.[0]?.toUpperCase()}
                       </Avatar>
-                      <Typography sx={{ fontWeight: 600, fontSize: '1rem', color: '#000000' }}>
+                      <Typography sx={{ fontWeight: 600, fontSize: '1rem', color: '#111827' }}>
                         {event.title}
                       </Typography>
                     </Stack>
                   </TableCell>
 
                   {/* Organization */}
-                  <TableCell sx={{ color: '#000000', fontSize: '0.95rem', py: 2.5 }}>
+                  <TableCell sx={{ color: '#111827', fontSize: '0.95rem', py: 2.5 }}>
                     {clubNameById[event.club] || '—'}
                   </TableCell>
 
                   {/* Date */}
-                  <TableCell sx={{ color: '#000000', fontSize: '0.95rem', py: 2.5, whiteSpace: 'nowrap' }}>
+                  <TableCell sx={{ color: '#111827', fontSize: '0.95rem', py: 2.5, whiteSpace: 'nowrap' }}>
                     {event.startDate ? formatDate(event.startDate) : '—'}
                   </TableCell>
 
                   {/* Location */}
                   <TableCell
                     sx={{
-                      color: '#000000', fontSize: '0.95rem', py: 2.5,
+                      color: '#111827', fontSize: '0.95rem', py: 2.5,
                       maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                     }}
                   >
@@ -255,12 +256,12 @@ export function EventsPage() {
                           onClick={() => setSelectedEvent(event)}
                           sx={{
                             width: 34, height: 34, borderRadius: '50%',
-                            border: '1px solid #E5E7EB',
-                            color: '#9CA3AF',
+                            border: '1px solid #E4EAF2',
+                            color: '#8A93A3',
                             transition: 'all 0.15s',
                             '&:hover': {
-                              borderColor: '#F97316', color: '#F97316',
-                              bgcolor: 'rgba(249,115,22,0.06)',
+                              borderColor: '#2563EB', color: '#2563EB',
+                              bgcolor: 'rgba(37,99,235,0.06)',
                             },
                           }}
                         >
@@ -273,12 +274,12 @@ export function EventsPage() {
                           onClick={() => navigate(eventEditPath(event.id))}
                           sx={{
                             width: 34, height: 34, borderRadius: '50%',
-                            border: '1px solid #E5E7EB',
-                            color: '#9CA3AF',
+                            border: '1px solid #E4EAF2',
+                            color: '#8A93A3',
                             transition: 'all 0.15s',
                             '&:hover': {
-                              borderColor: '#F97316', color: '#F97316',
-                              bgcolor: 'rgba(249,115,22,0.06)',
+                              borderColor: '#2563EB', color: '#2563EB',
+                              bgcolor: 'rgba(37,99,235,0.06)',
                             },
                           }}
                         >
@@ -291,12 +292,12 @@ export function EventsPage() {
                           onClick={() => setTarget(event)}
                           sx={{
                             width: 34, height: 34, borderRadius: '50%',
-                            border: '1px solid #E5E7EB',
-                            color: '#9CA3AF',
+                            border: '1px solid #E4EAF2',
+                            color: '#8A93A3',
                             transition: 'all 0.15s',
                             '&:hover': {
-                              borderColor: '#DC2626', color: '#DC2626',
-                              bgcolor: 'rgba(220,38,38,0.06)',
+                              borderColor: '#EF4444', color: '#EF4444',
+                              bgcolor: 'rgba(239,68,68,0.06)',
                             },
                           }}
                         >
@@ -310,7 +311,7 @@ export function EventsPage() {
 
               {!isLoading && events.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} align="center" sx={{ py: 6, color: '#9CA3AF' }}>
+                  <TableCell colSpan={6} align="center" sx={{ py: 6, color: '#8A93A3' }}>
                     No events found.
                   </TableCell>
                 </TableRow>
@@ -327,17 +328,17 @@ export function EventsPage() {
             justifyContent: 'space-between',
             px: 3,
             py: 2,
-            borderTop: '1px solid #EEEFF2',
+            borderTop: '1px solid #E4EAF2',
             flexWrap: 'wrap',
             gap: 1.5,
           }}
         >
-          <Typography sx={{ fontSize: '0.92rem', color: '#6B7280' }}>
+          <Typography sx={{ fontSize: '0.92rem', color: '#566072' }}>
             Showing{' '}
-            <strong style={{ color: '#262525' }}>
+            <strong style={{ color: '#111827' }}>
               {events.length > 0 ? page * limit + 1 : 0}–{Math.min((page + 1) * limit, total)}
             </strong>{' '}
-            out of <strong style={{ color: '#262525' }}>{total.toLocaleString()}</strong> results
+            out of <strong style={{ color: '#111827' }}>{total.toLocaleString()}</strong> results
           </Typography>
           <SimplePagination page={page} count={total} limit={limit} onChange={(p) => setPage(p)} />
         </Box>
@@ -371,7 +372,7 @@ export function EventsPage() {
               <Stack direction="row" alignItems="center" spacing={2.5}>
                 <Avatar
                   variant="rounded"
-                  sx={{ width: 64, height: 64, borderRadius: '16px', bgcolor: '#F3F4F6', color: '#374151', fontWeight: 700, fontSize: '1.5rem' }}
+                  sx={{ width: 64, height: 64, borderRadius: '16px', bgcolor: '#EEF3FB', color: '#566072', fontWeight: 700, fontSize: '1.5rem' }}
                 >
                   {selectedEvent.title?.[0]?.toUpperCase()}
                 </Avatar>
@@ -379,45 +380,45 @@ export function EventsPage() {
                   <Typography variant="h6" fontWeight={700} sx={{ color: '#111827' }}>
                     {selectedEvent.title}
                   </Typography>
-                  <Typography variant="body2" sx={{ color: '#6B7280' }}>
+                  <Typography variant="body2" sx={{ color: '#566072' }}>
                     {clubNameById[selectedEvent.club] || 'Organization unknown'}
                   </Typography>
                 </Box>
               </Stack>
 
               {selectedEvent.description && (
-                <Box sx={{ p: 2, bgcolor: '#F9FAFB', borderRadius: '12px', border: '1px solid #EEEFF2' }}>
-                  <Typography variant="body2" sx={{ color: '#4B5563', lineHeight: 1.6 }}>
+                <Box sx={{ p: 2, bgcolor: '#F8FBFE', borderRadius: '12px', border: '1px solid #E4EAF2' }}>
+                  <Typography variant="body2" sx={{ color: '#566072', lineHeight: 1.6 }}>
                     {selectedEvent.description}
                   </Typography>
                 </Box>
               )}
 
-              <Box sx={{ p: 3, bgcolor: '#F9FAFB', borderRadius: '16px', border: '1px solid #EEEFF2' }}>
+              <Box sx={{ p: 3, bgcolor: '#F8FBFE', borderRadius: '16px', border: '1px solid #E4EAF2' }}>
                 <Stack spacing={2.5}>
                   <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 200px', alignItems: 'center', gap: 2 }}>
-                    <Typography sx={{ color: '#6B7280', fontWeight: 500 }}>Organization</Typography>
+                    <Typography sx={{ color: '#566072', fontWeight: 500 }}>Organization</Typography>
                     <Typography sx={{ fontWeight: 600, color: '#111827' }}>
                       {clubNameById[selectedEvent.club] || '—'}
                     </Typography>
                   </Box>
 
                   <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 200px', alignItems: 'center', gap: 2 }}>
-                    <Typography sx={{ color: '#6B7280', fontWeight: 500 }}>Date</Typography>
+                    <Typography sx={{ color: '#566072', fontWeight: 500 }}>Date</Typography>
                     <Typography sx={{ fontWeight: 600, color: '#111827' }}>
                       {selectedEvent.startDate ? formatDate(selectedEvent.startDate) : '—'}
                     </Typography>
                   </Box>
 
                   <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 200px', alignItems: 'flex-start', gap: 2 }}>
-                    <Typography sx={{ color: '#6B7280', fontWeight: 500 }}>Location</Typography>
+                    <Typography sx={{ color: '#566072', fontWeight: 500 }}>Location</Typography>
                     <Typography sx={{ fontWeight: 600, color: '#111827', wordBreak: 'break-word' }}>
                       {selectedEvent.location || '—'}
                     </Typography>
                   </Box>
 
                   <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 200px', alignItems: 'center', gap: 2 }}>
-                    <Typography sx={{ color: '#6B7280', fontWeight: 500 }}>Status</Typography>
+                    <Typography sx={{ color: '#566072', fontWeight: 500 }}>Status</Typography>
                     <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
                       <StatusChip status={selectedEvent.isActive ? 'active' : 'inactive'} />
                     </Box>
@@ -428,16 +429,7 @@ export function EventsPage() {
           )}
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button
-            onClick={() => setSelectedEvent(null)}
-            variant="contained"
-            disableElevation
-            sx={{
-              borderRadius: '12px', textTransform: 'none', fontWeight: 700,
-              bgcolor: '#F3F4F6', color: '#374151', px: 3,
-              '&:hover': { bgcolor: '#E5E7EB' },
-            }}
-          >
+          <Button onClick={() => setSelectedEvent(null)} variant="contained">
             Close
           </Button>
         </DialogActions>

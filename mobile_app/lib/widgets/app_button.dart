@@ -130,40 +130,42 @@ class _PrimaryButton extends StatelessWidget {
           Text(label, style: AppFonts.body(AppTypography.button).copyWith(color: Colors.white));
     }
 
-    return AnimatedOpacity(
-      duration: const Duration(milliseconds: 150),
-      opacity: enabled ? 1 : 0.55,
-      child: PressableScale(
-        pressedScale: 0.98,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: AppGradients.brandHorizontal,
-            borderRadius: AppRadius.lgAll,
-            boxShadow: enabled ? AppShadows.brand : null,
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: onPressed,
+    final button = DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: AppGradients.brandHorizontal,
+        borderRadius: AppRadius.lgAll,
+        boxShadow: enabled ? AppShadows.brand : null,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: AppRadius.lgAll,
+          // Faint highlight sweep across the top edge for a glossy lift.
+          child: Ink(
+            decoration: BoxDecoration(
+              gradient: AppGradients.cardSheen,
               borderRadius: AppRadius.lgAll,
-              // Faint highlight sweep across the top edge for a glossy lift.
-              child: Ink(
-                decoration: BoxDecoration(
-                  gradient: AppGradients.cardSheen,
-                  borderRadius: AppRadius.lgAll,
-                ),
-                child: Container(
-                  width: fullWidth ? double.infinity : null,
-                  height: 52,
-                  alignment: Alignment.center,
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: content,
-                ),
-              ),
+            ),
+            child: Container(
+              width: fullWidth ? double.infinity : null,
+              height: 52,
+              alignment: Alignment.center,
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: content,
             ),
           ),
         ),
       ),
+    );
+
+    return AnimatedOpacity(
+      duration: const Duration(milliseconds: 150),
+      opacity: enabled ? 1 : 0.55,
+      // Only the interactive (enabled, non-loading) button dips on press.
+      child: enabled
+          ? PressableScale(pressedScale: 0.98, child: button)
+          : button,
     );
   }
 }

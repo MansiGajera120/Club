@@ -83,7 +83,9 @@ class AuthRepository {
   Future<UserModel> getMe() {
     return _guard(() async {
       final res = await _dio.get(ApiEndpoints.me);
-      return UserModel.fromJson(res.data['data']['user'] as Map<String, dynamic>);
+      return UserModel.fromJson(
+        res.data['data']['user'] as Map<String, dynamic>,
+      );
     });
   }
 
@@ -99,6 +101,21 @@ class AuthRepository {
   Future<void> forgotPassword(String email) {
     return _guard(() async {
       await _dio.post(ApiEndpoints.forgotPassword, data: {'email': email});
+    });
+  }
+
+  /// Check a password-reset OTP without spending it, so the reset flow can
+  /// confirm the code before asking for a new password.
+  ///
+  /// A correct code leaves the server state untouched — only wrong guesses count
+  /// against the attempt limit — so the same code still works for
+  /// [resetPassword] afterwards.
+  Future<void> verifyResetCode({required String email, required String otp}) {
+    return _guard(() async {
+      await _dio.post(
+        ApiEndpoints.verifyResetCode,
+        data: {'email': email, 'code': otp},
+      );
     });
   }
 

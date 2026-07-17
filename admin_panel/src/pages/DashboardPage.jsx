@@ -17,7 +17,7 @@ function StatCard({ title, value, icon: Icon, iconColor, iconBg }) {
       sx={{
         bgcolor: '#FFFFFF',
         borderRadius: '18px',
-        border: '1px solid #EEEFF2',
+        border: '1px solid #E4EAF2',
         boxShadow: '0 2px 16px rgba(0,0,0,0.05)',
         p: 3.5,
         display: 'flex',
@@ -37,7 +37,7 @@ function StatCard({ title, value, icon: Icon, iconColor, iconBg }) {
           sx={{
             fontSize: '0.88rem',
             fontWeight: 500,
-            color: '#9CA3AF',
+            color: '#8A93A3',
             lineHeight: 1.4,
           }}
         >
@@ -65,7 +65,7 @@ function StatCard({ title, value, icon: Icon, iconColor, iconBg }) {
         sx={{
           fontSize: '2.4rem',
           fontWeight: 800,
-          color: '#262525',
+          color: '#111827',
           lineHeight: 1,
           letterSpacing: '-0.03em',
           mt: 'auto',
@@ -99,8 +99,8 @@ export function DashboardPage() {
       title: 'Active Organizations',
       value: isLoading || isError ? '—' : clubsTotal.toLocaleString(),
       icon: BusinessCenterIcon,
-      iconColor: '#F97316',
-      iconBg: '#FFF7ED',
+      iconColor: '#2563EB',
+      iconBg: '#EFF6FF',
     },
     {
       title: 'Total Events',
@@ -113,15 +113,15 @@ export function DashboardPage() {
       title: 'Pending Club Review',
       value: isLoading || isError ? '—' : clubsPending.toLocaleString(),
       icon: HourglassTopRoundedIcon,
-      iconColor: '#D97706',
+      iconColor: '#F59E0B',
       iconBg: '#FEF3C7',
     },
     {
       title: 'Inactive Organizations',
       value: isLoading || isError ? '—' : inactiveClubs.toLocaleString(),
       icon: TrendingUpIcon,
-      iconColor: '#7C3AED',
-      iconBg: '#F5F3FF',
+      iconColor: '#8A93A3',
+      iconBg: '#EEF3FB',
     },
   ];
 

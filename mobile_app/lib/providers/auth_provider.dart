@@ -19,8 +19,15 @@ class AuthState {
 
   bool get isAuthenticated => status == AuthStatus.authenticated;
 
-  AuthState copyWith({AuthStatus? status, UserModel? user}) =>
-      AuthState(status: status ?? this.status, user: user ?? this.user);
+  // Sentinel so `copyWith(user: null)` can explicitly clear the user, while
+  // omitting `user` keeps the current one.
+  static const Object _keepUser = Object();
+
+  AuthState copyWith({AuthStatus? status, Object? user = _keepUser}) =>
+      AuthState(
+        status: status ?? this.status,
+        user: identical(user, _keepUser) ? this.user : user as UserModel?,
+      );
 }
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
@@ -145,7 +152,17 @@ class AuthController extends Notifier<AuthState> {
     } catch (_) {
       // ignore — clear the local session regardless
     }
+    _pendingSignup = null;
     await storage.clearTokens();
+    state = const AuthState(status: AuthStatus.unauthenticated);
+  }
+
+  /// Called when a token refresh fails (refresh token expired/revoked). Tokens
+  /// are already cleared by the network layer; drop the in-memory session so the
+  /// router routes back to sign-in. Idempotent.
+  void handleSessionExpired() {
+    _pendingSignup = null;
+    if (state.status == AuthStatus.unauthenticated) return;
     state = const AuthState(status: AuthStatus.unauthenticated);
   }
 
@@ -153,8 +170,11 @@ class AuthController extends Notifier<AuthState> {
   Future<void> refreshUser() async {
     try {
       state = state.copyWith(user: await _repo.getMe());
+    } on UnauthorizedException {
+      // Token is dead — surface it as an expired session, not a silent no-op.
+      handleSessionExpired();
     } catch (_) {
-      // keep current state on failure
+      // keep current state on transient failure
     }
   }
 }

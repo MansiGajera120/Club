@@ -1,14 +1,14 @@
 import { Avatar, Box, Card, CardContent, LinearProgress, Skeleton, Typography } from '@mui/material';
 
-import { brand, gradients } from '@/theme/tokens';
+import { brand, gradients, status } from '@/theme/tokens';
 
 const COLOR_MAP = {
-  primary: { main: brand.primary, soft: 'rgba(255,90,95,0.12)' },
-  secondary: { main: brand.secondary, soft: 'rgba(255,142,107,0.14)' },
-  success: { main: '#22C55E', soft: 'rgba(34,197,94,0.12)' },
-  warning: { main: '#F59E0B', soft: 'rgba(245,158,11,0.14)' },
-  info: { main: '#3B82F6', soft: 'rgba(59,130,246,0.12)' },
-  error: { main: '#EF4444', soft: 'rgba(239,68,68,0.12)' },
+  primary: { main: brand.primary, soft: 'rgba(37,99,235,0.12)' },
+  secondary: { main: brand.secondary, soft: 'rgba(56,189,248,0.14)' },
+  success: { main: status.success, soft: 'rgba(22,163,74,0.12)' },
+  warning: { main: status.warning, soft: 'rgba(245,158,11,0.14)' },
+  info: { main: status.info, soft: 'rgba(59,130,246,0.12)' },
+  error: { main: status.danger, soft: 'rgba(239,68,68,0.12)' },
 };
 
 /**
@@ -36,7 +36,7 @@ export function StatCard({
         borderColor: 'divider',
         borderRadius: compact ? 2.5 : 3,
         background: '#fff',
-        boxShadow: '0 2px 12px rgba(42, 42, 53, 0.04)',
+        boxShadow: '0 2px 12px rgba(15,23,42, 0.04)',
       }}
     >
       <CardContent sx={{ p: padding, '&:last-child': { pb: padding } }}>

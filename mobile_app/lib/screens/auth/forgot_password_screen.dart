@@ -11,8 +11,12 @@ import '../../widgets/widgets.dart';
 import 'widgets/auth_scaffold.dart';
 import 'widgets/otp_code_field.dart';
 
-/// Two-step password reset: request a 6-digit code by email, then enter the
-/// code with a new password.
+/// The three stages of a password reset: ask for the email, confirm the emailed
+/// code, then choose a new password.
+enum _ResetStep { email, otp, password }
+
+/// Three-step password reset: request a 6-digit code by email, verify it, then
+/// set a new password.
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
   final String? initialEmail;
 
@@ -24,18 +28,20 @@ class ForgotPasswordScreen extends ConsumerStatefulWidget {
 }
 
 class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
-  final _requestFormKey = GlobalKey<FormState>();
-  final _resetFormKey = GlobalKey<FormState>();
+  final _emailFormKey = GlobalKey<FormState>();
+  final _otpFormKey = GlobalKey<FormState>();
+  final _passwordFormKey = GlobalKey<FormState>();
 
-  late final TextEditingController _emailCtrl =
-      TextEditingController(text: widget.initialEmail ?? '');
+  late final TextEditingController _emailCtrl = TextEditingController(
+    text: widget.initialEmail ?? '',
+  );
   final _otpCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   final _confirmCtrl = TextEditingController();
 
   bool _obscure = true;
   bool _busy = false;
-  bool _codeSent = false;
+  _ResetStep _step = _ResetStep.email;
 
   @override
   void dispose() {
@@ -59,33 +65,47 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     }
   }
 
+  String get _email => _emailCtrl.text.trim();
+
   Future<void> _sendCode() async {
-    if (!_requestFormKey.currentState!.validate()) return;
+    if (!_emailFormKey.currentState!.validate()) return;
+    final ok = await _run(
+      () => ref.read(authRepositoryProvider).forgotPassword(_email),
+    );
+    if (ok && mounted) {
+      setState(() => _step = _ResetStep.otp);
+      AppToast.success('We emailed a 6-digit code to $_email');
+    }
+  }
+
+  /// Confirms the code up front so a wrong one is caught here, rather than after
+  /// the user has gone to the trouble of choosing a new password.
+  Future<void> _verifyCode() async {
+    if (!_otpFormKey.currentState!.validate()) return;
     final ok = await _run(
       () => ref
           .read(authRepositoryProvider)
-          .forgotPassword(_emailCtrl.text.trim()),
+          .verifyResetCode(email: _email, otp: _otpCtrl.text.trim()),
     );
     if (ok && mounted) {
-      setState(() => _codeSent = true);
-      AppToast.success('We emailed a 6-digit code to ${_emailCtrl.text.trim()}');
+      setState(() => _step = _ResetStep.password);
     }
   }
 
   Future<void> _resend() async {
     final ok = await _run(
-      () => ref
-          .read(authRepositoryProvider)
-          .forgotPassword(_emailCtrl.text.trim()),
+      () => ref.read(authRepositoryProvider).forgotPassword(_email),
     );
     if (ok) AppToast.info('A new code is on its way.');
   }
 
   Future<void> _resetPassword() async {
-    if (!_resetFormKey.currentState!.validate()) return;
+    if (!_passwordFormKey.currentState!.validate()) return;
     final ok = await _run(
-      () => ref.read(authRepositoryProvider).resetPassword(
-            email: _emailCtrl.text.trim(),
+      () => ref
+          .read(authRepositoryProvider)
+          .resetPassword(
+            email: _email,
             otp: _otpCtrl.text.trim(),
             password: _passwordCtrl.text,
           ),
@@ -96,28 +116,30 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     }
   }
 
-  void _changeEmail() {
-    _otpCtrl.clear();
-    _passwordCtrl.clear();
-    _confirmCtrl.clear();
-    setState(() => _codeSent = false);
-  }
-
   @override
   Widget build(BuildContext context) {
-    return _codeSent ? _buildResetStep(context) : _buildRequestStep(context);
+    return switch (_step) {
+      _ResetStep.email => _buildEmailStep(context),
+      _ResetStep.otp => _buildOtpStep(context),
+      _ResetStep.password => _buildPasswordStep(context),
+    };
   }
 
-  Widget _buildRequestStep(BuildContext context) {
+  Widget _buildEmailStep(BuildContext context) {
     return AuthScaffold(
-      title: 'Reset password',
-      subtitle: 'Enter your email and we\'ll send you a 6-digit reset code',
+      title: 'Forgot your',
+      titleAccent: 'password?',
+      subtitle:
+          'Happens to everyone. Enter your email and we\'ll send a 6-digit reset code.',
+      sticker: '🔑',
       onBack: () => Navigator.of(context).pop(),
       child: Form(
-        key: _requestFormKey,
+        key: _emailFormKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            const AuthStepDots(count: 3, index: 0),
+            const SizedBox(height: AppSpacing.xl),
             AppTextField(
               label: 'Email',
               hint: 'you@example.com',
@@ -137,28 +159,70 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     );
   }
 
-  Widget _buildResetStep(BuildContext context) {
+  Widget _buildOtpStep(BuildContext context) {
     final theme = Theme.of(context);
 
     return AuthScaffold(
-      title: 'Enter reset code',
-      subtitle: 'We sent a 6-digit code to ${_emailCtrl.text.trim()}',
-      onBack: _busy ? null : _changeEmail,
+      title: 'Enter reset',
+      titleAccent: 'code',
+      subtitle: 'We sent a 6-digit code to $_email',
+      sticker: '📬',
+      // Back returns to the email step — the only way to fix a typo now that the
+      // separate "Change email" link is gone.
+      onBack: _busy ? null : () => setState(() => _step = _ResetStep.email),
       child: Form(
-        key: _resetFormKey,
+        key: _otpFormKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            const AuthStepDots(count: 3, index: 1),
+            const SizedBox(height: AppSpacing.xl),
             OtpCodeField(
               controller: _otpCtrl,
               enabled: !_busy,
               validator: (v) {
                 final value = v?.trim() ?? '';
-                if (value.length != 6) return 'Enter the 6-digit code';
+                if (value.length != 6) return 'Please enter the 6-digit code';
                 return null;
               },
             ),
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.xl),
+            AppButton(
+              label: 'Verify code',
+              isLoading: _busy,
+              onPressed: _verifyCode,
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text("Didn't get the code?", style: theme.textTheme.bodyMedium),
+                TextButton(
+                  onPressed: _busy ? null : _resend,
+                  child: const Text('Resend'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPasswordStep(BuildContext context) {
+    return AuthScaffold(
+      title: 'Set a new',
+      titleAccent: 'password',
+      subtitle: 'Code confirmed. Choose a new password for $_email.',
+      sticker: '🔐',
+      onBack: _busy ? null : () => setState(() => _step = _ResetStep.otp),
+      child: Form(
+        key: _passwordFormKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const AuthStepDots(count: 3, index: 2),
+            const SizedBox(height: AppSpacing.xl),
             AppTextField(
               label: 'New password',
               controller: _passwordCtrl,
@@ -185,21 +249,6 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               label: 'Update password',
               isLoading: _busy,
               onPressed: _resetPassword,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text("Didn't get the code?", style: theme.textTheme.bodyMedium),
-                TextButton(
-                  onPressed: _busy ? null : _resend,
-                  child: const Text('Resend'),
-                ),
-              ],
-            ),
-            TextButton(
-              onPressed: _busy ? null : _changeEmail,
-              child: const Text('Change email'),
             ),
           ],
         ),

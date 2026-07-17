@@ -27,7 +27,6 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final featured = ref.watch(featuredClubsProvider);
     final recent = ref.watch(recentClubsProvider);
-    final theme = Theme.of(context);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -43,8 +42,14 @@ class HomeScreen extends ConsumerWidget {
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
-            SliverToBoxAdapter(child: _HeroHeader(theme: theme)),
-            const SliverToBoxAdapter(child: _SectionHeader(title: 'Featured')),
+            const SliverToBoxAdapter(
+              child: PageHero(
+                overline: 'DISCOVER',
+                title: 'Find your next club',
+                subtitle: 'Browse featured clubs and explore what\'s near you.',
+              ),
+            ),
+            const SliverToBoxAdapter(child: SectionHeader(title: 'Featured')),
             SliverToBoxAdapter(
               child: SizedBox(
                 height: 220,
@@ -52,7 +57,7 @@ class HomeScreen extends ConsumerWidget {
                   loading: () => const _FeaturedSkeleton(),
                   error: (_, _) => const SizedBox.shrink(),
                   data: (clubs) => clubs.isEmpty
-                      ? const _InlineEmpty(text: 'No featured clubs yet')
+                      ? const InlineNote(text: 'No featured clubs yet')
                       : _FeaturedCarousel(
                           clubs: clubs,
                           onTap: (club) => _openClub(context, club.id),
@@ -61,12 +66,12 @@ class HomeScreen extends ConsumerWidget {
               ),
             ),
             const SliverToBoxAdapter(
-              child: _SectionHeader(title: 'Explore clubs'),
+              child: SectionHeader(title: 'Explore clubs'),
             ),
             recent.when(
               loading: () => const _GridSkeleton(),
               error: (e, _) => const SliverToBoxAdapter(
-                child: _InlineEmpty(text: 'Could not load clubs'),
+                child: InlineNote(text: 'Could not load clubs'),
               ),
               data: (clubs) {
                 // Show the first two clubs at the end of the explore list.
@@ -109,98 +114,6 @@ class HomeScreen extends ConsumerWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _HeroHeader extends StatelessWidget {
-  final ThemeData theme;
-  const _HeroHeader({required this.theme});
-
-  @override
-  Widget build(BuildContext context) {
-    // Push the header below the status bar/notch, plus a little breathing room.
-    final topInset = MediaQuery.paddingOf(context).top;
-    return Container(
-      decoration: const BoxDecoration(gradient: AppGradients.heroWash),
-      padding: EdgeInsets.fromLTRB(
-        AppSpacing.lg,
-        topInset + AppSpacing.xl,
-        AppSpacing.lg,
-        AppSpacing.sm,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 22,
-                height: 3,
-                decoration: BoxDecoration(
-                  gradient: AppGradients.brandHorizontal,
-                  borderRadius: AppRadius.pillAll,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Text(
-                'DISCOVER',
-                style: theme.textTheme.labelSmall,
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            'Find your next club',
-            style: theme.textTheme.headlineLarge,
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            'Browse featured clubs and explore what\'s near you.',
-            style: theme.textTheme.bodyMedium,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SectionHeader extends StatelessWidget {
-  final String title;
-  const _SectionHeader({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-          AppSpacing.lg, AppSpacing.xl, AppSpacing.lg, AppSpacing.md),
-      child: Row(
-        children: [
-          Container(
-            width: 4,
-            height: 20,
-            decoration: BoxDecoration(
-              gradient: AppGradients.brand,
-              borderRadius: AppRadius.pillAll,
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm + 2),
-          Text(
-            title,
-            style: theme.textTheme.titleLarge,
-          ),
-          const Spacer(),
-          Container(
-            width: 32,
-            height: 3,
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.35),
-              borderRadius: AppRadius.pillAll,
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -661,19 +574,6 @@ class _ExploreClubGridCard extends StatelessWidget {
         ),
       ),
     ),
-    );
-  }
-}
-
-class _InlineEmpty extends StatelessWidget {
-  final String text;
-  const _InlineEmpty({required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      child: Text(text, style: Theme.of(context).textTheme.bodyMedium),
     );
   }
 }

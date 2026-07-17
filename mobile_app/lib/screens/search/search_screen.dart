@@ -7,6 +7,8 @@ import 'package:go_router/go_router.dart';
 import '../../models/club_filter.dart';
 import '../../providers/club_providers.dart';
 import '../../routes/route_names.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_radius.dart';
 import '../../theme/app_spacing.dart';
 import '../../widgets/widgets.dart';
 import 'widgets/filter_sheet.dart';
@@ -99,15 +101,30 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      appBar: AppBar(title: const Text('Search'), centerTitle: false),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-                AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.sm),
-            child: Row(
-              children: [
-                Expanded(
+      body: GestureDetector(
+        onTap: () => _searchFocusNode.unfocus(),
+        behavior: HitTestBehavior.translucent,
+        child: RefreshIndicator(
+          onRefresh: ref.read(searchControllerProvider.notifier).refresh,
+          child: CustomScrollView(
+            controller: _scrollController,
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              SliverToBoxAdapter(
+                child: PageHero(
+                  overline: 'SEARCH',
+                  title: 'Find a club',
+                  subtitle: 'Filter by city, age and more to narrow things down.',
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.lg,
+                    AppSpacing.lg,
+                    AppSpacing.lg,
+                    0,
+                  ),
                   child: TextField(
                     controller: _searchController,
                     focusNode: _searchFocusNode,
@@ -116,62 +133,65 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     decoration: InputDecoration(
                       hintText: 'Search city, organization, keywords…',
                       prefixIcon: const Icon(Icons.search),
-                      suffixIcon: _searchController.text.isEmpty
-                          ? null
-                          : IconButton(
-                              icon: const Icon(Icons.close),
+                      // Clear (when there's text) and filter share the suffix.
+                      // Default suffix constraints would stretch the row, so
+                      // they're relaxed to let it size to its children.
+                      suffixIconConstraints: const BoxConstraints(
+                        minWidth: 0,
+                        minHeight: 0,
+                      ),
+                      suffixIcon: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (_searchController.text.isNotEmpty)
+                            IconButton(
+                              icon: const Icon(Icons.close_rounded, size: 20),
                               onPressed: _clearSearch,
+                              tooltip: 'Clear search',
+                              visualDensity: VisualDensity.compact,
                             ),
+                          Padding(
+                            padding: const EdgeInsets.only(right: AppSpacing.sm),
+                            child: _FilterButton(
+                              active: state.filter.hasActiveFilters,
+                              onTap: () => _openFilters(state.filter),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-                const SizedBox(width: AppSpacing.sm),
-                IconButton.filledTonal(
-                  onPressed: () => _openFilters(state.filter),
-                  icon: Badge(
-                    isLabelVisible: state.filter.hasActiveFilters,
-                    child: const Icon(Icons.tune),
-                  ),
-                ),
-              ],
-            ),
+              ),
+              ..._resultSlivers(state),
+            ],
           ),
-          Expanded(
-            child: GestureDetector(
-              onTap: () => _searchFocusNode.unfocus(),
-              behavior: HitTestBehavior.translucent,
-              child: _buildResults(state),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildResults(SearchState state) {
+  /// Results area as slivers so the hero and search field scroll with the list.
+  List<Widget> _resultSlivers(SearchState state) {
     final notifier = ref.read(searchControllerProvider.notifier);
 
     if (state.loading && state.clubs.isEmpty) {
-      return ListView(
-        children: List.generate(
-          5,
-          (_) => const Padding(
-            padding: EdgeInsets.fromLTRB(
-                AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.md),
-            child: AppSkeleton(height: 96),
-          ),
-        ),
-      );
+      return [const _ResultsSkeleton()];
     }
 
     if (state.error != null && state.clubs.isEmpty) {
-      return EmptyState(
-        icon: Icons.wifi_off,
-        title: 'Something went wrong',
-        message: 'Pull to try again.',
-        actionLabel: 'Retry',
-        onAction: notifier.refresh,
-      );
+      return [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: EmptyState(
+            icon: Icons.wifi_off,
+            title: 'Something went wrong',
+            message: 'Pull to try again.',
+            actionLabel: 'Retry',
+            onAction: notifier.refresh,
+          ),
+        ),
+      ];
     }
 
     if (state.clubs.isEmpty) {
@@ -181,47 +201,111 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       final hasFilters = state.filter.hasActiveFilters;
 
       if (queryTooShort && !hasFilters) {
-        return EmptyState(
-          icon: Icons.keyboard_outlined,
-          title: 'Keep typing…',
-          message: 'Enter at least 2 characters to search clubs.',
-        );
+        return [
+          const SliverFillRemaining(
+            hasScrollBody: false,
+            child: EmptyState(
+              icon: Icons.keyboard_outlined,
+              title: 'Keep typing…',
+              message: 'Enter at least 2 characters to search clubs.',
+            ),
+          ),
+        ];
       }
 
-      return EmptyState(
-        icon: hasQuery || hasFilters
-            ? Icons.search_off
-            : Icons.travel_explore_outlined,
-        title: hasQuery || hasFilters ? 'No clubs found' : 'Search clubs',
-        message: hasQuery || hasFilters
-            ? 'Try a different keyword or adjust your filters.'
-            : 'Type a city, organization name, or keywords to see matching results.',
-      );
+      return [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: EmptyState(
+            icon: hasQuery || hasFilters
+                ? Icons.search_off
+                : Icons.travel_explore_outlined,
+            title: hasQuery || hasFilters ? 'No clubs found' : 'Search clubs',
+            message: hasQuery || hasFilters
+                ? 'Try a different keyword or adjust your filters.'
+                : 'Type a city, organization name, or keywords to see matching results.',
+          ),
+        ),
+      ];
     }
 
-    return RefreshIndicator(
-      onRefresh: notifier.refresh,
-      child: ListView.separated(
-        controller: _scrollController,
-        physics: const AlwaysScrollableScrollPhysics(),
+    return [
+      SliverPadding(
         padding: const EdgeInsets.fromLTRB(
-            AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.xl),
-        itemCount: state.clubs.length + (state.hasMore ? 1 : 0),
-        separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
-        itemBuilder: (_, i) {
-          if (i >= state.clubs.length) {
-            return const Padding(
-              padding: EdgeInsets.all(AppSpacing.md),
-              child: Center(child: CircularProgressIndicator()),
+          AppSpacing.lg,
+          AppSpacing.md,
+          AppSpacing.lg,
+          AppSpacing.xl,
+        ),
+        sliver: SliverList.separated(
+          itemCount: state.clubs.length + (state.hasMore ? 1 : 0),
+          separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
+          itemBuilder: (_, i) {
+            // Trailing skeleton doubles as the "loading more" affordance.
+            if (i >= state.clubs.length) return const AppSkeleton(height: 96);
+            final club = state.clubs[i];
+            return ClubCard(
+              club: club,
+              onTap: () => _openClub(club.id),
+              showFavorite: true,
             );
-          }
-          final club = state.clubs[i];
-          return ClubCard(
-            club: club,
-            onTap: () => _openClub(club.id),
-            showFavorite: true,
-          );
-        },
+          },
+        ),
+      ),
+    ];
+  }
+}
+
+/// Filter affordance living inside the search field's suffix. A brand-tinted
+/// tile that fills in solid once filters are active, so its state is obvious at
+/// a glance — Material's stock `IconButton.filledTonal` ignores the brand
+/// palette. Sized to sit within the field's 16px vertical padding.
+class _FilterButton extends StatelessWidget {
+  final bool active;
+  final VoidCallback onTap;
+  const _FilterButton({required this.active, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return PressableScale(
+      child: Material(
+        color:
+            active ? AppColors.primary : AppColors.primary.withValues(alpha: 0.08),
+        borderRadius: AppRadius.smAll,
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: SizedBox(
+            width: 36,
+            height: 36,
+            child: Icon(
+              Icons.tune_rounded,
+              size: 18,
+              color: active ? Colors.white : AppColors.primary,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ResultsSkeleton extends StatelessWidget {
+  const _ResultsSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverPadding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.md,
+        AppSpacing.lg,
+        AppSpacing.xl,
+      ),
+      sliver: SliverList.separated(
+        itemCount: 5,
+        separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
+        itemBuilder: (_, _) => const AppSkeleton(height: 96),
       ),
     );
   }

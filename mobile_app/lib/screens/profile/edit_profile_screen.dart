@@ -202,6 +202,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   Future<void> _removeExistingPhoto(String url, String clubId) async {
     try {
       await ref.read(clubRepositoryProvider).removeGallery(clubId, url);
+      if (!mounted) return;
       setState(() => _existingGallery.remove(url));
       ref.invalidate(clubDetailProvider(clubId));
     } catch (e) {
@@ -455,7 +456,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   controller: _clubNameCtrl,
                   maxLength: 120,
                   validator: (v) =>
-                      Validators.required(v, field: 'Club name'),
+                      Validators.required(v, field: 'the club name'),
                 ),
                 AppTextField(
                   label: 'Services offered (comma-separated)',
@@ -463,7 +464,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   hint: 'Coaching, Summer camp, Trials',
                   maxLength: 500,
                   validator: (v) =>
-                      Validators.required(v, field: 'Services offered'),
+                      Validators.required(v, field: 'the services offered'),
                 ),
                 AppTextField(
                   label: 'City',

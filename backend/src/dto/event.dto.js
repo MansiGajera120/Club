@@ -10,6 +10,7 @@ export const toEventResponse = (event) => ({
   id: idOf(event._id ?? event.id),
   club: idOf(event.club),
   title: event.title,
+  type: event.type ?? 'Events',
   description: event.description ?? null,
   coverImage: buildUploadUrl(event.coverImage),
   location: event.location ?? null,

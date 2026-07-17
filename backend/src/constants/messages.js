@@ -30,6 +30,7 @@ export const MESSAGES = Object.freeze({
       'If an account exists and is unverified, a verification code has been sent.',
     PASSWORD_RESET_SENT:
       'If an account exists for that email, a password reset code has been sent.',
+    RESET_CODE_VERIFIED: 'Code verified. You can now set a new password.',
     PASSWORD_RESET: 'Password reset successfully. Please log in with your new password.',
     PROFILE: 'Current user',
   },

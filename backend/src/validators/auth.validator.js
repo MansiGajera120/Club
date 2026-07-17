@@ -28,13 +28,20 @@ export const loginSchema = Joi.object({
 
 export const forgotPasswordSchema = Joi.object({ email });
 
+const resetCode = Joi.string()
+  .trim()
+  .pattern(/^\d{6}$/)
+  .required()
+  .messages({ 'string.pattern.base': 'Enter the 6-digit code from your email' });
+
+export const verifyResetCodeSchema = Joi.object({
+  email,
+  code: resetCode,
+});
+
 export const resetPasswordSchema = Joi.object({
   email,
-  code: Joi.string()
-    .trim()
-    .pattern(/^\d{6}$/)
-    .required()
-    .messages({ 'string.pattern.base': 'Enter the 6-digit code from your email' }),
+  code: resetCode,
   password,
 });
 

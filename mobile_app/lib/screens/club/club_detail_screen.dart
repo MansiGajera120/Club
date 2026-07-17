@@ -1,14 +1,15 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../models/club_model.dart';
 import '../../providers/club_providers.dart';
 import '../../providers/event_providers.dart';
+import '../../routes/route_names.dart';
 import '../../theme/app_colors.dart';
-import '../../theme/app_gradients.dart';
 import '../../theme/app_radius.dart';
 import '../../theme/app_spacing.dart';
 import '../../utils/app_toast.dart';
@@ -129,12 +130,12 @@ class _ClubDetailView extends ConsumerWidget {
                 ),
                 if (club.description != null && club.description!.isNotEmpty) ...[
                   const SizedBox(height: AppSpacing.lg),
-                  const _SectionLabel('About'),
+                  const SectionHeader(title: 'About', padding: EdgeInsets.zero),
                   const SizedBox(height: AppSpacing.sm),
                   Text(club.description!, style: theme.textTheme.bodyLarge),
                 ],
                 const SizedBox(height: AppSpacing.lg),
-                const _SectionLabel('Contact'),
+                const SectionHeader(title: 'Contact', padding: EdgeInsets.zero),
                 const SizedBox(height: AppSpacing.sm),
                 _ContactActions(
                   contact: club.contact,
@@ -143,7 +144,7 @@ class _ClubDetailView extends ConsumerWidget {
                   onWeb: (v) => _launch(context, v),
                 ),
                 const SizedBox(height: AppSpacing.lg),
-                const _SectionLabel('Events'),
+                const SectionHeader(title: 'Events', padding: EdgeInsets.zero),
                 const SizedBox(height: AppSpacing.sm),
                 events.when(
                   loading: () => const AppSkeleton(height: 100),
@@ -157,7 +158,13 @@ class _ClubDetailView extends ConsumerWidget {
                               .map((e) => Padding(
                                     padding: const EdgeInsets.only(
                                         bottom: AppSpacing.md),
-                                    child: EventCard(event: e),
+                                    child: EventCard(
+                                      event: e,
+                                      onTap: () => context.pushNamed(
+                                        RouteNames.eventDetail,
+                                        extra: e,
+                                      ),
+                                    ),
                                   ))
                               .toList(),
                         ),
@@ -275,31 +282,6 @@ class _GalleryState extends State<_Gallery> {
               ],
             ),
           ),
-      ],
-    );
-  }
-}
-
-/// Section heading with a leading brand accent bar for a stronger rhythm.
-class _SectionLabel extends StatelessWidget {
-  final String title;
-  const _SectionLabel(this.title);
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Row(
-      children: [
-        Container(
-          width: 4,
-          height: 20,
-          decoration: BoxDecoration(
-            gradient: AppGradients.brand,
-            borderRadius: AppRadius.pillAll,
-          ),
-        ),
-        const SizedBox(width: AppSpacing.sm + 2),
-        Text(title, style: theme.textTheme.titleLarge),
       ],
     );
   }

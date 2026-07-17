@@ -85,6 +85,11 @@ export const forgotPassword = asyncHandler(async (req, res) => {
   return ApiResponse.ok(res, null, MESSAGES.AUTH.PASSWORD_RESET_SENT);
 });
 
+export const verifyResetCode = asyncHandler(async (req, res) => {
+  await authService.verifyResetCode(req.body);
+  return ApiResponse.ok(res, null, MESSAGES.AUTH.RESET_CODE_VERIFIED);
+});
+
 export const resetPassword = asyncHandler(async (req, res) => {
   await authService.resetPassword(req.body);
   return ApiResponse.ok(res, null, MESSAGES.AUTH.PASSWORD_RESET);

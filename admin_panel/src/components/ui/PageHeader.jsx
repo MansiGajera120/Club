@@ -1,13 +1,17 @@
 import { Box, Stack, Typography } from '@mui/material';
 
 /**
- * Standard page title block with optional subtitle and right-aligned actions.
+ * Standard page title block with optional subtitle and actions.
+ *
+ * @param {'right'|'left'} [actionsAlign] where the action buttons sit. Defaults
+ *   to 'right' (opposite the title); 'left' pulls them beside it instead, which
+ *   suits title-less headers that are only there to hold an action.
  */
-export function PageHeader({ title, subtitle, eyebrow, actions }) {
+export function PageHeader({ title, subtitle, eyebrow, actions, actionsAlign = 'right' }) {
   return (
     <Stack
       direction={{ xs: 'column', sm: 'row' }}
-      justifyContent="space-between"
+      justifyContent={actionsAlign === 'left' ? 'flex-start' : 'space-between'}
       alignItems={{ xs: 'flex-start', sm: 'center' }}
       spacing={2}
       sx={{ mb: 3 }}

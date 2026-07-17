@@ -21,6 +21,7 @@ class ApiEndpoints {
   static const String verifyOtp = '$_v1/auth/verify-otp';
   static const String resendVerification = '$_v1/auth/resend-verification';
   static const String forgotPassword = '$_v1/auth/forgot-password';
+  static const String verifyResetCode = '$_v1/auth/verify-reset-code';
   static const String resetPassword = '$_v1/auth/reset-password';
   static const String googleLogin = '$_v1/auth/google';
   static const String appleLogin = '$_v1/auth/apple';

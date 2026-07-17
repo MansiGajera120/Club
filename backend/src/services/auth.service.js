@@ -209,11 +209,15 @@ export const forgotPassword = async (email) => {
 };
 
 /**
- * Complete a password reset with the emailed OTP and revoke all sessions.
- * @param {{ email: string, code: string, password: string }} params
+ * Throw unless `code` matches the user's live password-reset OTP.
+ *
+ * Never clears the code on success, so it stays usable across the two steps of
+ * the reset flow (verify the OTP, then submit the new password). Only the
+ * caller that actually consumes the code clears it.
+ * @param {import('mongoose').Document|null} user
+ * @param {string} code
  */
-export const resetPassword = async ({ email, code, password }) => {
-  const user = await userRepository.findByEmailWithReset(email);
+const assertResetCodeValid = async (user, code) => {
   if (!user || !user.passwordResetToken || !user.passwordResetExpires) {
     throw ApiError.badRequest('Invalid or expired reset code');
   }
@@ -237,6 +241,25 @@ export const resetPassword = async ({ email, code, password }) => {
     await user.save();
     throw ApiError.badRequest('Invalid reset code');
   }
+};
+
+/**
+ * Check an emailed reset OTP without consuming it, so the client can gate the
+ * set-password step on a verified code.
+ * @param {{ email: string, code: string }} params
+ */
+export const verifyResetCode = async ({ email, code }) => {
+  const user = await userRepository.findByEmailWithReset(email);
+  await assertResetCodeValid(user, code);
+};
+
+/**
+ * Complete a password reset with the emailed OTP and revoke all sessions.
+ * @param {{ email: string, code: string, password: string }} params
+ */
+export const resetPassword = async ({ email, code, password }) => {
+  const user = await userRepository.findByEmailWithReset(email);
+  await assertResetCodeValid(user, code);
 
   user.password = password; // hashed by the pre-save hook
   user.passwordResetToken = undefined;

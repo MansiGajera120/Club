@@ -44,11 +44,11 @@ function TH({ children, ...props }) {
     <TableCell
       {...props}
       sx={{
-        bgcolor: '#F0F2F5 !important',
-        color: '#475569',
+        bgcolor: '#EEF3FB !important',
+        color: '#566072',
         fontWeight: 600,
         fontSize: '0.9rem',
-        borderBottom: '1px solid #E5E7EB !important',
+        borderBottom: '1px solid #E4EAF2 !important',
         '&:first-of-type': { borderTopLeftRadius: '12px' },
         '&:last-of-type': { borderTopRightRadius: '12px' },
         py: 2.5,
@@ -83,9 +83,9 @@ function SimplePagination({ page, count, limit, onChange }) {
           width: 32,
           height: 32,
           borderRadius: '8px',
-          border: '1px solid #E5E7EB',
+          border: '1px solid #E4EAF2',
           bgcolor: '#fff',
-          '&:hover': { borderColor: '#F97316', color: '#F97316' },
+          '&:hover': { borderColor: '#2563EB', color: '#2563EB' },
           '&.Mui-disabled': { opacity: 0.4 },
         }}
       >
@@ -105,16 +105,16 @@ function SimplePagination({ page, count, limit, onChange }) {
               alignItems: 'center',
               justifyContent: 'center',
               borderRadius: '8px',
-              border: `1px solid ${page === pageNum ? '#F97316' : '#E5E7EB'}`,
-              bgcolor: page === pageNum ? '#F97316' : '#fff',
-              color: page === pageNum ? '#fff' : '#374151',
+              border: `1px solid ${page === pageNum ? '#2563EB' : '#E4EAF2'}`,
+              bgcolor: page === pageNum ? '#2563EB' : '#fff',
+              color: page === pageNum ? '#fff' : '#566072',
               fontSize: '0.92rem',
               fontWeight: page === pageNum ? 700 : 500,
               cursor: 'pointer',
               transition: 'all 0.15s ease',
               '&:hover': {
-                borderColor: '#F97316',
-                color: page === pageNum ? '#fff' : '#F97316',
+                borderColor: '#2563EB',
+                color: page === pageNum ? '#fff' : '#2563EB',
               },
             }}
           >
@@ -131,9 +131,9 @@ function SimplePagination({ page, count, limit, onChange }) {
           width: 32,
           height: 32,
           borderRadius: '8px',
-          border: '1px solid #E5E7EB',
+          border: '1px solid #E4EAF2',
           bgcolor: '#fff',
-          '&:hover': { borderColor: '#F97316', color: '#F97316' },
+          '&:hover': { borderColor: '#2563EB', color: '#2563EB' },
           '&.Mui-disabled': { opacity: 0.4 },
         }}
       >
@@ -184,7 +184,7 @@ export function UsersPage() {
             gap: 2,
             px: 3,
             py: 2.5,
-            borderBottom: '1px solid #EEEFF2',
+            borderBottom: '1px solid #E4EAF2',
             flexWrap: 'wrap',
           }}
         >
@@ -202,15 +202,15 @@ export function UsersPage() {
               '& .MuiOutlinedInput-root': {
                 bgcolor: '#fff',
                 borderRadius: '24px',
-                '& fieldset': { borderColor: '#E5E7EB' },
-                '&:hover fieldset': { borderColor: '#F97316' },
-                '&.Mui-focused fieldset': { borderColor: '#F97316', borderWidth: 1.5 },
+                '& fieldset': { borderColor: '#E4EAF2' },
+                '&:hover fieldset': { borderColor: '#2563EB' },
+                '&.Mui-focused fieldset': { borderColor: '#2563EB', borderWidth: 1.5 },
               },
             }}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <SearchIcon sx={{ fontSize: 18, color: '#9CA3AF' }} />
+                  <SearchIcon sx={{ fontSize: 18, color: '#8A93A3' }} />
                 </InputAdornment>
               ),
               endAdornment: searchInput ? (
@@ -236,15 +236,15 @@ export function UsersPage() {
               sx={{
                 bgcolor: '#fff',
                 borderRadius: '10px',
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#E5E7EB' },
-                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#F97316' },
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#E4EAF2' },
+                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#2563EB' },
                 '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                  borderColor: '#F97316',
+                  borderColor: '#2563EB',
                   borderWidth: 1.5,
                 },
               }}
               renderValue={(val) => (
-                <Typography sx={{ fontSize: '0.95rem', color: val ? '#262525' : '#9CA3AF' }}>
+                <Typography sx={{ fontSize: '0.95rem', color: val ? '#111827' : '#8A93A3' }}>
                   {val === 'active'
                     ? 'Active'
                     : val === 'disabled'
@@ -272,15 +272,15 @@ export function UsersPage() {
               sx={{
                 bgcolor: '#fff',
                 borderRadius: '10px',
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#E5E7EB' },
-                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#F97316' },
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#E4EAF2' },
+                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#2563EB' },
                 '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                  borderColor: '#F97316',
+                  borderColor: '#2563EB',
                   borderWidth: 1.5,
                 },
               }}
               renderValue={(val) => (
-                <Typography sx={{ fontSize: '0.95rem', color: val ? '#262525' : '#9CA3AF' }}>
+                <Typography sx={{ fontSize: '0.95rem', color: val ? '#111827' : '#8A93A3' }}>
                   {val === 'parent'
                     ? 'User'
                     : val === 'club_owner'
@@ -317,7 +317,7 @@ export function UsersPage() {
               {isLoading && users.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={7} align="center" sx={{ py: 7 }}>
-                    <CircularProgress size={26} sx={{ color: '#F97316' }} />
+                    <CircularProgress size={26} sx={{ color: '#2563EB' }} />
                   </TableCell>
                 </TableRow>
               )}
@@ -327,7 +327,7 @@ export function UsersPage() {
                   key={user.id}
                   sx={{
                     '&:last-child td': { borderBottom: 'none' },
-                    '&:hover': { bgcolor: '#FAFBFC' },
+                    '&:hover': { bgcolor: '#F8FBFE' },
                     transition: 'background 0.12s',
                   }}
                 >
@@ -343,15 +343,15 @@ export function UsersPage() {
                           borderRadius: '10px',
                           fontSize: '0.92rem',
                           fontWeight: 700,
-                          bgcolor: '#F3F4F6',
-                          color: '#374151',
+                          bgcolor: '#EEF3FB',
+                          color: '#566072',
                         }}
                       >
                         {user.name?.[0]?.toUpperCase()}
                       </Avatar>
                       <Stack direction="row" alignItems="center" spacing={0.4}>
                         <Typography
-                          sx={{ fontWeight: 600, fontSize: '1rem', color: '#000000' }}
+                          sx={{ fontWeight: 600, fontSize: '1rem', color: '#111827' }}
                         >
                           {user.name}
                         </Typography>
@@ -365,7 +365,7 @@ export function UsersPage() {
                   </TableCell>
 
                   {/* Email */}
-                  <TableCell sx={{ color: '#000000', fontSize: '0.95rem', py: 2.5 }}>
+                  <TableCell sx={{ color: '#111827', fontSize: '0.95rem', py: 2.5 }}>
                     {user.email}
                   </TableCell>
 
@@ -379,16 +379,16 @@ export function UsersPage() {
                         borderRadius: '20px',
                         bgcolor:
                           user.role === 'admin'
-                            ? 'rgba(124,58,237,0.1)'
+                            ? 'rgba(37,99,235,0.1)'
                             : user.role === 'club_owner'
-                            ? 'rgba(2,132,199,0.1)'
-                            : '#F3F4F6',
+                            ? 'rgba(14,165,233,0.1)'
+                            : '#EEF3FB',
                         color:
                           user.role === 'admin'
-                            ? '#7C3AED'
+                            ? '#2563EB'
                             : user.role === 'club_owner'
-                            ? '#0284C7'
-                            : '#6B7280',
+                            ? '#0EA5E9'
+                            : '#566072',
                         fontSize: '0.8rem',
                         fontWeight: 600,
                       }}
@@ -398,7 +398,7 @@ export function UsersPage() {
                   </TableCell>
 
                   {/* Join date */}
-                  <TableCell sx={{ color: '#000000', fontSize: '0.95rem', py: 2.5, whiteSpace: 'nowrap' }}>
+                  <TableCell sx={{ color: '#111827', fontSize: '0.95rem', py: 2.5, whiteSpace: 'nowrap' }}>
                     {user.createdAt
                       ? new Date(user.createdAt).toLocaleDateString('en-GB', {
                           day: '2-digit',
@@ -432,9 +432,9 @@ export function UsersPage() {
                             })
                           }
                           sx={{
-                            '& .MuiSwitch-switchBase.Mui-checked': { color: '#F97316' },
+                            '& .MuiSwitch-switchBase.Mui-checked': { color: '#2563EB' },
                             '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                              bgcolor: '#F97316',
+                              bgcolor: '#2563EB',
                             },
                           }}
                         />
@@ -452,13 +452,13 @@ export function UsersPage() {
                           width: 34,
                           height: 34,
                           borderRadius: '50%',
-                          border: '1px solid #E5E7EB',
-                          color: '#9CA3AF',
+                          border: '1px solid #E4EAF2',
+                          color: '#8A93A3',
                           transition: 'all 0.15s',
                           '&:hover': {
-                            borderColor: '#F97316',
-                            color: '#F97316',
-                            bgcolor: 'rgba(249,115,22,0.06)',
+                            borderColor: '#2563EB',
+                            color: '#2563EB',
+                            bgcolor: 'rgba(37,99,235,0.06)',
                           },
                         }}
                       >
@@ -471,7 +471,7 @@ export function UsersPage() {
 
               {!isLoading && users.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={7} align="center" sx={{ py: 6, color: '#9CA3AF' }}>
+                  <TableCell colSpan={7} align="center" sx={{ py: 6, color: '#8A93A3' }}>
                     No users found.
                   </TableCell>
                 </TableRow>
@@ -488,17 +488,17 @@ export function UsersPage() {
             justifyContent: 'space-between',
             px: 3,
             py: 2,
-            borderTop: '1px solid #EEEFF2',
+            borderTop: '1px solid #E4EAF2',
             flexWrap: 'wrap',
             gap: 1.5,
           }}
         >
-          <Typography sx={{ fontSize: '0.92rem', color: '#6B7280' }}>
+          <Typography sx={{ fontSize: '0.92rem', color: '#566072' }}>
             Showing{' '}
-            <strong style={{ color: '#262525' }}>
+            <strong style={{ color: '#111827' }}>
               {users.length > 0 ? page * limit + 1 : 0}–{Math.min((page + 1) * limit, total)}
             </strong>{' '}
-            out of <strong style={{ color: '#262525' }}>{total.toLocaleString()}</strong> results
+            out of <strong style={{ color: '#111827' }}>{total.toLocaleString()}</strong> results
           </Typography>
           <SimplePagination
             page={page}
@@ -527,7 +527,7 @@ export function UsersPage() {
                 <Avatar
                   src={selectedUser.avatarUrl}
                   variant="rounded"
-                  sx={{ width: 64, height: 64, borderRadius: '16px', bgcolor: '#F3F4F6', color: '#374151', fontWeight: 700, fontSize: '1.5rem' }}
+                  sx={{ width: 64, height: 64, borderRadius: '16px', bgcolor: '#EEF3FB', color: '#566072', fontWeight: 700, fontSize: '1.5rem' }}
                 >
                   {selectedUser.name?.[0]?.toUpperCase()}
                 </Avatar>
@@ -542,30 +542,30 @@ export function UsersPage() {
                       </Tooltip>
                     )}
                   </Stack>
-                  <Typography variant="body2" sx={{ color: '#6B7280' }}>
+                  <Typography variant="body2" sx={{ color: '#566072' }}>
                     {ROLE_LABELS[selectedUser.role] ?? selectedUser.role}
                   </Typography>
                 </Box>
               </Stack>
 
-              <Box sx={{ p: 3, bgcolor: '#F9FAFB', borderRadius: '16px', border: '1px solid #EEEFF2' }}>
+              <Box sx={{ p: 3, bgcolor: '#F8FBFE', borderRadius: '16px', border: '1px solid #E4EAF2' }}>
                 <Stack spacing={2.5}>
                   <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 200px', alignItems: 'center', gap: 2 }}>
-                    <Typography sx={{ color: '#6B7280', fontWeight: 500 }}>Email</Typography>
+                    <Typography sx={{ color: '#566072', fontWeight: 500 }}>Email</Typography>
                     <Typography sx={{ fontWeight: 600, color: '#111827', wordBreak: 'break-all' }}>
                       {selectedUser.email || '—'}
                     </Typography>
                   </Box>
 
                   <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 200px', alignItems: 'center', gap: 2 }}>
-                    <Typography sx={{ color: '#6B7280', fontWeight: 500 }}>Role</Typography>
+                    <Typography sx={{ color: '#566072', fontWeight: 500 }}>Role</Typography>
                     <Typography sx={{ fontWeight: 600, color: '#111827' }}>
                       {ROLE_LABELS[selectedUser.role] ?? selectedUser.role}
                     </Typography>
                   </Box>
 
                   <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 200px', alignItems: 'center', gap: 2 }}>
-                    <Typography sx={{ color: '#6B7280', fontWeight: 500 }}>Join Date</Typography>
+                    <Typography sx={{ color: '#566072', fontWeight: 500 }}>Join Date</Typography>
                     <Typography sx={{ fontWeight: 600, color: '#111827' }}>
                       {selectedUser.createdAt
                         ? new Date(selectedUser.createdAt).toLocaleDateString('en-GB', {
@@ -578,14 +578,14 @@ export function UsersPage() {
                   </Box>
 
                   <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 200px', alignItems: 'center', gap: 2 }}>
-                    <Typography sx={{ color: '#6B7280', fontWeight: 500 }}>Email Verified</Typography>
+                    <Typography sx={{ color: '#566072', fontWeight: 500 }}>Email Verified</Typography>
                     <Typography sx={{ fontWeight: 600, color: '#111827' }}>
                       {selectedUser.isEmailVerified ? 'Yes' : 'No'}
                     </Typography>
                   </Box>
 
                   <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 200px', alignItems: 'center', gap: 2 }}>
-                    <Typography sx={{ color: '#6B7280', fontWeight: 500 }}>Status</Typography>
+                    <Typography sx={{ color: '#566072', fontWeight: 500 }}>Status</Typography>
                     <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
                       <StatusChip status={selectedUser.status} />
                     </Box>
@@ -596,16 +596,7 @@ export function UsersPage() {
           )}
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button
-            onClick={() => setSelectedUser(null)}
-            variant="contained"
-            disableElevation
-            sx={{
-              borderRadius: '12px', textTransform: 'none', fontWeight: 700,
-              bgcolor: '#F3F4F6', color: '#374151', px: 3,
-              '&:hover': { bgcolor: '#E5E7EB' },
-            }}
-          >
+          <Button onClick={() => setSelectedUser(null)} variant="contained">
             Close
           </Button>
         </DialogActions>

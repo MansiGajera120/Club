@@ -91,7 +91,13 @@ class ClubSearchController extends Notifier<SearchState> {
     );
   }
 
+  // Bumped on every load so a slow in-flight request (e.g. a page-2 loadMore)
+  // can't apply its result after a newer load (filter change / reset) started.
+  int _loadGeneration = 0;
+
   Future<void> _load(ClubFilter filter, {required bool reset, int page = 1}) async {
+    final generation = ++_loadGeneration;
+
     if (!filter.shouldQueryCatalog) {
       state = state.copyWith(
         filter: filter,
@@ -119,6 +125,8 @@ class ClubSearchController extends Notifier<SearchState> {
     try {
       final result =
           await ref.read(clubRepositoryProvider).listClubs(filter, page: page);
+      // A newer load superseded this one — drop the stale result.
+      if (generation != _loadGeneration) return;
       final items = reset ? result.items : [...state.clubs, ...result.items];
       state = state.copyWith(
         clubs: items,
@@ -127,6 +135,7 @@ class ClubSearchController extends Notifier<SearchState> {
         loadingMore: false,
       );
     } catch (e) {
+      if (generation != _loadGeneration) return;
       state = state.copyWith(loading: false, loadingMore: false, error: e);
     }
   }

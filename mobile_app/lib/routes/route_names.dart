@@ -47,6 +47,9 @@ class RouteNames {
   static const String eventForm = 'event-form';
   static const String eventFormPath = '/event-form';
 
+  static const String eventDetail = 'event-detail';
+  static const String eventDetailPath = '/event-detail';
+
   static const String editProfile = 'edit-profile';
   static const String editProfilePath = '/edit-profile';
 

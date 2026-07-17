@@ -20,8 +20,13 @@ class Formatters {
     final symbol = _currencySymbols[code];
     // Indian rupees use Indian digit grouping (e.g. ₹1,00,000).
     final locale = code == 'INR' ? 'en_IN' : 'en_US';
-    final formatted = NumberFormat.decimalPattern(locale)
-        .format(value % 1 == 0 ? value : double.parse(value.toStringAsFixed(2)));
+    final nf = NumberFormat.decimalPattern(locale);
+    // Non-round amounts always show exactly two decimals (₹1,000.50, not 1,000.5).
+    if (value % 1 != 0) {
+      nf.minimumFractionDigits = 2;
+      nf.maximumFractionDigits = 2;
+    }
+    final formatted = nf.format(value);
     return symbol != null ? '$symbol$formatted' : '$code $formatted';
   }
 

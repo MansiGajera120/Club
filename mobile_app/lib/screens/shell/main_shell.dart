@@ -11,11 +11,17 @@ import '../../theme/app_shadows.dart';
 import '../../theme/app_spacing.dart';
 
 /// A single destination in the floating bottom bar.
+///
+/// [branch] is the index of the router's [StatefulShellBranch] this tab opens.
+/// Tabs carry it explicitly because the two roles show different subsets of the
+/// same branches — parents skip Events (branch 3), owners skip Favorites
+/// (branch 2) — so tab position and branch index don't line up.
 class _NavItem {
   final IconData icon;
   final IconData selectedIcon;
   final String label;
-  const _NavItem(this.icon, this.selectedIcon, this.label);
+  final int branch;
+  const _NavItem(this.icon, this.selectedIcon, this.label, this.branch);
 }
 
 /// Bottom-navigation shell hosting the primary tabs. Uses go_router's
@@ -25,17 +31,8 @@ class MainShell extends ConsumerWidget {
 
   const MainShell({super.key, required this.navigationShell});
 
-  void _onTap(WidgetRef ref, int index) {
-    final role = ref.read(authControllerProvider).user?.role;
-    final isOwner = role == UserRole.clubOwner;
-    int targetBranch = index;
-    if (isOwner) {
-      if (index == 2) {
-        targetBranch = 3;
-      } else if (index == 3) {
-        targetBranch = 4;
-      }
-    }
+  void _onTap(List<_NavItem> items, int index) {
+    final targetBranch = items[index].branch;
     navigationShell.goBranch(
       targetBranch,
       initialLocation: targetBranch == navigationShell.currentIndex,
@@ -59,31 +56,27 @@ class MainShell extends ConsumerWidget {
     }
     final showNav = !isOwner || ownerApproved;
 
+    // Owners manage their own events here; parents reach events through a club,
+    // so they get no Events tab.
     final items = isOwner
         ? const [
-            _NavItem(Icons.dashboard_outlined, Icons.dashboard_rounded, 'Dashboard'),
-            _NavItem(Icons.search_outlined, Icons.search_rounded, 'Search'),
-            _NavItem(Icons.event_outlined, Icons.event_rounded, 'Events'),
-            _NavItem(Icons.person_outline_rounded, Icons.person_rounded, 'Profile'),
+            _NavItem(Icons.dashboard_outlined, Icons.dashboard_rounded, 'Dashboard', 0),
+            _NavItem(Icons.search_outlined, Icons.search_rounded, 'Search', 1),
+            _NavItem(Icons.event_outlined, Icons.event_rounded, 'Events', 3),
+            _NavItem(Icons.person_outline_rounded, Icons.person_rounded, 'Profile', 4),
           ]
         : const [
-            _NavItem(Icons.home_outlined, Icons.home_rounded, 'Home'),
-            _NavItem(Icons.search_outlined, Icons.search_rounded, 'Search'),
-            _NavItem(Icons.favorite_border_rounded, Icons.favorite_rounded, 'Favorites'),
-            _NavItem(Icons.event_outlined, Icons.event_rounded, 'Events'),
-            _NavItem(Icons.person_outline_rounded, Icons.person_rounded, 'Profile'),
+            _NavItem(Icons.home_outlined, Icons.home_rounded, 'Home', 0),
+            _NavItem(Icons.search_outlined, Icons.search_rounded, 'Search', 1),
+            _NavItem(Icons.favorite_border_rounded, Icons.favorite_rounded, 'Favorites', 2),
+            _NavItem(Icons.person_outline_rounded, Icons.person_rounded, 'Profile', 4),
           ];
 
-    int selectedIndex = navigationShell.currentIndex;
-    if (isOwner) {
-      if (navigationShell.currentIndex == 3) {
-        selectedIndex = 2;
-      } else if (navigationShell.currentIndex == 4) {
-        selectedIndex = 3;
-      } else if (navigationShell.currentIndex == 2) {
-        selectedIndex = 0;
-      }
-    }
+    // Fall back to the first tab if the active branch has no tab for this role
+    // (e.g. a parent deep-linked to /events).
+    final matched =
+        items.indexWhere((i) => i.branch == navigationShell.currentIndex);
+    final selectedIndex = matched == -1 ? 0 : matched;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -96,7 +89,7 @@ class MainShell extends ConsumerWidget {
           ? _FloatingNavBar(
               items: items,
               selectedIndex: selectedIndex,
-              onTap: (idx) => _onTap(ref, idx),
+              onTap: (idx) => _onTap(items, idx),
             )
           : null,
     );

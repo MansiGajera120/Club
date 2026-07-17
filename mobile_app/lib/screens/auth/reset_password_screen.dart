@@ -25,8 +25,9 @@ class ResetPasswordScreen extends ConsumerStatefulWidget {
 
 class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
-  late final TextEditingController _emailCtrl =
-      TextEditingController(text: widget.email ?? '');
+  late final TextEditingController _emailCtrl = TextEditingController(
+    text: widget.email ?? '',
+  );
   final _otpCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   final _confirmCtrl = TextEditingController();
@@ -46,7 +47,9 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _busy = true);
     try {
-      await ref.read(authRepositoryProvider).resetPassword(
+      await ref
+          .read(authRepositoryProvider)
+          .resetPassword(
             email: _emailCtrl.text.trim(),
             otp: _otpCtrl.text.trim(),
             password: _passwordCtrl.text,
@@ -64,8 +67,10 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return AuthScaffold(
-      title: 'New password',
+      title: 'Set a new',
+      titleAccent: 'password',
       subtitle: 'Enter the code from your email and choose a new password',
+      sticker: '🔐',
       onBack: () => context.goNamed(RouteNames.login),
       child: Form(
         key: _formKey,
@@ -87,7 +92,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
               enabled: !_busy,
               validator: (v) {
                 final value = v?.trim() ?? '';
-                if (value.length != 6) return 'Enter the 6-digit code';
+                if (value.length != 6) return 'Please enter the 6-digit code';
                 return null;
               },
             ),

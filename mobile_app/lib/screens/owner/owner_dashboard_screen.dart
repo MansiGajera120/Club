@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -14,21 +16,23 @@ import '../../theme/app_gradients.dart';
 import '../../theme/app_radius.dart';
 import '../../theme/app_shadows.dart';
 import '../../theme/app_spacing.dart';
-import '../../utils/formatters.dart';
 import '../../widgets/widgets.dart';
 import 'event_form_screen.dart';
 
 /// Owner-first dashboard shown in the bottom-nav shell for club owners.
+///
+/// Structure: a brand-gradient hero carrying the greeting and the club's live
+/// numbers, then the club spotlight, quick actions and the upcoming schedule.
 class OwnerDashboardScreen extends ConsumerWidget {
   const OwnerDashboardScreen({super.key});
 
+  /// Re-fetch in place. `refresh` (rather than `invalidate` + `read`) keeps the
+  /// previous value on the provider while the request is in flight, so the page
+  /// stays on screen instead of collapsing back to a skeleton.
   Future<void> _refresh(WidgetRef ref) async {
-    ref.invalidate(myClubsProvider);
-    ref.invalidate(ownerEventsScreenProvider);
-    ref.invalidate(ownerEventsProvider);
     await Future.wait([
-      ref.read(myClubsProvider.future),
-      ref.read(ownerEventsScreenProvider.future),
+      ref.refresh(myClubsProvider.future),
+      ref.refresh(ownerEventsScreenProvider.future),
     ]);
   }
 
@@ -38,103 +42,141 @@ class OwnerDashboardScreen extends ConsumerWidget {
     final eventsAsync = ref.watch(ownerEventsProvider);
     final user = ref.watch(authControllerProvider).user;
 
+    // Stale-while-revalidate: only the very first load shows the skeleton. Once
+    // there's data we keep rendering it through refreshes, so pull-to-refresh
+    // never tears the page (and the RefreshIndicator) down and rebuilds it.
+    final clubs = clubsAsync.value;
+
+    if (clubs == null) {
+      return Scaffold(
+        backgroundColor: Colors.transparent,
+        body: clubsAsync.hasError
+            ? EmptyState(
+                icon: Icons.dashboard_customize_outlined,
+                title: 'Could not load dashboard',
+                message: 'Please try again in a moment.',
+                actionLabel: 'Retry',
+                onAction: () => _refresh(ref),
+              )
+            : const _DashboardSkeleton(),
+      );
+    }
+
+    final club = clubs.isEmpty ? null : clubs.first;
+    final events = eventsAsync.value ?? const <OwnerEventItem>[];
+    final upcoming = events
+        .where((e) => e.event.startDate.isAfter(DateTime.now()))
+        .toList()
+      ..sort((a, b) => a.event.startDate.compareTo(b.event.startDate));
+
+    final approved = club?.status == 'approved';
+
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: clubsAsync.when(
-        loading: () => const _DashboardSkeleton(),
-        error: (_, _) => EmptyState(
-          icon: Icons.dashboard_customize_outlined,
-          title: 'Could not load dashboard',
-          message: 'Please try again in a moment.',
-          actionLabel: 'Retry',
-          onAction: () => _refresh(ref),
-        ),
-        data: (clubs) {
-          final club = clubs.isEmpty ? null : clubs.first;
-          final events = eventsAsync.maybeWhen(
-            data: (list) => list,
-            orElse: () => const <OwnerEventItem>[],
-          );
-          final upcoming = events
-              .where((e) => e.event.startDate.isAfter(DateTime.now()))
-              .toList()
-            ..sort(
-              (a, b) => a.event.startDate.compareTo(b.event.startDate),
-            );
-
-          return RefreshIndicator(
-            onRefresh: () => _refresh(ref),
-            child: CustomScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              slivers: [
+      body: RefreshIndicator(
+        onRefresh: () => _refresh(ref),
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
                 SliverToBoxAdapter(
-                  child: _WelcomeHeader(
+                  child: _OwnerHero(
                     ownerName: user?.name ?? 'Club owner',
+                    totalEvents: events.length,
+                    upcomingCount: upcoming.length,
+                    saves: club?.favoritesCount ?? 0,
                   ),
                 ),
+
+                if (club == null)
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.lg,
+                      AppSpacing.lg,
+                      AppSpacing.lg,
+                      0,
+                    ),
+                    sliver: SliverToBoxAdapter(
+                      child: _EmptyClubCard(
+                        onRegister: () => context.go(RouteNames.searchPath),
+                      ),
+                    ),
+                  )
+                else
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.lg,
+                      AppSpacing.lg,
+                      AppSpacing.lg,
+                      0,
+                    ),
+                    sliver: SliverToBoxAdapter(
+                      child: _ClubSpotlightCard(
+                        club: club,
+                        onManage: () => context.pushNamed(RouteNames.editProfile),
+                      ),
+                    ),
+                  ),
+
+                const SliverToBoxAdapter(
+                  child: SectionHeader(title: 'Quick actions'),
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                  sliver: SliverToBoxAdapter(
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: _ActionTile(
+                            icon: Icons.storefront_rounded,
+                            title: 'Club profile',
+                            subtitle: 'Edit details',
+                            gradient: AppGradients.brand,
+                            onTap: () =>
+                                context.pushNamed(RouteNames.editProfile),
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.md),
+                        Expanded(
+                          child: _ActionTile(
+                            icon: Icons.event_available_rounded,
+                            title: 'Events hub',
+                            subtitle: 'Schedule & edit',
+                            gradient: const LinearGradient(
+                              colors: [AppColors.accent, AppColors.secondary],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            onTap: () => context.go(RouteNames.eventsPath),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
                 SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                    child: club == null
-                        ? _EmptyClubCard(
-                            onRegister: () => context.go(RouteNames.searchPath),
-                          )
-                        : _ClubSpotlightCard(
-                            club: club,
-                            totalEvents: events.length,
-                            upcomingCount: upcoming.length,
+                  child: SectionHeader(
+                    title: 'Upcoming schedule',
+                    trailing: upcoming.isEmpty
+                        ? null
+                        : TextButton(
+                            onPressed: () => context.go(RouteNames.eventsPath),
+                            child: const Text('View all'),
                           ),
                   ),
                 ),
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.lg,
-                      AppSpacing.xl,
-                      AppSpacing.lg,
-                      AppSpacing.md,
-                    ),
-                    child: _SectionHeader(title: 'Quick actions'),
-                  ),
-                ),
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                    child: _QuickActionGrid(
-                      onClubProfile: () => context.pushNamed(RouteNames.editProfile),
-                      onEvents: () => context.go(RouteNames.eventsPath),
-                    ),
-                  ),
-                ),
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.lg,
-                      AppSpacing.xl,
-                      AppSpacing.lg,
-                      AppSpacing.md,
-                    ),
-                    child: _SectionHeader(
-                      title: 'Upcoming schedule',
-                      actionLabel: upcoming.isNotEmpty ? 'View all' : null,
-                      onAction: upcoming.isNotEmpty
-                          ? () => context.go(RouteNames.eventsPath)
-                          : null,
-                    ),
-                  ),
-                ),
                 if (upcoming.isEmpty)
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.lg,
-                        0,
-                        AppSpacing.lg,
-                        AppSpacing.xl,
-                      ),
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.lg,
+                      0,
+                      AppSpacing.lg,
+                      AppSpacing.xxl,
+                    ),
+                    sliver: SliverToBoxAdapter(
                       child: _ScheduleEmptyState(
-                        clubApproved: club?.status == 'approved',
-                        onCreateEvent: club?.status == 'approved'
+                        clubApproved: approved,
+                        onCreateEvent: approved
                             ? () => context.pushNamed(
                                   RouteNames.eventForm,
                                   extra: EventFormArgs(clubId: club!.id),
@@ -149,36 +191,48 @@ class OwnerDashboardScreen extends ConsumerWidget {
                       AppSpacing.lg,
                       0,
                       AppSpacing.lg,
-                      AppSpacing.xl,
+                      AppSpacing.xxl,
                     ),
-                    sliver: SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, i) {
-                          final isLast =
-                              i >= upcoming.length.clamp(0, 4) - 1;
-                          return _TimelineEventRow(
-                            event: upcoming[i].event,
-                            isLast: isLast,
-                            onTap: () => context.go(RouteNames.eventsPath),
-                          );
-                        },
-                        childCount: upcoming.length.clamp(0, 4),
-                      ),
+                    sliver: SliverList.builder(
+                      itemCount: upcoming.length.clamp(0, 4),
+                      itemBuilder: (context, i) {
+                        final shown = upcoming.length.clamp(0, 4);
+                        return _TimelineRow(
+                          event: upcoming[i].event,
+                          isLast: i == shown - 1,
+                          onTap: () => context.pushNamed(
+                            RouteNames.eventDetail,
+                            extra: upcoming[i].event,
+                          ),
+                        );
+                      },
                     ),
                   ),
-              ],
-            ),
-          );
-        },
+          ],
+        ),
       ),
     );
   }
 }
 
-class _WelcomeHeader extends StatelessWidget {
-  final String ownerName;
+// ---------------------------------------------------------------------------
+// Hero
+// ---------------------------------------------------------------------------
 
-  const _WelcomeHeader({required this.ownerName});
+/// Brand-gradient panel: greeting, owner avatar, and the three numbers an owner
+/// actually cares about, rendered as glass tiles over the gradient.
+class _OwnerHero extends StatelessWidget {
+  final String ownerName;
+  final int totalEvents;
+  final int upcomingCount;
+  final int saves;
+
+  const _OwnerHero({
+    required this.ownerName,
+    required this.totalEvents,
+    required this.upcomingCount,
+    required this.saves,
+  });
 
   String get _greeting {
     final hour = DateTime.now().hour;
@@ -192,66 +246,103 @@ class _WelcomeHeader extends StatelessWidget {
     final theme = Theme.of(context);
     final topInset = MediaQuery.paddingOf(context).top;
     final firstName = ownerName.trim().split(' ').first;
-    final today = DateFormat('EEEE, MMM d').format(DateTime.now());
     final initial = firstName.isNotEmpty ? firstName[0].toUpperCase() : '?';
+    final today = DateFormat('EEEE, MMM d').format(DateTime.now());
 
-    return Padding(
+    return Container(
+      decoration: BoxDecoration(
+        gradient: AppGradients.brand,
+        borderRadius: const BorderRadius.vertical(
+          bottom: Radius.circular(AppRadius.xl),
+        ),
+        boxShadow: AppShadows.brand,
+      ),
       padding: EdgeInsets.fromLTRB(
         AppSpacing.lg,
-        topInset + AppSpacing.xl,
+        topInset + AppSpacing.lg,
         AppSpacing.lg,
-        AppSpacing.sm,
+        AppSpacing.lg,
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  today.toUpperCase(),
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: AppColors.textTertiary,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 1.1,
-                  ),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      today.toUpperCase(),
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.75),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Text(
+                      '$_greeting,',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.85),
+                      ),
+                    ),
+                    Text(
+                      firstName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        height: 1.15,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  '$_greeting,',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Container(
+                width: 54,
+                height: 54,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: AppShadows.sm,
                 ),
-                Text(
-                  firstName,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.headlineMedium?.copyWith(
+                child: Text(
+                  initial,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    color: AppColors.primary,
                     fontWeight: FontWeight.w800,
-                    height: 1.1,
                   ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          // IntrinsicHeight keeps all three tiles identical even though
+          // "Upcoming events" wraps onto a second line.
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _GlassStat(
+                  icon: Icons.event_rounded,
+                  value: '$totalEvents',
+                  label: 'Events',
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                _GlassStat(
+                  icon: Icons.schedule_rounded,
+                  value: '$upcomingCount',
+                  label: 'Upcoming events',
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                _GlassStat(
+                  icon: Icons.favorite_rounded,
+                  value: '$saves',
+                  label: 'Favourites',
                 ),
               ],
-            ),
-          ),
-          const SizedBox(width: AppSpacing.md),
-          Container(
-            width: 54,
-            height: 54,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              gradient: AppGradients.brand,
-              shape: BoxShape.circle,
-              boxShadow: AppShadows.brand,
-            ),
-            child: Text(
-              initial,
-              style: theme.textTheme.titleLarge?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w800,
-              ),
             ),
           ),
         ],
@@ -260,219 +351,219 @@ class _WelcomeHeader extends StatelessWidget {
   }
 }
 
-class _ClubSpotlightCard extends StatelessWidget {
-  final Club club;
-  final int totalEvents;
-  final int upcomingCount;
-  const _ClubSpotlightCard({
-    required this.club,
-    required this.totalEvents,
-    required this.upcomingCount,
+/// Frosted stat tile reading over the hero's gradient: an icon chip, the number,
+/// and its label. Real backdrop blur (rather than a flat white overlay) is what
+/// stops these looking like plain boxes.
+class _GlassStat extends StatelessWidget {
+  final IconData icon;
+  final String value;
+  final String label;
+  const _GlassStat({
+    required this.icon,
+    required this.value,
+    required this.label,
   });
 
-  String? get _coverUrl {
-    if (club.gallery.isNotEmpty) return club.gallery.first;
-    return club.logo;
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Expanded(
+      child: ClipRRect(
+        borderRadius: AppRadius.lgAll,
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              vertical: AppSpacing.md,
+              horizontal: AppSpacing.sm,
+            ),
+            decoration: BoxDecoration(
+              // Darkened glass rather than a white wash: a subtle navy tint lets
+              // the hero gradient read through and keeps the white for the
+              // numbers, where it earns its contrast.
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  const Color(0xFF0B1220).withValues(alpha: 0.20),
+                  const Color(0xFF0B1220).withValues(alpha: 0.10),
+                ],
+              ),
+              borderRadius: AppRadius.lgAll,
+              border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 30,
+                  height: 30,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.14),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    icon,
+                    size: 16,
+                    color: Colors.white.withValues(alpha: 0.9),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  value,
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                    height: 1.1,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  label,
+                  maxLines: 2,
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: Colors.white.withValues(alpha: 0.85),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
+}
+
+// ---------------------------------------------------------------------------
+// Club spotlight
+// ---------------------------------------------------------------------------
+
+/// The owner's club as a cover-image card: identity, live status and a way in
+/// to editing it.
+class _ClubSpotlightCard extends StatelessWidget {
+  final Club club;
+  final VoidCallback onManage;
+  const _ClubSpotlightCard({required this.club, required this.onManage});
+
+  String? get _coverUrl => club.gallery.isNotEmpty ? club.gallery.first : club.logo;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final status = _StatusStyle.from(club.status);
-    final cover = _coverUrl;
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: AppRadius.xlAll,
-        border: Border.all(color: AppColors.border),
-        boxShadow: AppShadows.md,
-      ),
-      child: ClipRRect(
-        borderRadius: AppRadius.xlAll,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            SizedBox(
-              height: 148,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  if (cover != null)
-                    CachedImage(url: cover, fit: BoxFit.cover)
-                  else
-                    const DecoratedBox(
-                      decoration: BoxDecoration(gradient: AppGradients.brand),
-                    ),
-                  const DecoratedBox(
-                    decoration: BoxDecoration(gradient: AppGradients.imageOverlay),
+    return PressableScale(
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: AppRadius.xlAll,
+          boxShadow: AppShadows.md,
+        ),
+        child: Material(
+          color: theme.cardTheme.color ?? AppColors.card,
+          borderRadius: AppRadius.xlAll,
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: onManage,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SizedBox(
+                  height: 132,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      // No scrim: nothing sits on the cover but the status pill,
+                      // which carries its own white background — a gradient
+                      // overlay here would only crush the artwork.
+                      if (_coverUrl != null)
+                        CachedImage(url: _coverUrl, fit: BoxFit.cover)
+                      else
+                        const DecoratedBox(
+                          decoration: BoxDecoration(gradient: AppGradients.brand),
+                        ),
+                      Positioned(
+                        top: AppSpacing.md,
+                        right: AppSpacing.md,
+                        child: _StatusPill(
+                          label: status.label,
+                          color: status.color,
+                        ),
+                      ),
+                    ],
                   ),
-                  Positioned(
-                    top: AppSpacing.md,
-                    right: AppSpacing.md,
-                    child: _StatusChip(label: status.label, color: status.color),
-                  ),
-                  Positioned(
-                    left: AppSpacing.lg,
-                    bottom: AppSpacing.lg,
-                    right: AppSpacing.lg,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        DecoratedBox(
-                          decoration: BoxDecoration(
-                            borderRadius: AppRadius.lgAll,
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.85),
-                              width: 2,
-                            ),
-                            boxShadow: AppShadows.md,
-                          ),
-                          child: ClipRRect(
-                            borderRadius: AppRadius.lgAll,
-                            child: CachedImage(
-                              url: club.logo,
-                              width: 64,
-                              height: 64,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.md),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                club.name,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: theme.textTheme.titleLarge?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w800,
-                                  shadows: [
-                                    Shadow(
-                                      color: Colors.black.withValues(alpha: 0.35),
-                                      blurRadius: 8,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              if (_locationLine(club).isNotEmpty)
-                                Text(
-                                  _locationLine(club),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: Colors.white.withValues(alpha: 0.92),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            ColoredBox(
-              color: AppColors.card,
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.lg),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Status hint: a small status-coloured dot keeps the accent
-                    // while the sentence stays neutral (no full-green text).
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(top: 5),
-                          child: Container(
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              color: status.color,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.sm),
-                        Expanded(
-                          child: Text(
-                            status.hint,
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: AppColors.textSecondary,
-                              fontWeight: FontWeight.w500,
-                              height: 1.4,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _MetricPill(
-                            icon: Icons.event_note_rounded,
-                            value: totalEvents.toString(),
-                            label: 'Events',
-                            tint: AppColors.info,
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.sm),
-                        Expanded(
-                          child: _MetricPill(
-                            icon: Icons.schedule_rounded,
-                            value: upcomingCount.toString(),
-                            label: 'Upcoming',
-                            tint: AppColors.primary,
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.sm),
-                        Expanded(
-                          child: _MetricPill(
-                            icon: Icons.favorite_rounded,
-                            value: club.favoritesCount.toString(),
-                            label: 'Saves',
-                            tint: AppColors.secondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
                 ),
-              ),
+                Padding(
+                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  child: Row(
+                    children: [
+                      DecoratedBox(
+                        decoration: BoxDecoration(
+                          borderRadius: AppRadius.lgAll,
+                          boxShadow: AppShadows.sm,
+                        ),
+                        child: ClipRRect(
+                          borderRadius: AppRadius.lgAll,
+                          child: CachedImage(
+                            url: club.logo,
+                            width: 56,
+                            height: 56,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.md),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              club.name,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.titleMedium,
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              status.hint,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      const Icon(
+                        Icons.chevron_right_rounded,
+                        color: AppColors.textTertiary,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
-
-  String _locationLine(Club club) {
-    return [
-      if (club.sport != null && club.sport!.isNotEmpty) club.sport,
-      if (club.city != null && club.city!.isNotEmpty) club.city,
-    ].join(' · ');
-  }
 }
 
-class _StatusChip extends StatelessWidget {
+class _StatusPill extends StatelessWidget {
   final String label;
   final Color color;
-
-  const _StatusChip({required this.label, required this.color});
+  const _StatusPill({required this.label, required this.color});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.xs + 1,
+      ),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.92),
+        color: AppColors.card,
         borderRadius: AppRadius.pillAll,
         boxShadow: AppShadows.sm,
       ),
@@ -484,15 +575,13 @@ class _StatusChip extends StatelessWidget {
             height: 7,
             decoration: BoxDecoration(color: color, shape: BoxShape.circle),
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: AppSpacing.sm - 2),
           Text(
             label,
-            style: TextStyle(
-              color: color,
-              fontSize: 11,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.2,
-            ),
+            style: Theme.of(context)
+                .textTheme
+                .labelSmall
+                ?.copyWith(color: color, letterSpacing: 0.2),
           ),
         ],
       ),
@@ -500,118 +589,18 @@ class _StatusChip extends StatelessWidget {
   }
 }
 
-class _MetricPill extends StatelessWidget {
-  final IconData icon;
-  final String value;
-  final String label;
-  final Color tint;
+// ---------------------------------------------------------------------------
+// Quick actions
+// ---------------------------------------------------------------------------
 
-  const _MetricPill({
-    required this.icon,
-    required this.value,
-    required this.label,
-    required this.tint,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: AppSpacing.md,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceMuted,
-        borderRadius: AppRadius.lgAll,
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 32,
-            height: 32,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: tint.withValues(alpha: 0.12),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, size: 17, color: tint),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              value,
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w800,
-                color: AppColors.textPrimary,
-              ),
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: AppColors.textSecondary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _QuickActionGrid extends StatelessWidget {
-  final VoidCallback onClubProfile;
-  final VoidCallback onEvents;
-
-  const _QuickActionGrid({
-    required this.onClubProfile,
-    required this.onEvents,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: _QuickActionTile(
-            icon: Icons.storefront_rounded,
-            title: 'Club profile',
-            subtitle: 'Edit details',
-            gradient: const [Color(0xFF2563EB), Color(0xFF3B82F6)],
-            onTap: onClubProfile,
-          ),
-        ),
-        const SizedBox(width: AppSpacing.sm),
-        Expanded(
-          child: _QuickActionTile(
-            icon: Icons.event_available_rounded,
-            title: 'Events hub',
-            subtitle: 'Schedule & edit',
-            gradient: const [Color(0xFF0EA5E9), Color(0xFF38BDF8)],
-            onTap: onEvents,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _QuickActionTile extends StatelessWidget {
+class _ActionTile extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
-  final List<Color> gradient;
+  final Gradient gradient;
   final VoidCallback onTap;
 
-  const _QuickActionTile({
+  const _ActionTile({
     required this.icon,
     required this.title,
     required this.subtitle,
@@ -622,64 +611,42 @@ class _QuickActionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Material(
-      color: AppColors.card,
-      elevation: 0,
-      shadowColor: AppColors.shadow,
-      borderRadius: AppRadius.lgAll,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: AppRadius.lgAll,
-        child: Ink(
-          decoration: BoxDecoration(
-            borderRadius: AppRadius.lgAll,
-            border: Border.all(color: AppColors.border),
-            boxShadow: AppShadows.sm,
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: gradient,
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+    return PressableScale(
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: AppRadius.lgAll,
+          boxShadow: AppShadows.sm,
+        ),
+        child: Material(
+          color: theme.cardTheme.color ?? AppColors.card,
+          borderRadius: AppRadius.lgAll,
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: onTap,
+            child: Container(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              decoration: BoxDecoration(
+                border: Border.all(color: AppColors.border),
+                borderRadius: AppRadius.lgAll,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      gradient: gradient,
+                      borderRadius: AppRadius.mdAll,
                     ),
-                    borderRadius: AppRadius.mdAll,
-                    boxShadow: [
-                      BoxShadow(
-                        color: gradient.first.withValues(alpha: 0.35),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
+                    child: Icon(icon, color: Colors.white, size: 22),
                   ),
-                  child: Icon(icon, color: Colors.white, size: 22),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ],
+                  const SizedBox(height: AppSpacing.md),
+                  Text(title, style: theme.textTheme.titleSmall),
+                  const SizedBox(height: 2),
+                  Text(subtitle, style: theme.textTheme.bodySmall),
+                ],
+              ),
             ),
           ),
         ),
@@ -688,12 +655,17 @@ class _QuickActionTile extends StatelessWidget {
   }
 }
 
-class _TimelineEventRow extends StatelessWidget {
+// ---------------------------------------------------------------------------
+// Schedule
+// ---------------------------------------------------------------------------
+
+/// One upcoming event, threaded onto a vertical timeline.
+class _TimelineRow extends StatelessWidget {
   final Event event;
   final bool isLast;
   final VoidCallback onTap;
 
-  const _TimelineEventRow({
+  const _TimelineRow({
     required this.event,
     required this.isLast,
     required this.onTap,
@@ -703,36 +675,30 @@ class _TimelineEventRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final date = event.startDate.toLocal();
-    final month = DateFormat('MMM').format(date).toUpperCase();
 
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // Timeline rail
           SizedBox(
-            width: 28,
+            width: 24,
             child: Column(
               children: [
                 Container(
-                  width: 12,
-                  height: 12,
-                  decoration: BoxDecoration(
+                  width: 10,
+                  height: 10,
+                  margin: const EdgeInsets.only(top: AppSpacing.lg),
+                  decoration: const BoxDecoration(
                     color: AppColors.primary,
                     shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.card, width: 2),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withValues(alpha: 0.35),
-                        blurRadius: 6,
-                      ),
-                    ],
                   ),
                 ),
                 if (!isLast)
                   Expanded(
                     child: Container(
                       width: 2,
-                      margin: const EdgeInsets.symmetric(vertical: 4),
+                      margin: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
                       color: AppColors.primary.withValues(alpha: 0.18),
                     ),
                   ),
@@ -744,39 +710,30 @@ class _TimelineEventRow extends StatelessWidget {
             child: Padding(
               padding: EdgeInsets.only(bottom: isLast ? 0 : AppSpacing.md),
               child: AppCard(
-                variant: AppCardVariant.elevated,
                 padding: const EdgeInsets.all(AppSpacing.md),
                 onTap: onTap,
                 child: Row(
                   children: [
+                    // Date block
                     Container(
                       width: 48,
-                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            AppColors.primary.withValues(alpha: 0.14),
-                            AppColors.secondary.withValues(alpha: 0.10),
-                          ],
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                        ),
+                        color: AppColors.primary.withValues(alpha: 0.08),
                         borderRadius: AppRadius.mdAll,
                       ),
                       child: Column(
                         children: [
                           Text(
-                            month,
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.w800,
-                            ),
+                            DateFormat('MMM').format(date).toUpperCase(),
+                            style: theme.textTheme.labelSmall
+                                ?.copyWith(color: AppColors.primary),
                           ),
                           Text(
-                            '${date.day}',
+                            DateFormat('d').format(date),
                             style: theme.textTheme.titleMedium?.copyWith(
+                              color: AppColors.primary,
                               fontWeight: FontWeight.w800,
-                              height: 1,
                             ),
                           ),
                         ],
@@ -791,23 +748,25 @@ class _TimelineEventRow extends StatelessWidget {
                             event.title,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
+                            style: theme.textTheme.titleSmall,
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 2),
                           Text(
-                            Formatters.date(date),
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: AppColors.textSecondary,
-                            ),
+                            DateFormat('h:mm a').format(date) +
+                                (event.location != null &&
+                                        event.location!.isNotEmpty
+                                    ? ' · ${event.location}'
+                                    : ''),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodySmall,
                           ),
                         ],
                       ),
                     ),
                     const Icon(
-                      Icons.arrow_forward_ios_rounded,
-                      size: 14,
+                      Icons.chevron_right_rounded,
+                      size: 20,
                       color: AppColors.textTertiary,
                     ),
                   ],
@@ -825,57 +784,42 @@ class _ScheduleEmptyState extends StatelessWidget {
   final bool clubApproved;
   final VoidCallback? onCreateEvent;
 
-  const _ScheduleEmptyState({
-    required this.clubApproved,
-    required this.onCreateEvent,
-  });
+  const _ScheduleEmptyState({required this.clubApproved, this.onCreateEvent});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return AppCard(
       variant: AppCardVariant.tinted,
-      accentColor: AppColors.primary,
-      accentTop: true,
       child: Column(
         children: [
           Container(
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  AppColors.primary.withValues(alpha: 0.18),
-                  AppColors.secondary.withValues(alpha: 0.12),
-                ],
-              ),
-              shape: BoxShape.circle,
+              color: AppColors.primary.withValues(alpha: 0.08),
+              borderRadius: AppRadius.lgAll,
             ),
             child: const Icon(
-              Icons.event_available_outlined,
+              Icons.event_note_rounded,
               color: AppColors.primary,
-              size: 28,
             ),
           ),
           const SizedBox(height: AppSpacing.md),
           Text(
-            'No upcoming events',
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
+            clubApproved ? 'Nothing scheduled yet' : 'Schedule opens once approved',
+            style: theme.textTheme.titleSmall,
+            textAlign: TextAlign.center,
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
             clubApproved
-                ? 'Publish your next event to stay visible to parents.'
-                : 'Events can be published once your club is approved.',
+                ? 'Create your first event and it will show up here.'
+                : 'We\'ll let you know as soon as your club is live.',
+            style: theme.textTheme.bodySmall,
             textAlign: TextAlign.center,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: AppColors.textSecondary,
-              height: 1.45,
-            ),
           ),
-          if (clubApproved && onCreateEvent != null) ...[
+          if (onCreateEvent != null) ...[
             const SizedBox(height: AppSpacing.lg),
             AppButton(
               label: 'Create event',
@@ -891,164 +835,90 @@ class _ScheduleEmptyState extends StatelessWidget {
 
 class _EmptyClubCard extends StatelessWidget {
   final VoidCallback onRegister;
-
   const _EmptyClubCard({required this.onRegister});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
     return AppCard(
       variant: AppCardVariant.tinted,
-      accentColor: AppColors.primary,
-      accentTop: true,
       child: Column(
         children: [
           Container(
             width: 56,
             height: 56,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: AppColors.brandGradient,
-              ),
+            decoration: const BoxDecoration(
+              gradient: AppGradients.brand,
               shape: BoxShape.circle,
-              boxShadow: AppShadows.brand,
             ),
-            child: const Icon(
-              Icons.add_business_outlined,
-              color: Colors.white,
-              size: 28,
-            ),
+            child: const Icon(Icons.storefront_rounded, color: Colors.white),
           ),
           const SizedBox(height: AppSpacing.md),
-          Text(
-            'Register your club',
-            style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w800,
-            ),
-          ),
+          Text('No club yet', style: theme.textTheme.titleMedium),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            'Submit your club for review to unlock the full owner workspace.',
+            'Register your club to start publishing events.',
+            style: theme.textTheme.bodySmall,
             textAlign: TextAlign.center,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: AppColors.textSecondary,
-              height: 1.45,
-            ),
           ),
           const SizedBox(height: AppSpacing.lg),
-          AppButton(
-            label: 'Get started',
-            onPressed: onRegister,
-          ),
+          AppButton(label: 'Get started', onPressed: onRegister),
         ],
       ),
     );
   }
 }
 
-class _SectionHeader extends StatelessWidget {
-  final String title;
-  final String? actionLabel;
-  final VoidCallback? onAction;
+// ---------------------------------------------------------------------------
+// Loading
+// ---------------------------------------------------------------------------
 
-  const _SectionHeader({
-    required this.title,
-    this.actionLabel,
-    this.onAction,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Row(
-      children: [
-        Text(
-          title,
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-        const Spacer(),
-        if (actionLabel != null && onAction != null)
-          TextButton(
-            onPressed: onAction,
-            style: TextButton.styleFrom(
-              foregroundColor: AppColors.primary,
-              textStyle: const TextStyle(fontWeight: FontWeight.w700),
-            ),
-            child: Text(actionLabel!),
-          )
-        else
-          Container(
-            width: 32,
-            height: 3,
-            decoration: BoxDecoration(
-              gradient: AppGradients.brandHorizontal,
-              borderRadius: AppRadius.pillAll,
-            ),
-          ),
-      ],
-    );
-  }
-}
-
+/// Shimmer placeholders shaped like the real dashboard, so the layout doesn't
+/// jump when data lands.
 class _DashboardSkeleton extends StatelessWidget {
   const _DashboardSkeleton();
 
   @override
   Widget build(BuildContext context) {
+    final topInset = MediaQuery.paddingOf(context).top;
     return ListView(
       padding: EdgeInsets.fromLTRB(
         AppSpacing.lg,
-        MediaQuery.paddingOf(context).top + AppSpacing.lg,
+        topInset + AppSpacing.xl,
         AppSpacing.lg,
-        AppSpacing.lg,
+        AppSpacing.xxl,
       ),
       children: [
-        _ShimmerBox(height: 108, radius: AppRadius.xlAll),
+        AppSkeleton(height: 148, borderRadius: AppRadius.xlAll),
         const SizedBox(height: AppSpacing.lg),
-        _ShimmerBox(height: 280, radius: AppRadius.xlAll),
+        AppSkeleton(height: 190, borderRadius: AppRadius.xlAll),
         const SizedBox(height: AppSpacing.xl),
-        _ShimmerBox(height: 20, width: 140, radius: AppRadius.pillAll),
+        const AppSkeleton(height: 20, width: 140),
         const SizedBox(height: AppSpacing.md),
         Row(
           children: [
-            Expanded(child: _ShimmerBox(height: 120, radius: AppRadius.lgAll)),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(child: _ShimmerBox(height: 120, radius: AppRadius.lgAll)),
+            Expanded(
+              child: AppSkeleton(height: 132, borderRadius: AppRadius.lgAll),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: AppSkeleton(height: 132, borderRadius: AppRadius.lgAll),
+            ),
           ],
         ),
+        const SizedBox(height: AppSpacing.xl),
+        const AppSkeleton(height: 20, width: 170),
+        const SizedBox(height: AppSpacing.md),
+        for (var i = 0; i < 3; i++) ...[
+          AppSkeleton(height: 84, borderRadius: AppRadius.lgAll),
+          const SizedBox(height: AppSpacing.md),
+        ],
       ],
     );
   }
 }
 
-class _ShimmerBox extends StatelessWidget {
-  final double height;
-  final double? width;
-  final BorderRadius radius;
-
-  _ShimmerBox({
-    required this.height,
-    this.width,
-    BorderRadius? radius,
-  }) : radius = radius ?? AppRadius.lgAll;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: width,
-      height: height,
-      decoration: BoxDecoration(
-        color: AppColors.surfaceMuted,
-        borderRadius: radius,
-        border: Border.all(color: AppColors.border),
-      ),
-    );
-  }
-}
-
+/// Status → label/hint/colour for the club's review state.
 class _StatusStyle {
   final String label;
   final String hint;
@@ -1065,31 +935,31 @@ class _StatusStyle {
       case 'approved':
         return const _StatusStyle(
           label: 'Live',
-          hint: 'Your club is visible to parents in search and events.',
+          hint: 'Visible to parents in search and events.',
           color: AppColors.success,
         );
       case 'pending':
         return const _StatusStyle(
           label: 'In review',
-          hint: 'Our team is reviewing your club. This usually takes 1–2 days.',
+          hint: 'Our team is reviewing your club — usually 1–2 days.',
           color: AppColors.warning,
         );
       case 'rejected':
         return const _StatusStyle(
           label: 'Needs update',
-          hint: 'Please review feedback and resubmit your club details.',
+          hint: 'Review the feedback and resubmit your details.',
           color: AppColors.danger,
         );
       case 'suspended':
         return const _StatusStyle(
           label: 'Paused',
-          hint: 'Contact support to restore your club listing.',
+          hint: 'Contact support to restore your listing.',
           color: AppColors.danger,
         );
       default:
         return const _StatusStyle(
           label: 'Draft',
-          hint: 'Complete your club profile to submit for review.',
+          hint: 'Complete your profile to submit for review.',
           color: AppColors.textSecondary,
         );
     }

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../models/club_model.dart';
+import '../models/event_model.dart';
 import '../models/user_model.dart';
 import '../providers/auth_provider.dart';
 import '../screens/auth/login_screen.dart';
@@ -10,6 +11,7 @@ import '../screens/auth/signup_screen.dart';
 import '../screens/auth/forgot_password_screen.dart';
 import '../screens/auth/reset_password_screen.dart';
 import '../screens/club/club_detail_screen.dart';
+import '../screens/events/event_detail_screen.dart';
 import '../screens/events/events_screen.dart';
 import '../screens/favorites/favorites_screen.dart';
 import '../screens/home/home_screen.dart';
@@ -91,6 +93,10 @@ final routerProvider = Provider<GoRouter>((ref) {
   );
   ref.onDispose(refresh.dispose);
 
+  // Remembers a location requested before the session resolved (e.g. a shared
+  // club link opened from cold start) so it can be restored after auth.
+  String? pendingDeepLink;
+
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: RouteNames.splashPath,
@@ -102,12 +108,19 @@ final routerProvider = Provider<GoRouter>((ref) {
       final onSplash = location == RouteNames.splashPath;
 
       if (status == AuthStatus.unknown) {
+        // Stash the intended destination so it survives the splash gate.
+        if (!onSplash) pendingDeepLink = state.uri.toString();
         return onSplash ? null : RouteNames.splashPath;
       }
       if (status == AuthStatus.unauthenticated) {
         return isPublic ? null : RouteNames.loginPath;
       }
       if (onSplash) {
+        final target = pendingDeepLink;
+        pendingDeepLink = null;
+        if (target != null && target != RouteNames.splashPath) {
+          return target;
+        }
         return RouteNames.homePath;
       }
       // Signed-in users may still open password recovery (e.g. from change password).
@@ -212,6 +225,20 @@ final routerProvider = Provider<GoRouter>((ref) {
             ClubFormScreen(club: state.extra as Club?),
       ),
       GoRoute(
+        name: RouteNames.eventDetail,
+        path: RouteNames.eventDetailPath,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final extra = state.extra;
+          if (extra is Event) return EventDetailScreen(event: extra);
+          // No valid args — fail safe (with a back button) instead of crashing.
+          return Scaffold(
+            appBar: AppBar(),
+            body: const Center(child: Text('Missing event details')),
+          );
+        },
+      ),
+      GoRoute(
         name: RouteNames.eventForm,
         path: RouteNames.eventFormPath,
         parentNavigatorKey: _rootNavigatorKey,
@@ -223,7 +250,14 @@ final routerProvider = Provider<GoRouter>((ref) {
               event: extra.event,
             );
           }
-          return EventFormScreen(clubId: extra as String);
+          if (extra is String) {
+            return EventFormScreen(clubId: extra);
+          }
+          // No valid args — fail safe (with a back button) instead of crashing.
+          return Scaffold(
+            appBar: AppBar(),
+            body: const Center(child: Text('Missing event details')),
+          );
         },
       ),
       GoRoute(

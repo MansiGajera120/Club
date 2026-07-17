@@ -85,21 +85,21 @@ export function EventFormPage() {
 
   const validate = () => {
     const next = {};
-    if (!isEdit && !form.club) next.club = 'Select an organization';
+    if (!isEdit && !form.club) next.club = 'Please select an organization';
 
-    if (!form.title.trim()) next.title = 'Title is required';
+    if (!form.title.trim()) next.title = 'Please enter a title';
     else if (form.title.trim().length < 2) next.title = 'Min 2 characters';
 
-    if (!form.description.trim()) next.description = 'Description is required';
-    if (!form.location.trim()) next.location = 'Location is required';
+    if (!form.description.trim()) next.description = 'Please enter a description';
+    if (!form.location.trim()) next.location = 'Please enter a location';
 
-    if (!form.startDate) next.startDate = 'Start date is required';
+    if (!form.startDate) next.startDate = 'Please select a start date';
 
     if (form.price === '' || Number(form.price) < 0)
       next.price = 'Enter a price (0 for free)';
 
     if (!form.registrationLink.trim())
-      next.registrationLink = 'Registration link is required';
+      next.registrationLink = 'Please enter a registration link';
     else if (!isUrl(form.registrationLink))
       next.registrationLink = 'Start with http:// or https://';
 

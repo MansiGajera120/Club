@@ -37,7 +37,13 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
     // Bootstrap finds no token → unauthenticated → router redirects to login.
-    await tester.pumpAndSettle();
-    expect(find.text('Welcome back'), findsOneWidget);
+    // Pumped by hand rather than settled: the login backdrop drifts on an
+    // endless loop, so pumpAndSettle would never return.
+    for (var i = 0; i < 25; i++) {
+      await tester.pump(const Duration(milliseconds: 200));
+    }
+    // The headline splits across two widgets so the accent can be highlighted.
+    expect(find.text('Welcome'), findsOneWidget);
+    expect(find.text('back'), findsOneWidget);
   });
 }

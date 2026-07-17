@@ -8,7 +8,9 @@ import '../../providers/event_providers.dart';
 import '../../providers/owner_providers.dart';
 import '../../routes/route_names.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_gradients.dart';
 import '../../theme/app_radius.dart';
+import '../../theme/app_shadows.dart';
 import '../../theme/app_spacing.dart';
 import '../../utils/app_toast.dart';
 import '../../utils/formatters.dart';
@@ -34,30 +36,16 @@ class OwnerEventsScreen extends ConsumerWidget {
     WidgetRef ref,
     OwnerEventItem item,
   ) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Delete event?'),
-        content: Text(
-          'Delete "${item.event.title}"? This cannot be undone.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(ctx).colorScheme.error,
-            ),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+    final confirmed = await showAppConfirmDialog(
+      context,
+      icon: Icons.delete_outline_rounded,
+      title: 'Delete event?',
+      message: 'Delete "${item.event.title}"? This cannot be undone.',
+      confirmLabel: 'Delete',
+      destructive: true,
     );
 
-    if (confirmed != true || !context.mounted) return;
+    if (!confirmed || !context.mounted) return;
 
     try {
       await ref.read(eventRepositoryProvider).deleteEvent(item.event.id);
@@ -71,219 +59,221 @@ class OwnerEventsScreen extends ConsumerWidget {
     }
   }
 
+  /// Start a new event. With a single approved club we go straight to the form;
+  /// with several, the owner picks which club it belongs to first.
+  Future<void> _addEvent(BuildContext context, List<Club> approvedClubs) async {
+    if (approvedClubs.isEmpty) return;
+
+    var club = approvedClubs.first;
+    if (approvedClubs.length > 1) {
+      final picked = await showModalBottomSheet<Club>(
+        context: context,
+        backgroundColor: Colors.transparent,
+        builder: (_) => _ClubPickerSheet(clubs: approvedClubs),
+      );
+      if (picked == null) return;
+      club = picked;
+    }
+    if (!context.mounted) return;
+    context.pushNamed(
+      RouteNames.eventForm,
+      extra: EventFormArgs(clubId: club.id),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final screenData = ref.watch(ownerEventsScreenProvider);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      appBar: AppBar(title: const Text('My events')),
-      body: screenData.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => EmptyState(
-          icon: Icons.event_busy_outlined,
-          title: 'Could not load events',
-          message: error is AppException ? error.message : error.toString(),
-          actionLabel: 'Retry',
-          onAction: () => _refresh(ref),
-        ),
-        data: (data) => _EventsBody(
-          clubs: data.clubs,
-          events: data.events,
-          onRefresh: () => _refresh(ref),
-          onEdit: (item) => context.pushNamed(
-            RouteNames.eventForm,
-            extra: EventFormArgs(
-              clubId: item.event.club,
-              event: item.event,
-            ),
-          ),
-          onDelete: (item) => _deleteEvent(context, ref, item),
-        ),
-      ),
-    );
-  }
-}
-
-class _EventsBody extends StatelessWidget {
-  final List<Club> clubs;
-  final List<OwnerEventItem> events;
-  final Future<void> Function() onRefresh;
-  final void Function(OwnerEventItem item) onEdit;
-  final void Function(OwnerEventItem item) onDelete;
-
-  const _EventsBody({
-    required this.clubs,
-    required this.events,
-    required this.onRefresh,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final approvedClubs = clubs.where((c) => c.status == 'approved').toList();
-    final theme = Theme.of(context);
-
-    return Column(
-      children: [
-        Expanded(
-          child: RefreshIndicator(
-            onRefresh: onRefresh,
-            child: ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.lg,
-                AppSpacing.md,
-                AppSpacing.lg,
-                AppSpacing.xl,
+      body: RefreshIndicator(
+        onRefresh: () => _refresh(ref),
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            const SliverToBoxAdapter(
+              child: PageHero(
+                overline: 'MANAGE',
+                title: 'Your events',
+                subtitle: 'Create, edit and keep your schedule up to date.',
               ),
-              children: [
-                if (events.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                    child: Text(
-                      'Your events (${events.length})',
-                      style: theme.textTheme.titleMedium,
-                    ),
+            ),
+            ...screenData.when(
+              loading: () => [const _EventsSkeleton()],
+              error: (error, _) => [
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: EmptyState(
+                    icon: Icons.event_busy_outlined,
+                    title: 'Could not load events',
+                    message:
+                        error is AppException ? error.message : error.toString(),
+                    actionLabel: 'Retry',
+                    onAction: () => _refresh(ref),
                   ),
-                if (events.isEmpty)
-                  SizedBox(
-                    height: MediaQuery.sizeOf(context).height * 0.28,
-                    child: Center(
-                      child: EmptyState(
-                        icon: Icons.event_available_outlined,
-                        title: 'No events yet',
-                        message: approvedClubs.isEmpty
-                            ? 'Approve a club first, then create an event below.'
-                            : 'Tap a club below to create your first event.',
-                      ),
-                    ),
-                  )
-                else
-                  ...events.map(
-                    (item) => Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                      child: _CompactEventRow(
-                        item: item,
-                        onEdit: () => onEdit(item),
-                        onDelete: () => onDelete(item),
-                      ),
-                    ),
-                  ),
+                ),
               ],
+              data: (data) {
+                final approved =
+                    data.clubs.where((c) => c.status == 'approved').toList();
+                return _bodySlivers(
+                  context: context,
+                  ref: ref,
+                  approvedClubs: approved,
+                  events: data.events,
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _bodySlivers({
+    required BuildContext context,
+    required WidgetRef ref,
+    required List<Club> approvedClubs,
+    required List<OwnerEventItem> events,
+  }) {
+    return [
+      SliverToBoxAdapter(
+        child: SectionHeader(
+          title: events.isEmpty ? 'Your events' : 'Your events (${events.length})',
+          trailing: approvedClubs.isEmpty
+              ? null
+              : _AddEventButton(onTap: () => _addEvent(context, approvedClubs)),
+        ),
+      ),
+      if (events.isEmpty)
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: EmptyState(
+            icon: Icons.event_available_outlined,
+            title: 'No events yet',
+            message: approvedClubs.isEmpty
+                ? 'Events can be created once your club is approved.'
+                : 'Add your first event to get it in front of parents.',
+          ),
+        )
+      else
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            0,
+            AppSpacing.lg,
+            AppSpacing.xxl,
+          ),
+          sliver: SliverList.separated(
+            itemCount: events.length,
+            separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
+            itemBuilder: (_, i) {
+              final item = events[i];
+              return _CompactEventRow(
+                item: item,
+                onEdit: () => context.pushNamed(
+                  RouteNames.eventForm,
+                  extra: EventFormArgs(
+                    clubId: item.event.club,
+                    event: item.event,
+                  ),
+                ),
+                onDelete: () => _deleteEvent(context, ref, item),
+              );
+            },
+          ),
+        ),
+    ];
+  }
+}
+
+/// "Add event" action in the section header. Carries the same brand gradient
+/// and glow as [AppButton]'s filled variant, just at a height that sits
+/// comfortably beside a section title.
+class _AddEventButton extends StatelessWidget {
+  final VoidCallback onTap;
+  const _AddEventButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return PressableScale(
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: AppRadius.lgAll,
+          boxShadow: AppShadows.brand,
+        ),
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: AppRadius.lgAll,
+          clipBehavior: Clip.antiAlias,
+          child: Ink(
+            decoration: BoxDecoration(
+              gradient: AppGradients.brand,
+              borderRadius: AppRadius.lgAll,
+            ),
+            child: InkWell(
+              onTap: onTap,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.lg,
+                  vertical: AppSpacing.md,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.add_rounded, size: 20, color: Colors.white),
+                    const SizedBox(width: AppSpacing.sm - 2),
+                    Text(
+                      'Add event',
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ),
-        if (approvedClubs.isNotEmpty)
-          _QuickCreateStrip(clubs: approvedClubs)
-        else if (clubs.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.lg,
-              AppSpacing.sm,
-              AppSpacing.lg,
-              0,
-            ),
-            child: Text(
-              'Events can be created once a club is approved.',
-              style: theme.textTheme.bodySmall,
-              textAlign: TextAlign.center,
-            ),
-          ),
-        const SizedBox(height: 96),
-      ],
+      ),
     );
   }
 }
 
-/// Pinned bottom strip — pick a club to create an event (horizontal scroll).
-class _QuickCreateStrip extends StatelessWidget {
+/// Club chooser shown only when an owner has more than one approved club.
+class _ClubPickerSheet extends StatelessWidget {
   final List<Club> clubs;
-
-  const _QuickCreateStrip({required this.clubs});
+  const _ClubPickerSheet({required this.clubs});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: AppColors.cardTint,
-        border: const Border(
-          top: BorderSide(color: AppColors.borderStrong),
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.lg,
-          AppSpacing.md,
-          0,
-          AppSpacing.md,
+    return SafeArea(
+      child: Container(
+        margin: const EdgeInsets.all(AppSpacing.lg),
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        decoration: BoxDecoration(
+          color: theme.cardTheme.color ?? AppColors.card,
+          borderRadius: AppRadius.xlAll,
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Create event', style: theme.textTheme.titleSmall),
-            const SizedBox(height: AppSpacing.sm),
-            SizedBox(
-              height: 64,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.only(right: AppSpacing.lg),
-                itemCount: clubs.length,
-                separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.sm),
-                itemBuilder: (context, i) {
-                  final club = clubs[i];
-                  return Material(
-                    color: AppColors.card,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: AppRadius.lgAll,
-                      side: const BorderSide(color: AppColors.borderStrong),
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child: InkWell(
-                      onTap: () => context.pushNamed(
-                        RouteNames.eventForm,
-                        extra: EventFormArgs(clubId: club.id),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.sm,
-                          vertical: AppSpacing.xs,
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            CachedImage(
-                              url: club.logo,
-                              width: 36,
-                              height: 36,
-                              borderRadius: AppRadius.smAll,
-                            ),
-                            const SizedBox(width: AppSpacing.sm),
-                            ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 100),
-                              child: Text(
-                                club.name,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: theme.textTheme.labelLarge,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            const Icon(
-                              Icons.add_circle_outline,
-                              size: 18,
-                              color: AppColors.primary,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                },
+            Text('Which club?', style: theme.textTheme.titleLarge),
+            const SizedBox(height: AppSpacing.md),
+            ...clubs.map(
+              (c) => ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: ClipRRect(
+                  borderRadius: AppRadius.mdAll,
+                  child: CachedImage(url: c.logo, width: 40, height: 40),
+                ),
+                title: Text(c.name, style: theme.textTheme.titleSmall),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => Navigator.pop(context, c),
               ),
             ),
           ],
@@ -293,7 +283,28 @@ class _QuickCreateStrip extends StatelessWidget {
   }
 }
 
-/// Compact single-line event row to fit more on screen.
+class _EventsSkeleton extends StatelessWidget {
+  const _EventsSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverPadding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.xl,
+        AppSpacing.lg,
+        AppSpacing.xxl,
+      ),
+      sliver: SliverList.separated(
+        itemCount: 5,
+        separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
+        itemBuilder: (_, _) => const AppSkeleton(height: 92),
+      ),
+    );
+  }
+}
+
+/// One event in the owner's list, with inline edit/delete.
 class _CompactEventRow extends StatelessWidget {
   final OwnerEventItem item;
   final VoidCallback onEdit;
@@ -313,14 +324,14 @@ class _CompactEventRow extends StatelessWidget {
     return AppCard(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
-        vertical: AppSpacing.sm,
+        vertical: AppSpacing.md,
       ),
       variant: AppCardVariant.outlined,
       child: Row(
         children: [
           Container(
-            width: 36,
-            height: 36,
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
               color: AppColors.primary.withValues(alpha: 0.10),
               borderRadius: AppRadius.mdAll,
@@ -330,11 +341,11 @@ class _CompactEventRow extends StatelessWidget {
             ),
             child: const Icon(
               Icons.event_rounded,
-              size: 18,
+              size: 24,
               color: AppColors.primary,
             ),
           ),
-          const SizedBox(width: AppSpacing.sm),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -343,9 +354,9 @@ class _CompactEventRow extends StatelessWidget {
                   event.title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleSmall,
+                  style: theme.textTheme.titleMedium,
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 3),
                 Text(
                   '${item.club.name} · ${Formatters.date(event.startDate)}',
                   maxLines: 1,
@@ -359,19 +370,21 @@ class _CompactEventRow extends StatelessWidget {
           ),
           IconButton(
             onPressed: onEdit,
-            icon: const Icon(Icons.edit_outlined, size: 20),
+            icon: const Icon(Icons.edit_outlined, size: 22),
             color: AppColors.primary,
+            tooltip: 'Edit',
             visualDensity: VisualDensity.compact,
             padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+            constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
           ),
           IconButton(
             onPressed: onDelete,
-            icon: const Icon(Icons.delete_outline, size: 20),
+            icon: const Icon(Icons.delete_outline, size: 22),
             color: theme.colorScheme.error,
+            tooltip: 'Delete',
             visualDensity: VisualDensity.compact,
             padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+            constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
           ),
         ],
       ),

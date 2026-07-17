@@ -1,38 +1,47 @@
 /**
- * Design tokens — "ClubHub Admin": clean light with orange accent.
- * Inspired by Thrive Tracker style.
+ * Design tokens — ported from the Flutter app's palette (`mobile_app/lib/theme/
+ * app_colors.dart`) so both clients read as one product: an "Ocean Blue" brand
+ * on cool slate neutrals.
+ *
+ * Keep these in sync with `app_colors.dart`; component code should reference
+ * these tokens (or the MUI palette built from them) rather than raw hex.
  */
 
 export const brand = {
-  primary: '#F97316',
-  primaryDark: '#EA6C0A',
-  primaryLight: '#FB923C',
-  secondary: '#FDBA74',
-  accent: '#FED7AA',
+  primary: '#2563EB',
+  primaryDark: '#1D4ED8',
+  primaryLight: '#3B82F6',
+  secondary: '#38BDF8',
+  accent: '#0EA5E9',
 };
 
 export const gradients = {
-  brand: `linear-gradient(135deg, ${brand.primary} 0%, ${brand.primaryLight} 100%)`,
-  brandSoft: 'linear-gradient(135deg, rgba(249,115,22,0.08) 0%, rgba(251,146,60,0.08) 100%)',
+  brand: `linear-gradient(135deg, ${brand.primary} 0%, ${brand.secondary} 100%)`,
+  brandSoft: 'linear-gradient(135deg, rgba(37,99,235,0.08) 0%, rgba(56,189,248,0.08) 100%)',
 };
 
 export const status = {
   success: '#16A34A',
-  warning: '#D97706',
-  danger: '#DC2626',
-  info: '#2563EB',
+  warning: '#F59E0B',
+  danger: '#EF4444',
+  info: '#3B82F6',
 };
 
 export const neutralLight = {
-  background: '#F7F8FA',
+  background: '#F7F9FC',
   surface: '#FFFFFF',
-  surfaceMuted: '#F7F8FA',
-  textPrimary: '#262525',
-  textSecondary: '#6B7280',
-  textTertiary: '#9CA3AF',
-  border: '#EEEFF2',
+  surfaceMuted: '#EEF3FB',
+  surfaceTint: '#F8FBFE',
+  textPrimary: '#111827',
+  textSecondary: '#566072',
+  textTertiary: '#8A93A3',
+  textMuted: '#A7B0BF',
+  border: '#E4EAF2',
+  borderStrong: '#D2DCEA',
 };
 
+// The Flutter app is light-only (`ThemeMode.light`), so there is no dark
+// palette to mirror; dark mode resolves to the same neutrals.
 export const neutralDark = neutralLight;
 
 export const spacingUnit = 8;
@@ -45,11 +54,16 @@ export const radius = {
   pill: 999,
 };
 
+/**
+ * Depth is carried by shadows rather than Material elevation, matching
+ * `app_shadows.dart`: a tight contact shadow over a wide ambient one, both
+ * tinted with the app's cool shadow tones (#1E3A5F / #0F172A).
+ */
 export const shadows = {
-  sm: '0 1px 4px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.03)',
-  md: '0 4px 16px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.05)',
-  lg: '0 12px 40px rgba(0,0,0,0.10)',
-  brand: '0 6px 20px rgba(249,115,22,0.30)',
+  sm: '0 1px 3px rgba(30,58,95,0.06), 0 4px 10px rgba(15,23,42,0.05)',
+  md: '0 2px 6px rgba(30,58,95,0.07), 0 10px 22px rgba(15,23,42,0.08)',
+  lg: '0 4px 10px rgba(30,58,95,0.08), 0 18px 40px rgba(15,23,42,0.12)',
+  brand: '0 8px 20px rgba(37,99,235,0.28), 0 2px 6px rgba(37,99,235,0.14)',
 };
 
 export const fontFamily = [

@@ -14,9 +14,8 @@ import {
 
 /**
  * Build the MUI theme for a given mode ('light' | 'dark') from the shared
- * design tokens. "Premium Indigo": indigo→violet brand on cool slate neutrals.
- * Both modes share brand/status colors and component shapes; only neutrals
- * differ — mirroring the Flutter app.
+ * design tokens — the Flutter app's "Ocean Blue" palette: a #2563EB→#38BDF8
+ * brand on cool slate neutrals.
  *
  * @param {'light'|'dark'} mode
  */
@@ -67,15 +66,15 @@ export function getTheme(mode) {
           },
           '*::-webkit-scrollbar': { width: 10, height: 10 },
           '*::-webkit-scrollbar-thumb': {
-            backgroundColor: isDark ? '#2a3550' : '#cbd2e6',
+            backgroundColor: neutral.borderStrong,
             borderRadius: 999,
             border: `2px solid ${neutral.background}`,
           },
           '*::-webkit-scrollbar-thumb:hover': {
-            backgroundColor: isDark ? '#374266' : '#aeb7d6',
+            backgroundColor: neutral.textMuted,
           },
           '::selection': {
-            backgroundColor: 'rgba(255,90,95,0.22)',
+            backgroundColor: 'rgba(37,99,235,0.22)',
           },
         },
       },
@@ -97,7 +96,7 @@ export function getTheme(mode) {
           },
           outlined: {
             borderWidth: 1.5,
-            '&:hover': { borderWidth: 1.5, backgroundColor: 'rgba(255,90,95,0.05)' },
+            '&:hover': { borderWidth: 1.5, backgroundColor: 'rgba(37,99,235,0.05)' },
           },
         },
       },
@@ -162,9 +161,9 @@ export function getTheme(mode) {
             borderRadius: radius.md,
             marginBlock: 2,
             '&.Mui-selected': {
-              backgroundColor: 'rgba(255,90,95,0.10)',
+              backgroundColor: 'rgba(37,99,235,0.10)',
               color: brand.primary,
-              '&:hover': { backgroundColor: 'rgba(255,90,95,0.14)' },
+              '&:hover': { backgroundColor: 'rgba(37,99,235,0.14)' },
               '& .MuiListItemIcon-root': { color: brand.primary },
             },
           },
@@ -230,7 +229,7 @@ export function getTheme(mode) {
           },
           body: {
             paddingBlock: 24,
-            color: '#000000',
+            color: neutral.textPrimary,
             fontSize: '0.95rem',
             fontWeight: 500,
             '&:first-of-type': {
@@ -249,14 +248,14 @@ export function getTheme(mode) {
             '&:last-child .MuiTableCell-body': {
               borderBottom: 'none',
             },
-            '&:hover': { backgroundColor: '#FAFBFC' },
+            '&:hover': { backgroundColor: neutral.surfaceTint },
           },
         },
       },
       MuiTooltip: {
         styleOverrides: {
           tooltip: {
-            backgroundColor: '#2A2A35',
+            backgroundColor: '#0F172A',
             fontSize: '0.75rem',
             borderRadius: radius.sm,
             padding: '6px 10px',
@@ -289,7 +288,7 @@ export function getTheme(mode) {
             paddingTop: 6,
             paddingBottom: 6,
             paddingLeft: 12,
-            backgroundColor: '#FFFFFF',
+            backgroundColor: neutral.surface,
           },
           toolbar: {
             paddingInline: 24,

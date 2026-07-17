@@ -104,9 +104,14 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
   DateTime get _maxEventDate => DateTime(_now.year + 3, _now.month, _now.day);
 
   Future<void> _pickStart() async {
+    // When editing an event whose start is already in the past, allow keeping
+    // (or re-picking) that original date; new events stay today-or-later.
+    final original = widget.event?.startDate.toLocal();
+    final minDate =
+        (original != null && original.isBefore(_now)) ? original : _now;
     final picked = await _pickDate(
       _startDate,
-      minDate: _now,
+      minDate: minDate,
       maxDate: _maxEventDate,
     );
     if (picked != null) {
@@ -193,7 +198,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                       controller: _title,
                       maxLength: 160,
                       validator: (v) =>
-                          Validators.required(v, field: 'Title'),
+                          Validators.required(v, field: 'a title'),
                     ),
                     AppDropdownField<String>(
                       label: 'Event type',

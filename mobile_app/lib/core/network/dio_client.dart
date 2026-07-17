@@ -12,7 +12,8 @@ import 'refresh_interceptor.dart';
 class DioClient {
   final Dio dio;
 
-  DioClient(StorageService storage) : dio = Dio() {
+  DioClient(StorageService storage, {void Function()? onSessionExpired})
+      : dio = Dio() {
     final baseOptions = BaseOptions(
       baseUrl: AppConfig.apiOrigin,
       connectTimeout: AppConfig.connectTimeout,
@@ -27,7 +28,9 @@ class DioClient {
     final refreshDio = Dio()..options = baseOptions;
 
     dio.interceptors.add(AuthInterceptor(storage));
-    dio.interceptors.add(RefreshInterceptor(storage, refreshDio));
+    dio.interceptors.add(
+      RefreshInterceptor(storage, refreshDio, onSessionExpired: onSessionExpired),
+    );
 
     if (!AppConfig.isProduction) {
       debugPrint('API origin: ${AppConfig.apiOrigin}');

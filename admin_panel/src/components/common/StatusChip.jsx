@@ -19,32 +19,32 @@ const STATUS_MAP = {
   },
   inactive: {
     label: 'Inactive',
-    color: '#8B98A5',
-    bg: '#F6F8FA',
+    color: '#8A93A3',
+    bg: '#F8FBFE',
   },
   disabled: {
     label: 'Inactive',
-    color: '#6B7280',
-    bg: '#F3F4F6',
+    color: '#566072',
+    bg: '#EEF3FB',
   },
   hidden: {
     label: 'Hidden',
-    color: '#6B7280',
-    bg: '#F3F4F6',
+    color: '#566072',
+    bg: '#EEF3FB',
   },
   pending: {
     label: 'Pending',
-    color: '#D97706',
+    color: '#F59E0B',
     bg: '#FEF3C7',
   },
   rejected: {
     label: 'Rejected',
-    color: '#DC2626',
+    color: '#EF4444',
     bg: '#FEE2E2',
   },
   suspended: {
     label: 'Suspended',
-    color: '#DC2626',
+    color: '#EF4444',
     bg: '#FEE2E2',
   },
   'at-risk': {
@@ -63,8 +63,8 @@ export function StatusChip({ status, label }) {
   const key = status?.toLowerCase?.() ?? '';
   const cfg = STATUS_MAP[key] ?? {
     label: label ?? status ?? '—',
-    color: '#6B7280',
-    bg: '#F3F4F6',
+    color: '#566072',
+    bg: '#EEF3FB',
   };
 
   return (

@@ -32,6 +32,15 @@ export const authService = {
   },
 
   /**
+   * Check the emailed 6-digit code without consuming it, so the set-password
+   * step is only reached with a code the server has already accepted.
+   * @param {{ email: string, code: string }} payload
+   */
+  async verifyResetCode({ email, code }) {
+    await apiClient.post('/auth/verify-reset-code', { email, code });
+  },
+
+  /**
    * Complete a password reset with the 6-digit code emailed to the user.
    * @param {{ email: string, code: string, password: string }} payload
    */
