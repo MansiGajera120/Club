@@ -21,8 +21,6 @@ import {
   Button,
   Badge,
   Menu,
-  MenuItem,
-  Divider,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import SpaceDashboardOutlinedIcon from '@mui/icons-material/SpaceDashboardOutlined';
@@ -74,7 +72,6 @@ export function DashboardLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const [notifAnchor, setNotifAnchor] = useState(null);
-  const [profileAnchor, setProfileAnchor] = useState(null);
 
   const initials = user?.name
     ?.split(' ')
@@ -334,9 +331,10 @@ export function DashboardLayout() {
               </IconButton>
             </Tooltip>
 
-            {/* Name + role chip */}
+            {/* Name + role chip — a label, not a control. Change Password and
+                Sign Out both live in the sidebar, so there is nothing for a
+                dropdown here to offer that isn't already one click away. */}
             <Box
-              onClick={(e) => setProfileAnchor(e.currentTarget)}
               sx={{
                 display: { xs: 'none', sm: 'flex' },
                 alignItems: 'center',
@@ -347,9 +345,6 @@ export function DashboardLayout() {
                 borderRadius: '10px',
                 border: '1px solid #E4EAF2',
                 bgcolor: '#FFFFFF',
-                cursor: 'pointer',
-                transition: 'border-color 0.2s',
-                '&:hover': { borderColor: '#2563EB' },
                 ml: 0.5,
               }}
             >
@@ -425,65 +420,6 @@ export function DashboardLayout() {
             No new notifications
           </Typography>
         </Box>
-      </Menu>
-
-      {/* Profile dropdown */}
-      <Menu
-        anchorEl={profileAnchor}
-        open={Boolean(profileAnchor)}
-        onClose={() => setProfileAnchor(null)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-        PaperProps={{
-          sx: { mt: 1.5, width: 260, borderRadius: '14px', boxShadow: '0 12px 40px rgba(0,0,0,0.12)' },
-        }}
-      >
-        <Box sx={{ px: 2.5, py: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <Avatar
-            sx={{
-              width: 40,
-              height: 40,
-              background: 'linear-gradient(135deg, #2563EB, #38BDF8)',
-              fontSize: '0.85rem',
-              fontWeight: 800,
-            }}
-          >
-            {initials}
-          </Avatar>
-          <Box sx={{ minWidth: 0 }}>
-            <Typography sx={{ fontWeight: 700, fontSize: '0.92rem', color: '#111827' }} noWrap>
-              {user?.name ?? 'Admin'}
-            </Typography>
-            <Typography variant="caption" sx={{ color: '#8A93A3' }} noWrap>
-              {user?.email ?? ''}
-            </Typography>
-          </Box>
-        </Box>
-        <Divider />
-        <MenuItem
-          onClick={() => {
-            setProfileAnchor(null);
-            navigate(ROUTES.settings);
-          }}
-          sx={{ py: 1.25 }}
-        >
-          <ListItemIcon>
-            <SettingsOutlinedIcon fontSize="small" />
-          </ListItemIcon>
-          Change Password
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
-            setProfileAnchor(null);
-            handleLogout();
-          }}
-          sx={{ py: 1.25, color: 'error.main' }}
-        >
-          <ListItemIcon>
-            <LogoutOutlinedIcon fontSize="small" color="error" />
-          </ListItemIcon>
-          Sign Out
-        </MenuItem>
       </Menu>
 
       {/* Logout Dialog */}
