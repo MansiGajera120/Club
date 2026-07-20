@@ -83,6 +83,15 @@ export const updateClubStatusSchema = Joi.object({
     then: Joi.string().trim().min(3).max(500).required(),
     otherwise: Joi.string().trim().allow('').max(500),
   }),
+  // Optional auto-lift date, only meaningful when suspending. Must be in the
+  // future — a past date would just unsuspend on the next sweep, which is what
+  // "don't suspend" already does. Forbidden on any other status so the API
+  // can't be handed a timer it would silently ignore.
+  suspendedUntil: Joi.when('status', {
+    is: CLUB_STATUS.SUSPENDED,
+    then: Joi.date().iso().greater('now').optional(),
+    otherwise: Joi.any().forbidden(),
+  }),
 });
 
 export const setFeaturedSchema = Joi.object({

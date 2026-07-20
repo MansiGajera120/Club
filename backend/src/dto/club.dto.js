@@ -37,6 +37,7 @@ export const toClubResponse = (club, { isFavorite } = {}) => {
     registrationLink: club.registrationLink ?? null,
     status: club.status,
     rejectionReason: club.rejectionReason ?? null,
+    suspendedUntil: club.suspendedUntil ?? null,
     isFeatured: Boolean(club.isFeatured),
     favoritesCount: club.favoritesCount ?? 0,
     owner: owner
@@ -70,6 +71,7 @@ export const toClubListItem = (club, { isFavorite } = {}) => ({
   logo: buildUploadUrl(club.logo),
   isFeatured: Boolean(club.isFeatured),
   status: club.status,
+  suspendedUntil: club.suspendedUntil ?? null,
   favoritesCount: club.favoritesCount ?? 0,
   ...(isFavorite === undefined ? {} : { isFavorite }),
 });

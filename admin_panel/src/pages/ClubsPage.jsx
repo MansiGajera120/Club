@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -160,7 +160,17 @@ export function ClubsPage() {
 
   const [rejectOpen, setRejectOpen] = useState(false);
   const [reason, setReason] = useState('');
+  const [suspendOpen, setSuspendOpen] = useState(false);
+  const [suspendUntil, setSuspendUntil] = useState('');
   const [deleteOpen, setDeleteOpen] = useState(false);
+
+  // Earliest pickable auto-lift date is tomorrow: a same-day "until today" would
+  // be lifted on the next sweep, which is indistinguishable from not suspending.
+  const minSuspendDate = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().slice(0, 10);
+  }, []);
 
   useEffect(() => {
     const handle = setTimeout(() => { setPage(0); setSearch(searchInput.trim()); }, 350);
@@ -179,9 +189,31 @@ export function ClubsPage() {
     );
   };
 
+  const submitSuspend = () => {
+    // An empty date means an indefinite suspension — omit the field entirely so
+    // the backend (which forbids it on non-suspend statuses and validates it as
+    // a future date otherwise) treats it as "no auto-lift".
+    const body = { status: 'suspended' };
+    let toastMessage = 'Club suspended — hidden from parents until reactivated';
+    if (suspendUntil) {
+      // Reactivate at the start of the chosen day, interpreted as UTC to match
+      // how the server stores and sweeps it.
+      body.suspendedUntil = new Date(`${suspendUntil}T00:00:00.000Z`).toISOString();
+      const shown = new Date(`${suspendUntil}T00:00:00.000Z`).toLocaleDateString(undefined, {
+        month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC',
+      });
+      toastMessage = `Club suspended — reactivates automatically on ${shown}`;
+    }
+    updateStatus.mutate(
+      { id: active.id, body, toastMessage },
+      { onSuccess: () => { setSuspendOpen(false); setSuspendUntil(''); } }
+    );
+  };
+
   const menuActions = active ? getClubMenuActions(active.status) : [];
   const handleMenuAction = (action) => {
     if (action.dialog === 'reject') { closeMenu(); setRejectOpen(true); return; }
+    if (action.dialog === 'suspend') { closeMenu(); setSuspendUntil(''); setSuspendOpen(true); return; }
     if (action.dialog === 'delete') { closeMenu(); setDeleteOpen(true); return; }
     if (action.status) { changeStatus(action.status, action.toast); }
   };
@@ -261,7 +293,16 @@ export function ClubsPage() {
                   <TableCell sx={{ color: '#111827', fontSize: '0.95rem', py: 2.5 }}>
                     {formatPrice(club.price, club.priceCurrency)}
                   </TableCell>
-                  <TableCell sx={{ py: 2.5 }}><StatusChip status={club.status} /></TableCell>
+                  <TableCell sx={{ py: 2.5 }}>
+                    <StatusChip status={club.status} />
+                    {club.status === 'suspended' && club.suspendedUntil && (
+                      <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: 'text.secondary' }}>
+                        until {new Date(club.suspendedUntil).toLocaleDateString(undefined, {
+                          month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC',
+                        })}
+                      </Typography>
+                    )}
+                  </TableCell>
                   <TableCell align="center" sx={{ py: 2.5 }}>
                     <Chip
                       size="small" clickable icon={club.isFeatured ? <StarIcon /> : <StarBorderIcon />}
@@ -341,6 +382,35 @@ export function ClubsPage() {
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button color="inherit" onClick={() => setRejectOpen(false)}>Cancel</Button>
           <Button variant="contained" color="error" disabled={reason.trim().length < 3 || updateStatus.isPending} onClick={submitReject}>Reject</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={suspendOpen} onClose={() => setSuspendOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle>Suspend club</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
+            The club is hidden from parents while suspended. Set a date to have it
+            reactivate automatically, or leave it blank to suspend indefinitely.
+          </Typography>
+          <TextField
+            fullWidth
+            type="date"
+            label="Reactivate on (optional)"
+            value={suspendUntil}
+            onChange={(e) => setSuspendUntil(e.target.value)}
+            InputLabelProps={{ shrink: true }}
+            inputProps={{ min: minSuspendDate }}
+          />
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button color="inherit" onClick={() => setSuspendOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={updateStatus.isPending || (Boolean(suspendUntil) && suspendUntil < minSuspendDate)}
+            onClick={submitSuspend}
+          >
+            {suspendUntil ? 'Suspend until date' : 'Suspend indefinitely'}
+          </Button>
         </DialogActions>
       </Dialog>
 

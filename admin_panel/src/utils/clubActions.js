@@ -41,9 +41,10 @@ export function getClubMenuActions(status) {
         {
           key: 'suspend',
           label: 'Suspend',
-          status: 'suspended',
+          // Opens a dialog to pick the auto-lift date instead of suspending on
+          // the spot — see the suspend dialog in ClubsPage.
+          dialog: 'suspend',
           icon: PauseCircleIcon,
-          toast: 'Club suspended — hidden from parents until reactivated',
         },
         {
           key: 'hide',

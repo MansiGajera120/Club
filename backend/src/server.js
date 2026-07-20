@@ -4,6 +4,7 @@ import logger from './logger/index.js';
 import { connectDatabase, disconnectDatabase } from './config/database.js';
 import { ensureUploadDirs } from './utils/paths.js';
 import { startKeepAlive } from './jobs/keepAlive.js';
+import { startAutoUnsuspend } from './jobs/autoUnsuspend.js';
 
 /**
  * Application entry point. Connects to MongoDB, starts the HTTP server, and
@@ -22,6 +23,8 @@ const start = async () => {
       logger.info(`   Health: ${config.server.appUrl}${config.server.apiPrefix}/health`);
       // Keep free hosts (Render) awake via a periodic self-ping (prod only).
       startKeepAlive();
+      // Auto-lift club suspensions once their end date passes.
+      startAutoUnsuspend();
     });
 
     /**

@@ -66,6 +66,10 @@ const clubSchema = new Schema(
       index: true,
     },
     rejectionReason: { type: String, trim: true },
+    // When set, an admin suspended this club until this moment; the auto-unsuspend
+    // sweep flips it back to approved once it passes. Null means "not suspended"
+    // or "suspended indefinitely" — the sweep ignores both.
+    suspendedUntil: { type: Date, default: null },
     isFeatured: { type: Boolean, default: false, index: true },
     approvedAt: { type: Date },
     approvedBy: { type: Schema.Types.ObjectId, ref: 'User' },
@@ -93,6 +97,9 @@ clubSchema.index({ status: 1, isFeatured: -1, createdAt: -1 });
 
 // Supports the `popular` sort (favoritesCount desc) without an in-memory sort.
 clubSchema.index({ status: 1, favoritesCount: -1 });
+
+// The auto-unsuspend sweep queries suspended clubs with an elapsed end date.
+clubSchema.index({ status: 1, suspendedUntil: 1 });
 
 export const Club = model('Club', clubSchema);
 

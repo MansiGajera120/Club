@@ -19,6 +19,7 @@ import {
   startOfUtcToday,
   utcDateKey,
 } from '../utils/growthWindow.js';
+import { suspensionPatch } from '../utils/suspension.js';
 import * as clubService from './club.service.js';
 import * as eventService from './event.service.js';
 import * as authService from './auth.service.js';
@@ -202,11 +203,13 @@ export const updateClub = async (clubId, data, adminId) => {
   return toClubResponse(updated);
 };
 
-export const updateClubStatus = async (clubId, { status, reason }, adminId) => {
+export const updateClubStatus = async (clubId, { status, reason, suspendedUntil }, adminId) => {
   const club = await clubRepository.findById(clubId);
   if (!club) throw ApiError.notFound(MESSAGES.CLUB.NOT_FOUND);
 
-  const update = { status };
+  // Sets the auto-lift date when suspending; clears it on every other status so
+  // a reactivated club can't carry a stale timer.
+  const update = { status, ...suspensionPatch(status, suspendedUntil) };
   if (status === CLUB_STATUS.APPROVED) {
     update.approvedAt = new Date();
     update.approvedBy = adminId;

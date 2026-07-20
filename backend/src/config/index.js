@@ -46,6 +46,13 @@ const envSchema = Joi.object({
     .min(60000)
     .default(10 * 60 * 1000),
 
+  // How often to sweep for suspensions whose end date has passed and lift them.
+  // This interval is the delay between a suspension expiring and the club
+  // reappearing — a few minutes is fine; it doesn't need to be instant.
+  AUTO_UNSUSPEND_INTERVAL_MS: Joi.number()
+    .min(60000)
+    .default(5 * 60 * 1000),
+
   MAX_FILE_SIZE: Joi.number().default(5 * 1024 * 1024),
   // Optional absolute/relative path override. When empty, the app auto-picks
   // monorepo `uploads/` locally or `backend/uploads/` on standalone hosts (Render).
@@ -129,6 +136,10 @@ const config = Object.freeze({
   keepAlive: {
     enabled: env.KEEP_ALIVE_ENABLED,
     intervalMs: env.KEEP_ALIVE_INTERVAL_MS,
+  },
+
+  autoUnsuspend: {
+    intervalMs: env.AUTO_UNSUSPEND_INTERVAL_MS,
   },
 
   uploads: {
